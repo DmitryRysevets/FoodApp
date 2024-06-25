@@ -1,90 +1,71 @@
-# Xcode
-#
-# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
-
-## User settings
-xcuserdata/
-
-## compatibility with Xcode 8 and earlier (ignoring not required starting Xcode 9)
-*.xcscmblueprint
+# Ignore Xcode specific files and directories
+*.xcworkspace
+*.xcuserdata
 *.xccheckout
+*.xcscmblueprint
+*.xcodeproj
+*.xcuserstate
+*.swiftpm
+*.playground
 
-## compatibility with Xcode 3 and earlier (ignoring not required starting Xcode 4)
-build/
+# Ignore Xcode user-specific data
+userdata/
+UserInterfaceState.xcuserstate
+
+# Ignore build artifacts and dependencies
 DerivedData/
-*.moved-aside
-*.pbxuser
-!default.pbxuser
-*.mode1v3
-!default.mode1v3
-*.mode2v3
-!default.mode2v3
-*.perspectivev3
-!default.perspectivev3
+build/
+Build/
+*.o
+*.linkfilelist
+*.d
+Pods/
+Carthage/
+Carthage/Checkouts
+Carthage/Build
+.swiftpm/
+.swiftpm/xcode/
+.swiftpm/xcode/xcshareddata/
+.swiftpm/xcode/UserData/
+.swiftpm/xcode/UserData/*.xcuserdatad
 
-## Obj-C/Swift specific
-*.hmap
+# Ignore temporary and log files
+*.tmp
+*.temp
+*.log
+*.swp
+*.swo
+*~
 
-## App packaging
-*.ipa
-*.dSYM.zip
-*.dSYM
+# Ignore cache artifacts
+*.DS_Store
+*.swp
+*.swo
+*.lock
 
-## Playgrounds
-timeline.xctimeline
-playground.xcworkspace
+# Ignore macOS temporary and log files
+*.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
 
-# Swift Package Manager
-#
-# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
-# Packages/
-# Package.pins
-# Package.resolved
-# *.xcodeproj
-#
-# Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
-# hence it is not needed unless you have added a package configuration file to your project
-# .swiftpm
+# Ignore macOS cached files
+.DS_Store
+.DS_Store?
+.Spotlight-V100
+.Trashes
+._*
+.Safari
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
 
-.build/
+# Ignore SwiftPM files
+Package.resolved
 
-# CocoaPods
-#
-# We recommend against adding the Pods directory to your .gitignore. However
-# you should judge for yourself, the pros and cons are mentioned at:
-# https://guides.cocoapods.org/using/using-cocoapods.html#should-i-check-the-pods-directory-into-source-control
-#
-# Pods/
-#
-# Add this line if you want to avoid checking in source code from the Xcode workspace
-# *.xcworkspace
+.env
 
-# Carthage
-#
-# Add this line if you want to avoid checking in source code from Carthage dependencies.
-# Carthage/Checkouts
-
-Carthage/Build/
-
-# Accio dependency management
-Dependencies/
-.accio/
-
-# fastlane
-#
-# It is recommended to not store the screenshots in the git repo.
-# Instead, use fastlane to re-generate the screenshots whenever they are needed.
-# For more information about the recommended setup visit:
-# https://docs.fastlane.tools/best-practices/source-control/#source-control
-
-fastlane/report.xml
-fastlane/Preview.html
-fastlane/screenshots/**/*.png
-fastlane/test_output
-
-# Code Injection
-#
-# After new code Injection tools there's a generated folder /iOSInjectionProject
-# https://github.com/johnno1962/injectionforxcode
-
-iOSInjectionProject/
+GoogleService-Info.plist
