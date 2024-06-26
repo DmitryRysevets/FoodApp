@@ -7,7 +7,9 @@ import UIKit
 
 final class MenuTabVC: UIViewController {
     
-    // MARK: - header & search view vars.
+    private lazy var preloaderView = PreloaderView(frame: CGRect(x: 32, y: Int(view.center.y - 100), width: Int(view.frame.width - 64), height: 180))
+    
+    // MARK: - header vars.
     
     private let headerHeight = 44.0
     
@@ -73,6 +75,8 @@ final class MenuTabVC: UIViewController {
         return button
     }()
     
+    // MARK: - search bar vars.
+    
     //    private lazy var searchController: UISearchController = {
     //        let controller = UISearchController(searchResultsController: nil)
     //        controller.searchResultsUpdater = self
@@ -89,65 +93,6 @@ final class MenuTabVC: UIViewController {
     //        guard let text = searchController.searchBar.text else { return false }
     //        return text.isEmpty
     //    }
-    
-    // MARK: - preloader view vars.
-    
-    private lazy var preloaderView: UIView = {
-        let frame = CGRect(x: 32, y: Int(self.view.center.y - 100), width: Int(self.view.frame.width - 64), height: 180)
-        let view = UIView(frame: frame)
-        return view
-    }()
-    
-    private lazy var preloaderMessage: UILabel = {
-        let frame = CGRect(x: 0, y: 0, width: Int(preloaderView.frame.width), height: 32)
-        let label = UILabel(frame: frame)
-        label.textAlignment = .center
-        label.textColor = ColorManager.shared.label
-        label.text = "Downloading menu..."
-        label.font = UIFont(name: "Raleway", size: 16)
-        label.numberOfLines = 1
-        label.layer.shadowOffset = CGSize(width: 3, height: 3)
-        label.layer.shadowOpacity = 0.2
-        label.layer.shadowColor = UIColor.black.cgColor
-        label.layer.shadowRadius = 2
-        return label
-    }()
-    
-    private lazy var preloader: CustomPreloader = {
-        let view = CustomPreloader(parentFrame: preloaderView.frame, size: 60)
-        view.layer.shadowOffset = CGSize(width: 3, height: 3)
-        view.layer.shadowOpacity = 0.7
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowRadius = 3
-        return view
-    }()
-    
-    private lazy var downloadErrorImageView: UIImageView = {
-        let frame = CGRect(x: Int(preloaderView.frame.width / 2 - 30), y: Int(preloaderView.frame.height / 2 - 30), width: 60, height: 60)
-        let image = UIImage(systemName: "multiply")
-        let view  = UIImageView(frame: frame)
-        view.image = image
-        view.tintColor = ColorManager.shared.label.withAlphaComponent(0.5)
-        view.layer.shadowOffset = CGSize(width: 3, height: 3)
-        view.layer.shadowOpacity = 0.7
-        view.layer.shadowColor = UIColor.black.cgColor
-        view.layer.shadowRadius = 3
-        view.isHidden = true
-        return view
-    }()
-    
-    private lazy var reloadButton: UIButton = {
-        let frame = CGRect(x: Int(preloaderView.frame.width / 2 - 48), y: Int(preloaderView.frame.height - 32), width: 96, height: 32)
-        let button = UIButton(frame: frame)
-        button.backgroundColor = ColorManager.shared.secondaryGrey
-        button.setTitle("Retry", for: .normal)
-        button.setTitleColor(ColorManager.shared.label, for: .normal)
-        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.5), for: .highlighted)
-        button.layer.cornerRadius = 16
-        button.addTarget(self, action: #selector(reloadButtonTaped), for: .touchUpInside)
-        button.isHidden = true
-        return button
-    }()
     
     // MARK: - collection view vars.
     
@@ -245,7 +190,7 @@ final class MenuTabVC: UIViewController {
         super.viewWillAppear(true)
         collectionView.reloadData()
         if !isMenuDownloaded {
-            preloader.startAnimation(delay: 0.04, replicates: 16)
+            preloaderView.startLoadingAnimation()
         }
     }
     
@@ -276,10 +221,6 @@ final class MenuTabVC: UIViewController {
         headerView.addSubview(deliveryAdressLabel)
         headerView.addSubview(notificationButton)
         headerView.addSubview(layoutButton)
-        preloaderView.addSubview(preloaderMessage)
-        preloaderView.addSubview(preloader)
-        preloaderView.addSubview(downloadErrorImageView)
-        preloaderView.addSubview(reloadButton)
     }
     
     private func setupConstraints() {
@@ -314,7 +255,7 @@ final class MenuTabVC: UIViewController {
             collectionView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
     
@@ -365,25 +306,7 @@ final class MenuTabVC: UIViewController {
     @objc
     private func layoutButtonTaped() {
         // for testing
-        if reloadButton.isHidden {
-            preloaderMessage.text = "Ups. Trouble with downloading..."
-            preloader.isHidden.toggle()
-            reloadButton.isHidden.toggle()
-            downloadErrorImageView.isHidden.toggle()
-        } else {
-            preloaderMessage.text = "Downloading menu..."
-            preloader.isHidden.toggle()
-            reloadButton.isHidden.toggle()
-            downloadErrorImageView.isHidden.toggle()
-        }
-    }
-    
-    @objc
-    private func reloadButtonTaped() {
-        preloaderMessage.text = "Downloading menu..."
-        preloader.isHidden.toggle()
-        reloadButton.isHidden.toggle()
-        downloadErrorImageView.isHidden.toggle()
+        preloaderView.switchState()
     }
 }
 
@@ -440,7 +363,7 @@ extension MenuTabVC: UICollectionViewDelegateFlowLayout {
 }
 
 
-// MARK: - search
+// MARK: - search methods
 extension MenuTabVC: UISearchResultsUpdating {
     func updateSearchResults(for searchController: UISearchController) {
         

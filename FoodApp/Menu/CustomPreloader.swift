@@ -20,7 +20,7 @@ final class CustomPreloader: UIView {
     private let keyAnimation = "opacityAnimation"
 
     convenience init(parentFrame: CGRect, size: CGFloat) {
-        let rect = CGRect(origin: CGPoint(x: (parentFrame.width - size) / 2, y: (parentFrame.height - size) / 2),
+        let rect = CGRect(origin: CGPoint(x: (parentFrame.width - size) / 2, y: (parentFrame.height - size) / 2 - 6),
                           size: CGSize(width: size, height: size))
         self.init(frame: rect)
     }
