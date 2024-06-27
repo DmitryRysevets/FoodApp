@@ -7,11 +7,41 @@ import UIKit
 
 final class MenuTabVC: UIViewController {
     
+    private var menu = Menu() {
+        didSet {
+            offerColors = ColorManager.shared.getColors(menu.offersContainer.offers.count)
+            dishColors = ColorManager.shared.getColors(menu.dishes.count)
+            isMenuDownloaded = true
+            preloaderView.isHidden = true
+            
+            var offersSnapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
+            offersSnapshot.appendSections([0])
+            offersSnapshot.appendItems(menu.offersContainer.offers, toSection: 0)
+            self.nestedOffersSnapshot = offersSnapshot
+            
+            var categoriesSnapshot = NSDiffableDataSourceSnapshot<Int, String>()
+            categoriesSnapshot.appendSections([0])
+            categoriesSnapshot.appendItems(menu.categoriesContainer.categories, toSection: 0)
+            self.nestedCategoriesSnapshot = categoriesSnapshot
+            
+            applySnapshot()
+        }
+    }
+    
+    private var offerColors: [UIColor] = []
+    private var dishColors: [UIColor] = []
+    
+    private var isMenuDownloaded = false
+    private var tabBarIsVisible = true
+    
     private lazy var preloaderView = PreloaderView(frame: CGRect(x: 32, y: Int(view.center.y - 100), width: Int(view.frame.width - 64), height: 180))
     
     // MARK: - header vars.
     
-    private let headerHeight = 44.0
+    private let headerHeight = 52.0
+    private let headerButtonSize = 44.0
+    private var headerButtonCornerRadius: Double { headerButtonSize / 2 }
+    private var headerBottomPadding: Double { headerHeight - headerButtonSize }
     
     private lazy var headerView: UIView = {
         let view = UIView()
@@ -28,7 +58,7 @@ final class MenuTabVC: UIViewController {
         view.contentMode = .center
         view.tintColor = ColorManager.shared.label
         view.backgroundColor = ColorManager.shared.secondaryGrey
-        view.layer.cornerRadius = headerHeight / 2
+        view.layer.cornerRadius = headerButtonCornerRadius
         return view
     }()
     
@@ -59,7 +89,7 @@ final class MenuTabVC: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image, for: .normal)
         button.backgroundColor = ColorManager.shared.secondaryGrey
-        button.layer.cornerRadius = headerHeight / 2
+        button.layer.cornerRadius = headerButtonCornerRadius
         button.addTarget(self, action: #selector(notificationButtonTaped), for: .touchUpInside)
         return button
     }()
@@ -70,29 +100,30 @@ final class MenuTabVC: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image?.withTintColor(ColorManager.shared.label), for: .normal)
         button.backgroundColor = ColorManager.shared.secondaryGrey
-        button.layer.cornerRadius = headerHeight / 2
+        button.layer.cornerRadius = headerButtonCornerRadius
         button.addTarget(self, action: #selector(layoutButtonTaped), for: .touchUpInside)
         return button
     }()
     
     // MARK: - search bar vars.
     
-    //    private lazy var searchController: UISearchController = {
-    //        let controller = UISearchController(searchResultsController: nil)
-    //        controller.searchResultsUpdater = self
-    //        controller.obscuresBackgroundDuringPresentation = false
-    //        controller.searchBar.placeholder = "Search"
-    //        navigationItem.searchController = controller
-    //        definesPresentationContext = true
-    //        return controller
-    //    }()
-    //
-    //    private var filteredResults = [Dish]()
-    //
-    //    private var searchBarIsEmpty: Bool {
-    //        guard let text = searchController.searchBar.text else { return false }
-    //        return text.isEmpty
-    //    }
+    private lazy var searchBar: UISearchBar = {
+        let searchBar = UISearchBar()
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        searchBar.searchTextField.backgroundColor = ColorManager.shared.secondaryGrey
+        searchBar.searchTextField.borderStyle = .none
+        searchBar.updateHeight(height: 44, radius: 22)
+        searchBar.tintColor = ColorManager.shared.label
+        searchBar.searchBarStyle = .minimal
+        searchBar.placeholder = "Search"
+        searchBar.showsBookmarkButton = true
+        searchBar.searchTextField.rightViewMode = .always
+        searchBar.delegate = self
+        return searchBar
+    }()
+    
+    private var filteredDishes: [Dish] = []
+    private var isSearching = false
     
     // MARK: - collection view vars.
     
@@ -108,37 +139,10 @@ final class MenuTabVC: UIViewController {
         return collection
     }()
     
-    private var menu = Menu() {
-        didSet {
-            offerColors = ColorManager.shared.getColors(menu.offersContainer.offers.count)
-            dishColors = ColorManager.shared.getColors(menu.dishes.count)
-            isMenuDownloaded = true
-            preloaderView.isHidden = true
-            
-            var offersSnapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
-            offersSnapshot.appendSections([0])
-            offersSnapshot.appendItems(menu.offersContainer.offers, toSection: 0)
-            self.nestedOffersSnapshot = offersSnapshot
-            
-            var categoriesSnapshot = NSDiffableDataSourceSnapshot<Int, String>()
-            categoriesSnapshot.appendSections([0])
-            categoriesSnapshot.appendItems(menu.categoriesContainer.categories, toSection: 0)
-            self.nestedCategoriesSnapshot = categoriesSnapshot
-            
-            applySnapshot()
-        }
-    }
-    
     private var dataSource: UICollectionViewDiffableDataSource<Int, AnyHashable>!
     private var baseSnapshot: NSDiffableDataSourceSnapshot<Int, AnyHashable>!
     private var nestedOffersSnapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
     private var nestedCategoriesSnapshot = NSDiffableDataSourceSnapshot<Int, String>()
-    
-    private var offerColors: [UIColor] = []
-    private var dishColors: [UIColor] = []
-    
-    private var isMenuDownloaded = false
-    private var tabBarIsVisible = true
     
     // MARK: - collection view methods
     
@@ -156,10 +160,11 @@ final class MenuTabVC: UIViewController {
                 cell.categoriesSnapshot = self.nestedCategoriesSnapshot
                 return cell
             case 2:
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DishCell.id, for: indexPath) as? DishCell
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DishCell.id, for: indexPath) as? DishCell 
                 else { fatalError("Unable deque DishCell") }
                 cell.customShapeView.fillColor = self.dishColors[indexPath.item]
-                cell.dishData = self.menu.dishes[indexPath.item]
+                let dish = self.isSearching ? self.filteredDishes[indexPath.item] : self.menu.dishes[indexPath.item]
+                cell.dishData = dish
                 return cell
             default:
                 return nil
@@ -172,7 +177,7 @@ final class MenuTabVC: UIViewController {
         baseSnapshot.appendSections([0, 1, 2])
         baseSnapshot.appendItems([menu.offersContainer], toSection: 0)
         baseSnapshot.appendItems([menu.categoriesContainer], toSection: 1)
-        baseSnapshot.appendItems(menu.dishes, toSection: 2)
+        baseSnapshot.appendItems(isSearching ? filteredDishes : menu.dishes, toSection: 2)
         dataSource.apply(baseSnapshot, animatingDifferences: true)
     }
     
@@ -184,6 +189,7 @@ final class MenuTabVC: UIViewController {
         setupConstraints()
         configureDataSource()
         applySnapshot()
+        getMenu()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -192,6 +198,12 @@ final class MenuTabVC: UIViewController {
         if !isMenuDownloaded {
             preloaderView.startLoadingAnimation()
         }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        searchBar.setLeftImage(UIImage(systemName: "magnifyingglass")!, with: 8, tintColor: ColorManager.shared.label)
+        searchBar.setRightImage(UIImage(systemName: "slider.horizontal.3")!, with: 8, tintColor: ColorManager.shared.label)
     }
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -214,6 +226,7 @@ final class MenuTabVC: UIViewController {
         view.backgroundColor = ColorManager.shared.background
         view.addSubview(headerView)
         view.addSubview(collectionView)
+        view.addSubview(searchBar)
         view.addSubview(preloaderView)
         
         headerView.addSubview(profilePhotoView)
@@ -233,26 +246,31 @@ final class MenuTabVC: UIViewController {
             
             profilePhotoView.topAnchor.constraint(equalTo: headerView.topAnchor),
             profilePhotoView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            profilePhotoView.bottomAnchor.constraint(equalTo: headerView.bottomAnchor),
+            profilePhotoView.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
             profilePhotoView.widthAnchor.constraint(equalTo: profilePhotoView.heightAnchor),
-            pinImageView.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
+            pinImageView.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -headerBottomPadding / 2),
             pinImageView.leadingAnchor.constraint(equalTo: profilePhotoView.trailingAnchor, constant: 16),
             pinImageView.heightAnchor.constraint(equalToConstant: 20),
             pinImageView.widthAnchor.constraint(equalToConstant: 20),
             layoutButton.topAnchor.constraint(equalTo: headerView.topAnchor),
             layoutButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
-            layoutButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor),
+            layoutButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -headerBottomPadding),
             layoutButton.widthAnchor.constraint(equalTo: layoutButton.heightAnchor),
             notificationButton.topAnchor.constraint(equalTo: headerView.topAnchor),
             notificationButton.trailingAnchor.constraint(equalTo: layoutButton.leadingAnchor, constant: -10),
-            notificationButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor),
+            notificationButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -headerBottomPadding),
             notificationButton.widthAnchor.constraint(equalTo: notificationButton.heightAnchor),
-            deliveryAdressLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
+            deliveryAdressLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -headerBottomPadding / 2),
             deliveryAdressLabel.leadingAnchor.constraint(equalTo: pinImageView.trailingAnchor, constant: 6),
             deliveryAdressLabel.trailingAnchor.constraint(equalTo: notificationButton.leadingAnchor, constant: -10),
             deliveryAdressLabel.heightAnchor.constraint(equalToConstant: 30),
             
-            collectionView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            searchBar.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
+            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
+            searchBar.heightAnchor.constraint(equalToConstant: 54),
+            
+            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -280,6 +298,17 @@ final class MenuTabVC: UIViewController {
         parent.showTabBar()
     }
     
+    private func getMenu() {
+        Task {
+            do {
+                let menu = try await NetworkManager.shared.getMenu()
+                self.menu = menu
+            } catch {
+                print("Got some error with network manager: \(error)")
+            }
+        }
+    }
+    
     // MARK: - internal methods
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -291,24 +320,15 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func notificationButtonTaped() {
-        // for testing
-        Task {
-            do {
-                let result = try await NetworkManager.shared.getMenu()
-                let menu = Menu(offers: result.offers, dishes: result.dishes)
-                self.menu = menu
-            } catch {
-                print("We got some shit: \(error)")
-            }
-        }
+        getMenu() // for testing
     }
     
     @objc
     private func layoutButtonTaped() {
-        // for testing
-        preloaderView.switchState()
+        preloaderView.switchState() // for testing
     }
 }
+
 
 // MARK: - collection view delegate
 extension MenuTabVC: UICollectionViewDelegate {
@@ -364,8 +384,19 @@ extension MenuTabVC: UICollectionViewDelegateFlowLayout {
 
 
 // MARK: - search methods
-extension MenuTabVC: UISearchResultsUpdating {
-    func updateSearchResults(for searchController: UISearchController) {
-        
+extension MenuTabVC: UISearchBarDelegate {
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty {
+            isSearching = false
+            filteredDishes.removeAll()
+        } else {
+            isSearching = true
+            filteredDishes = menu.dishes.filter { dish in
+                dish.name.lowercased().contains(searchText.lowercased())
+            }
+        }
+        applySnapshot()
     }
+    
 }

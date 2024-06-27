@@ -12,8 +12,6 @@ enum NetworkLayerError: Error {
     case downloadImageFailed(Error)
     case firestoreDataWasNotReceived(Error)
     case invalidData
-//    case networkError(Error)
-//    case authenticationError
 }
 
 class NetworkManager {
@@ -25,7 +23,7 @@ class NetworkManager {
     private let firestore = Firestore.firestore()
     private let storage = Storage.storage()
 
-    func getMenu() async throws -> (dishes: [Dish], offers: [Offer]) {
+    func getMenu() async throws -> Menu {
         let offersData = try await getFirestoreData("offers")
         let dishesData = try await getFirestoreData("menu")
 
@@ -54,7 +52,7 @@ class NetworkManager {
             }
         }
 
-        return (dishes: dishes, offers: offers)
+        return Menu(offers: offers, dishes: dishes)
     }
     
     // MARK: - private methods
@@ -121,142 +119,3 @@ class NetworkManager {
         }
     }
 }
-
-
-
-
-
-
-/*
-class NetworkManager {
-
-    static let shared = NetworkManager()
-
-    private init() {}
-
-    private let firestore = Firestore.firestore()
-    private let storage = Storage.storage()
-
-    func getMenu(completion: @escaping (Result<(dishes: [Dish], offers: [Offer]), NetworkLayerError>) -> Void) {
-        let dispatchGroup = DispatchGroup()
-        var offers: [Offer] = []
-        var dishes: [Dish] = []
-        
-        firestore.collection("offers").getDocuments { snapshot, error in
-            if let error = error {
-                completion(.failure(NetworkLayerError.firestoreDataWasNotReceived(error)))
-                return
-            }
-            
-            guard let documents = snapshot?.documents else {
-                completion(.failure(NetworkLayerError.invalidData))
-                return
-            }
-            
-            for document in documents {
-                do {
-                    if let offerData = try document.data(as: OfferDataModel?.self) {
-                        dispatchGroup.enter()
-                        
-                        self.downloadImage(from: offerData.imageURL) { result in
-                            dispatchGroup.leave()
-                            
-                            switch result {
-                            case .success(let imageData):
-                                let offer = Offer(id: offerData.id, 
-                                                  name: offerData.name,
-                                                  offer: offerData.offer,
-                                                  condition: offerData.condition,
-                                                  imageData: imageData)
-                                offers.append(offer)
-                                
-                            case .failure(let error):
-                                completion(.failure(NetworkLayerError.downloadImageFailed(error)))
-                                return
-                            }
-                        }
-                    }
-                } catch {
-                    print("Error decoding offer document: \(error)")
-                    completion(.failure(NetworkLayerError.parseDataFailed))
-                    return
-                }
-            }
-            
-        }
-
-        firestore.collection("menu").getDocuments { snapshot, error in
-            if let error = error {
-                completion(.failure(NetworkLayerError.firestoreDataWasNotReceived(error)))
-                return
-            }
-
-            guard let documents = snapshot?.documents else {
-                completion(.failure(NetworkLayerError.invalidData))
-                return
-            }
-
-            for document in documents {
-                do {
-                    if let dishData = try document.data(as: DishDataModel?.self) {
-                        dispatchGroup.enter()
-
-                        self.downloadImage(from: dishData.imageURL) { result in
-                            defer { dispatchGroup.leave() }
-
-                            switch result {
-                            case .success(let imageData):
-                                let dish = Dish(id: dishData.id,
-                                                name: dishData.name,
-                                                description: dishData.description,
-                                                tags: dishData.tags,
-                                                weight: dishData.weight,
-                                                calories: dishData.calories,
-                                                protein: dishData.protein,
-                                                carbs: dishData.carbs,
-                                                fats: dishData.fats,
-                                                isOffer: dishData.isOffer,
-                                                price: dishData.price,
-                                                recentPrice: dishData.recentPrice,
-                                                imageData: imageData)
-                                dishes.append(dish)
-                                
-                            case .failure(let error):
-                                completion(.failure(NetworkLayerError.downloadImageFailed(error)))
-                                return
-                            }
-                        }
-                    }
-                } catch {
-                    print("Error decoding dish document: \(error)")
-                    completion(.failure(NetworkLayerError.parseDataFailed))
-                    return
-                }
-            }
-
-            dispatchGroup.notify(queue: .main) {
-                completion(.success((dishes: dishes, offers: offers)))
-            }
-        }
-    }
-
-    private func downloadImage(from url: String, completion: @escaping (Result<Data, Error>) -> Void) {
-        let imageStorageReference = storage.reference(forURL: url)
-        let maxImageSize: Int64 = 2 * 1024 * 1024 // 2MB
-
-        imageStorageReference.getData(maxSize: maxImageSize) { data, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-
-            completion(.success(data!))
-        }
-    }
-
-}
-*/
-
-
-
-
