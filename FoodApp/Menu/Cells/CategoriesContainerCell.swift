@@ -21,8 +21,11 @@ final class CategoriesContainerCell: UICollectionViewCell {
         }
     }
     
+    var tagSwitchHandler: ((String) -> Void)?
+    
     private var dataSource: UICollectionViewDiffableDataSource<Int, String>!
     private var selectedStates: [Bool] = []
+    
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -65,9 +68,10 @@ final class CategoriesContainerCell: UICollectionViewCell {
                 cell.setUnselected()
             }
             
-            cell.categorySwitchHandler = { [weak self] in
+            cell.categoryDidTapped = { [weak self] tag in
                 self?.unselectAllCategories()
                 self?.selectedStates[indexPath.item] = true
+                self?.tagSwitchHandler?(tag)
                 collectionView.reloadData()
             }
             

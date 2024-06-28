@@ -8,7 +8,7 @@ import UIKit
 final class CategoryCell: UICollectionViewCell {
     static let id = "CategoryCell"
     
-    var categorySwitchHandler: (() -> Void)?
+    var categoryDidTapped: ((String) -> Void)?
     
     lazy var category: UIButton = {
         let button = UIButton()
@@ -34,9 +34,10 @@ final class CategoryCell: UICollectionViewCell {
     
     @objc
     private func categoryToggle(sender: UIButton) {
+        guard let tag = sender.titleLabel?.text else { return }
         if !sender.isSelected {
             setSelected()
-            categorySwitchHandler?()
+            categoryDidTapped?(tag)
         }
     }
     

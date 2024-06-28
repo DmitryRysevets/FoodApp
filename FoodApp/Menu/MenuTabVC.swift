@@ -46,7 +46,7 @@ final class MenuTabVC: UIViewController {
     private lazy var headerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .clear
+        view.backgroundColor = ColorManager.shared.background
         return view
     }()
     
@@ -113,16 +113,17 @@ final class MenuTabVC: UIViewController {
         searchBar.searchTextField.backgroundColor = ColorManager.shared.secondaryGrey
         searchBar.searchTextField.borderStyle = .none
         searchBar.updateHeight(height: 44, radius: 22)
-        searchBar.tintColor = ColorManager.shared.label
+        searchBar.tintColor = ColorManager.shared.orderButton
         searchBar.searchBarStyle = .minimal
         searchBar.placeholder = "Search"
         searchBar.showsBookmarkButton = true
-        searchBar.searchTextField.rightViewMode = .always
         searchBar.delegate = self
         return searchBar
     }()
     
     private var filteredDishes: [Dish] = []
+    private var filteredByTagDishes: [Dish] = []
+    private var isFilteredByTag = false
     private var isSearching = false
     
     // MARK: - collection view vars.
@@ -143,43 +144,6 @@ final class MenuTabVC: UIViewController {
     private var baseSnapshot: NSDiffableDataSourceSnapshot<Int, AnyHashable>!
     private var nestedOffersSnapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
     private var nestedCategoriesSnapshot = NSDiffableDataSourceSnapshot<Int, String>()
-    
-    // MARK: - collection view methods
-    
-    private func configureDataSource() {
-        dataSource = UICollectionViewDiffableDataSource<Int, AnyHashable>(collectionView: collectionView) { collectionView, indexPath, item in
-            switch indexPath.section {
-            case 0:
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: OffersContainerCell.id, for: indexPath) as? OffersContainerCell 
-                else { fatalError("Unable deque OffersContainerCell") }
-                cell.offersSnapshot = self.nestedOffersSnapshot
-                return cell
-            case 1:
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoriesContainerCell.id, for: indexPath) as? CategoriesContainerCell
-                else { fatalError("Unable deque CategoriesContainerCell") }
-                cell.categoriesSnapshot = self.nestedCategoriesSnapshot
-                return cell
-            case 2:
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DishCell.id, for: indexPath) as? DishCell 
-                else { fatalError("Unable deque DishCell") }
-                cell.customShapeView.fillColor = self.dishColors[indexPath.item]
-                let dish = self.isSearching ? self.filteredDishes[indexPath.item] : self.menu.dishes[indexPath.item]
-                cell.dishData = dish
-                return cell
-            default:
-                return nil
-            }
-        }
-    }
-    
-    private func applySnapshot() {
-        baseSnapshot = NSDiffableDataSourceSnapshot<Int, AnyHashable>()
-        baseSnapshot.appendSections([0, 1, 2])
-        baseSnapshot.appendItems([menu.offersContainer], toSection: 0)
-        baseSnapshot.appendItems([menu.categoriesContainer], toSection: 1)
-        baseSnapshot.appendItems(isSearching ? filteredDishes : menu.dishes, toSection: 2)
-        dataSource.apply(baseSnapshot, animatingDifferences: true)
-    }
     
     // MARK: - controller methods
     
@@ -202,8 +166,19 @@ final class MenuTabVC: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        searchBar.setLeftImage(UIImage(systemName: "magnifyingglass")!, with: 8, tintColor: ColorManager.shared.label)
-        searchBar.setRightImage(UIImage(systemName: "slider.horizontal.3")!, with: 8, tintColor: ColorManager.shared.label)
+        searchBar.searchTextField.rightViewMode = .always
+        searchBar.setPlaceholderFont(.systemFont(ofSize: 14))
+        searchBar.setSideImage(UIImage(systemName: "magnifyingglass")!,
+                               imageSize: CGSize(width: 24, height: 24),
+                               padding: 10,
+                               tintColor: ColorManager.shared.label,
+                               side: .left)
+        
+        searchBar.setSideImage(UIImage(named: "Sliders")!,
+                               imageSize: CGSize(width: 22, height: 25),
+                               padding: 10,
+                               tintColor: ColorManager.shared.label,
+                               side: .right)
     }
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -220,13 +195,87 @@ final class MenuTabVC: UIViewController {
         }
     }
     
+    // MARK: - collection view methods
+    
+    private func configureDataSource() {
+        dataSource = UICollectionViewDiffableDataSource<Int, AnyHashable>(collectionView: collectionView) { collectionView, indexPath, item in
+            switch indexPath.section {
+            case 0:
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: OffersContainerCell.id, for: indexPath) as? OffersContainerCell
+                else { fatalError("Unable deque OffersContainerCell") }
+                cell.offersSnapshot = self.nestedOffersSnapshot
+                return cell
+            case 1:
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoriesContainerCell.id, for: indexPath) as? CategoriesContainerCell
+                else { fatalError("Unable deque CategoriesContainerCell") }
+                cell.tagSwitchHandler = { [weak self] tag in
+                    self?.filterDishes(by: tag)
+                }
+                cell.categoriesSnapshot = self.nestedCategoriesSnapshot
+                return cell
+            case 2:
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DishCell.id, for: indexPath) as? DishCell
+                else { fatalError("Unable deque DishCell") }
+                cell.customShapeView.fillColor = self.dishColors[indexPath.item]
+                
+                let dish: Dish
+                if self.isSearching {
+                    dish = self.filteredDishes[indexPath.item]
+                } else {
+                    dish = self.isFilteredByTag ? self.filteredByTagDishes[indexPath.item] : self.menu.dishes[indexPath.item]
+                }
+                
+                cell.dishData = dish
+                return cell
+            default:
+                return nil
+            }
+        }
+    }
+    
+    private func applySnapshot() {
+        baseSnapshot = NSDiffableDataSourceSnapshot<Int, AnyHashable>()
+        baseSnapshot.appendSections([0, 1, 2])
+        
+        if isSearching {
+            baseSnapshot.appendItems(filteredDishes, toSection: 2)
+        } else {
+            baseSnapshot.appendItems([menu.offersContainer], toSection: 0)
+            baseSnapshot.appendItems([menu.categoriesContainer], toSection: 1)
+            baseSnapshot.appendItems(isFilteredByTag ? filteredByTagDishes : menu.dishes, toSection: 2)
+        }
+    
+        dataSource.apply(baseSnapshot, animatingDifferences: true)
+    }
+    
+    private func filterDishes(by tag: String) {
+        if tag != "All" {
+            filteredByTagDishes = menu.dishes.filter { $0.tags.contains(tag) }
+            isFilteredByTag = true
+        } else {
+            isFilteredByTag = false
+        }
+        applySnapshot()
+    }
+    
+    private func getMenu() {
+        Task {
+            do {
+                let menu = try await NetworkManager.shared.getMenu()
+                self.menu = menu
+            } catch {
+                print("Got some error with network manager: \(error)")
+            }
+        }
+    }
+    
     // MARK: - private methods
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
-        view.addSubview(headerView)
         view.addSubview(collectionView)
         view.addSubview(searchBar)
+        view.addSubview(headerView)
         view.addSubview(preloaderView)
         
         headerView.addSubview(profilePhotoView)
@@ -270,20 +319,11 @@ final class MenuTabVC: UIViewController {
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
             searchBar.heightAnchor.constraint(equalToConstant: 54),
             
-            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor),
+            collectionView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-    }
-    
-    private func performTabBarCheck(with translation: CGPoint) {
-        if translation.y == 0 { return }
-        if translation.y > 0 {
-            if !tabBarIsVisible { showTabBar() }
-        } else {
-            if tabBarIsVisible { hideTabBar() }
-        }
     }
     
     private func hideTabBar() {
@@ -298,14 +338,15 @@ final class MenuTabVC: UIViewController {
         parent.showTabBar()
     }
     
-    private func getMenu() {
-        Task {
-            do {
-                let menu = try await NetworkManager.shared.getMenu()
-                self.menu = menu
-            } catch {
-                print("Got some error with network manager: \(error)")
-            }
+    private func hideSearchBar() {
+        UIView.animate(withDuration: 0.2) {
+            self.searchBar.transform = CGAffineTransform(translationX: 0, y: -self.searchBar.frame.height)
+        }
+    }
+    
+    private func showSearchBar() {
+        UIView.animate(withDuration: 0.2) {
+            self.searchBar.transform = .identity
         }
     }
     
@@ -313,7 +354,14 @@ final class MenuTabVC: UIViewController {
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let translation = scrollView.panGestureRecognizer.translation(in: scrollView.superview)
-        performTabBarCheck(with: translation)
+        if translation.y == 0 { return }
+        if translation.y > 0 {
+            if !tabBarIsVisible { showTabBar() }
+            if !isSearching { showSearchBar() }
+        } else {
+            if tabBarIsVisible { hideTabBar() }
+            if !isSearching { hideSearchBar() }
+        }
     }
     
     // MARK: - objc methods
@@ -366,9 +414,9 @@ extension MenuTabVC: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         switch section {
         case 0:
-            return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+            return UIEdgeInsets(top: 54, left: 0, bottom: 0, right: 0)
         case 1:
-            return UIEdgeInsets(top: 16, left: 0, bottom: 0, right: 0)
+            return UIEdgeInsets(top: 4, left: 0, bottom: 0, right: 0)
         case 2:
             return UIEdgeInsets(top: 16, left: 16, bottom: 0, right: 16)
         default:
@@ -398,5 +446,4 @@ extension MenuTabVC: UISearchBarDelegate {
         }
         applySnapshot()
     }
-    
 }
