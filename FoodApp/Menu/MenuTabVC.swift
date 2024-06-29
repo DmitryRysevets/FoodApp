@@ -380,8 +380,24 @@ final class MenuTabVC: UIViewController {
 
 // MARK: - collection view delegate
 extension MenuTabVC: UICollectionViewDelegate {
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let chosenDish: Dish
+        let cell = collectionView.cellForItem(at: indexPath) as? DishCell
+        let color: UIColor = cell?.customShapeView.fillColor ?? ColorManager.shared.green
         
+        if isSearching {
+            chosenDish = filteredDishes[indexPath.item]
+        } else {
+            chosenDish = isFilteredByTag ? filteredByTagDishes[indexPath.item] : menu.dishes[indexPath.item]
+        }
+        
+        let dishPage = DishVC(dish: chosenDish, color: color)
+        dishPage.modalTransitionStyle = .coverVertical
+        dishPage.modalPresentationStyle = .overFullScreen
+//        dishPage.modalPresentationStyle = .popover
+        
+        present(dishPage, animated: true)
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {

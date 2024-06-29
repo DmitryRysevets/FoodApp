@@ -20,8 +20,6 @@ final class DishCell: UICollectionViewCell {
     
     lazy var customShapeView: DishCellShapeView = {
         let view = DishCellShapeView()
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(viewDidTped))
-        view.addGestureRecognizer(tapGesture)
         view.frame = bounds
         view.backgroundColor = .clear
         view.clipsToBounds = true
@@ -100,6 +98,7 @@ final class DishCell: UICollectionViewCell {
         button.backgroundColor = .white
         button.layer.cornerRadius = 14
         button.tintColor = ColorManager.shared.label
+        button.addTarget(self, action: #selector(favoriteButtonDidTaped), for: .touchUpInside)
         return button
     }()
     
@@ -157,7 +156,8 @@ final class DishCell: UICollectionViewCell {
     }
     
     @objc
-    private func viewDidTped() {
+    private func favoriteButtonDidTaped() {
         print(#function)
     }
+    
 }
