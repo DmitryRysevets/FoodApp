@@ -4,6 +4,7 @@
 //
 
 import UIKit
+import CoreText
 
 final class DishVC: UIViewController {
     
@@ -13,6 +14,7 @@ final class DishVC: UIViewController {
     
     private let headerHeight = 52.0
     private let headerButtonSize = 44.0
+    private let fontWeightAxis = 2003265652
     
     private lazy var headerView: UIView = {
         let view = UIView()
@@ -36,9 +38,9 @@ final class DishVC: UIViewController {
     private lazy var dishTitleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont(name: "Raleway", size: 18)
-        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [fontWeightAxis : 650])
         label.text = dish.name
+        label.textColor = ColorManager.shared.label
         label.textAlignment = .center
         label.numberOfLines = 1
         return label
@@ -92,12 +94,79 @@ final class DishVC: UIViewController {
     private lazy var dishName: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont(name: "Raleway", size: 26)
         label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 25, axis: [fontWeightAxis : 470])
         label.text = dish.name
         label.numberOfLines = 1
         return label
     }()
+    
+    private lazy var ratingAndDeliveryStack: UIStackView = {
+        let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.distribution = .fillEqually
+        stack.alignment = .fill
+        return stack
+    }()
+    
+    private lazy var ratingView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var ratingIcon: UIImageView = {
+        let image = UIImage(systemName: "star.fill")?.withTintColor(ColorManager.shared.orderButton)
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    private lazy var ratingLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont(name: "Raleway", size: 15)
+        label.text = "4.8 ( 100+ Rewies )"
+        return label
+    }()
+    
+    private lazy var deliveryTimeView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var deliveriIcon: UIImageView = {
+        let image = UIImage(systemName: "clock.fill")?.withTintColor(ColorManager.shared.green)
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    private lazy var deliveryTimeLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont(name: "Raleway", size: 15)
+        label.text = "Delivery in 30 min"
+        return label
+    }()
+    
+    private lazy var ingredientsLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [fontWeightAxis : 600])
+        label.text = "Ingredients"
+        return label
+    }()
+    
+    private lazy var ingredientsListLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.backgroundColor = .gray.withAlphaComponent(0.3)
+        return label
+    }()
+    
     
     // MARK: - Controller methods
     
@@ -130,6 +199,15 @@ final class DishVC: UIViewController {
         photoCarouseleView.addSubview(coloredBackgroundView)
         photoCarouseleView.addSubview(dishImageView)
         descriptionView.addSubview(dishName)
+        descriptionView.addSubview(ratingAndDeliveryStack)
+        descriptionView.addSubview(ingredientsLabel)
+        descriptionView.addSubview(ingredientsListLabel)
+        ratingView.addSubview(ratingIcon)
+        ratingView.addSubview(ratingLabel)
+        deliveryTimeView.addSubview(deliveriIcon)
+        deliveryTimeView.addSubview(deliveryTimeLabel)
+        ratingAndDeliveryStack.addArrangedSubview(ratingView)
+        ratingAndDeliveryStack.addArrangedSubview(deliveryTimeView)
     }
     
     private func setupConstraints() {
@@ -152,7 +230,6 @@ final class DishVC: UIViewController {
             dishTitleLabel.trailingAnchor.constraint(equalTo: favoritButton.leadingAnchor, constant: -8),
             dishTitleLabel.heightAnchor.constraint(equalToConstant: 30),
             
-            
             photoCarouseleView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             photoCarouseleView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             photoCarouseleView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -171,7 +248,29 @@ final class DishVC: UIViewController {
             descriptionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             descriptionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             dishName.topAnchor.constraint(equalTo: descriptionView.topAnchor, constant: 20),
-            dishName.leadingAnchor.constraint(equalTo: descriptionView.leadingAnchor, constant: 16)
+            dishName.leadingAnchor.constraint(equalTo: descriptionView.leadingAnchor, constant: 16),
+            dishName.trailingAnchor.constraint(equalTo: descriptionView.trailingAnchor, constant: -16),
+            ratingAndDeliveryStack.topAnchor.constraint(equalTo: dishName.bottomAnchor, constant: 16),
+            ratingAndDeliveryStack.leadingAnchor.constraint(equalTo: descriptionView.leadingAnchor, constant: 16),
+            ratingAndDeliveryStack.trailingAnchor.constraint(equalTo: descriptionView.trailingAnchor, constant: -16),
+            ratingAndDeliveryStack.heightAnchor.constraint(equalToConstant: 44),
+            ratingIcon.centerYAnchor.constraint(equalTo: ratingView.centerYAnchor),
+            ratingIcon.leadingAnchor.constraint(equalTo: ratingView.leadingAnchor),
+            ratingIcon.heightAnchor.constraint(equalToConstant: 15),
+            ratingIcon.widthAnchor.constraint(equalToConstant: 15),
+            ratingLabel.centerYAnchor.constraint(equalTo: ratingView.centerYAnchor),
+            ratingLabel.leadingAnchor.constraint(equalTo: ratingIcon.trailingAnchor, constant: 8),
+            ratingLabel.trailingAnchor.constraint(equalTo: ratingView.trailingAnchor, constant: -8),
+            deliveryTimeLabel.centerYAnchor.constraint(equalTo: deliveryTimeView.centerYAnchor),
+            deliveryTimeLabel.trailingAnchor.constraint(equalTo: deliveryTimeView.trailingAnchor),
+            deliveriIcon.centerYAnchor.constraint(equalTo: deliveryTimeView.centerYAnchor),
+            deliveriIcon.trailingAnchor.constraint(equalTo: deliveryTimeLabel.leadingAnchor, constant: -8),
+            deliveriIcon.heightAnchor.constraint(equalToConstant: 15),
+            deliveriIcon.widthAnchor.constraint(equalToConstant: 15),
+            ingredientsLabel.topAnchor.constraint(equalTo: ratingAndDeliveryStack.bottomAnchor, constant: 6),
+            ingredientsLabel.leadingAnchor.constraint(equalTo: descriptionView.leadingAnchor, constant: 16),
+            ingredientsLabel.trailingAnchor.constraint(equalTo: descriptionView.trailingAnchor, constant: -16)
+            
         ])
     }
     
@@ -188,4 +287,3 @@ final class DishVC: UIViewController {
     }
     
 }
-
