@@ -83,9 +83,9 @@ final class DishVC: UIViewController {
         return imageView
     }()
     
-    // MARK: - Description view props.
+    // MARK: - Description section props.
     
-    private lazy var descriptionView: UIView = {
+    private lazy var descriptionSectionView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -163,10 +163,118 @@ final class DishVC: UIViewController {
     private lazy var ingredientsListLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.backgroundColor = .gray.withAlphaComponent(0.3)
+        label.font = UIFont(name: "Raleway", size: 14)
+        label.textColor = ColorManager.shared.label.withAlphaComponent(0.7)
+        label.numberOfLines = 0
+        label.text = """
+Ground beef, hamburger buns, salt, pepper. 
+Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
+"""
         return label
     }()
     
+    // MARK: - Related section props.
+    
+    private lazy var relatedProductSectionView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var relatedProductLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [fontWeightAxis : 600])
+        label.text = "Related Product"
+        return label
+    }()
+    
+    private lazy var relatedProductStack: UIStackView = {
+        let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.distribution = .equalSpacing
+        stack.alignment = .fill
+        return stack
+    }()
+    
+    // MARK: - Order bar view
+    
+    private let orderBarHeight: CGFloat = 72
+    private let orderBarMargin: CGFloat = 18
+    private let orderBarPadding: CGFloat = 12
+    private var orderBarElementSize: CGFloat { orderBarHeight - orderBarPadding * 2 }
+    private var plusMinusButtonsSize: CGFloat { orderBarElementSize - (orderBarPadding * 2) }
+    
+    private lazy var orderBarView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerRadius = orderBarHeight / 2
+        view.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.5)
+        view.layer.shadowColor = UIColor.black.cgColor
+        view.layer.shadowOpacity = 0.2
+        view.layer.shadowOffset = CGSize(width: 0, height: 10)
+        view.layer.shadowRadius = 30
+        return view
+    }()
+    
+    private lazy var blurEffect: UIVisualEffectView = {
+        let view = UIVisualEffectView()
+        let blur = UIBlurEffect(style: .regular)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer.cornerRadius = orderBarHeight / 2
+        view.clipsToBounds = true
+        view.effect = blur
+        return view
+    }()
+    
+    private lazy var addItemBlockView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = .black
+        view.layer.cornerRadius = orderBarElementSize / 2
+        return view
+    }()
+    
+    private lazy var minusItemButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = .white
+        button.layer.cornerRadius = plusMinusButtonsSize / 2
+        button.setImage(UIImage(systemName: "minus"), for: .normal)
+        button.tintColor = .black
+        return button
+    }()
+    
+    private lazy var plusItemButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = .white
+        button.layer.cornerRadius = plusMinusButtonsSize / 2
+        button.setImage(UIImage(systemName: "plus"), for: .normal)
+        button.tintColor = .black
+        return button
+    }()
+    
+    private lazy var itemCounterLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = .white
+        label.text = "01"
+        return label
+    }()
+    
+    private lazy var addToCartButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = .white
+        button.setTitle("Add to Cart", for: .normal)
+        button.setTitleColor(.black, for: .normal)
+        button.setTitleColor(.black.withAlphaComponent(0.7), for: .highlighted)
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [fontWeightAxis : 650])
+        button.layer.cornerRadius = orderBarElementSize / 2
+        return button
+    }()
     
     // MARK: - Controller methods
     
@@ -192,22 +300,36 @@ final class DishVC: UIViewController {
         view.backgroundColor = ColorManager.shared.background
         view.addSubview(headerView)
         view.addSubview(photoCarouseleView)
-        view.addSubview(descriptionView)
+        view.addSubview(descriptionSectionView)
+        view.addSubview(relatedProductSectionView)
+        view.addSubview(orderBarView)
+        
         headerView.addSubview(backButton)
         headerView.addSubview(dishTitleLabel)
         headerView.addSubview(favoritButton)
+        
         photoCarouseleView.addSubview(coloredBackgroundView)
         photoCarouseleView.addSubview(dishImageView)
-        descriptionView.addSubview(dishName)
-        descriptionView.addSubview(ratingAndDeliveryStack)
-        descriptionView.addSubview(ingredientsLabel)
-        descriptionView.addSubview(ingredientsListLabel)
+        
+        descriptionSectionView.addSubview(dishName)
+        descriptionSectionView.addSubview(ratingAndDeliveryStack)
+        descriptionSectionView.addSubview(ingredientsLabel)
+        descriptionSectionView.addSubview(ingredientsListLabel)
         ratingView.addSubview(ratingIcon)
         ratingView.addSubview(ratingLabel)
         deliveryTimeView.addSubview(deliveriIcon)
         deliveryTimeView.addSubview(deliveryTimeLabel)
         ratingAndDeliveryStack.addArrangedSubview(ratingView)
         ratingAndDeliveryStack.addArrangedSubview(deliveryTimeView)
+        
+        relatedProductSectionView.addSubview(relatedProductLabel)
+        
+        orderBarView.addSubview(blurEffect)
+        orderBarView.addSubview(addItemBlockView)
+        orderBarView.addSubview(addToCartButton)
+        addItemBlockView.addSubview(minusItemButton)
+        addItemBlockView.addSubview(plusItemButton)
+        addItemBlockView.addSubview(itemCounterLabel)
     }
     
     private func setupConstraints() {
@@ -243,16 +365,15 @@ final class DishVC: UIViewController {
             dishImageView.heightAnchor.constraint(equalToConstant: 250),
             dishImageView.widthAnchor.constraint(equalToConstant: 250),
             
-            descriptionView.topAnchor.constraint(equalTo: photoCarouseleView.bottomAnchor),
-            descriptionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            descriptionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            descriptionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            dishName.topAnchor.constraint(equalTo: descriptionView.topAnchor, constant: 20),
-            dishName.leadingAnchor.constraint(equalTo: descriptionView.leadingAnchor, constant: 16),
-            dishName.trailingAnchor.constraint(equalTo: descriptionView.trailingAnchor, constant: -16),
+            descriptionSectionView.topAnchor.constraint(equalTo: photoCarouseleView.bottomAnchor),
+            descriptionSectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            descriptionSectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            dishName.topAnchor.constraint(equalTo: descriptionSectionView.topAnchor, constant: 20),
+            dishName.leadingAnchor.constraint(equalTo: descriptionSectionView.leadingAnchor, constant: 16),
+            dishName.trailingAnchor.constraint(equalTo: descriptionSectionView.trailingAnchor, constant: -16),
             ratingAndDeliveryStack.topAnchor.constraint(equalTo: dishName.bottomAnchor, constant: 16),
-            ratingAndDeliveryStack.leadingAnchor.constraint(equalTo: descriptionView.leadingAnchor, constant: 16),
-            ratingAndDeliveryStack.trailingAnchor.constraint(equalTo: descriptionView.trailingAnchor, constant: -16),
+            ratingAndDeliveryStack.leadingAnchor.constraint(equalTo: descriptionSectionView.leadingAnchor, constant: 16),
+            ratingAndDeliveryStack.trailingAnchor.constraint(equalTo: descriptionSectionView.trailingAnchor, constant: -16),
             ratingAndDeliveryStack.heightAnchor.constraint(equalToConstant: 44),
             ratingIcon.centerYAnchor.constraint(equalTo: ratingView.centerYAnchor),
             ratingIcon.leadingAnchor.constraint(equalTo: ratingView.leadingAnchor),
@@ -268,9 +389,46 @@ final class DishVC: UIViewController {
             deliveriIcon.heightAnchor.constraint(equalToConstant: 15),
             deliveriIcon.widthAnchor.constraint(equalToConstant: 15),
             ingredientsLabel.topAnchor.constraint(equalTo: ratingAndDeliveryStack.bottomAnchor, constant: 6),
-            ingredientsLabel.leadingAnchor.constraint(equalTo: descriptionView.leadingAnchor, constant: 16),
-            ingredientsLabel.trailingAnchor.constraint(equalTo: descriptionView.trailingAnchor, constant: -16)
+            ingredientsLabel.leadingAnchor.constraint(equalTo: descriptionSectionView.leadingAnchor, constant: 16),
+            ingredientsLabel.trailingAnchor.constraint(equalTo: descriptionSectionView.trailingAnchor, constant: -16),
+            ingredientsListLabel.topAnchor.constraint(equalTo: ingredientsLabel.bottomAnchor, constant: 8),
+            ingredientsListLabel.leadingAnchor.constraint(equalTo: descriptionSectionView.leadingAnchor, constant: 16),
+            ingredientsListLabel.trailingAnchor.constraint(equalTo: descriptionSectionView.trailingAnchor, constant: -16),
+            ingredientsListLabel.bottomAnchor.constraint(equalTo: descriptionSectionView.bottomAnchor),
             
+            relatedProductSectionView.topAnchor.constraint(equalTo: descriptionSectionView.bottomAnchor),
+            relatedProductSectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            relatedProductSectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            relatedProductLabel.topAnchor.constraint(equalTo: relatedProductSectionView.topAnchor, constant: 16),
+            relatedProductLabel.leadingAnchor.constraint(equalTo: relatedProductSectionView.leadingAnchor, constant: 16),
+            relatedProductLabel.trailingAnchor.constraint(equalTo: relatedProductSectionView.trailingAnchor, constant: -16),
+            
+            orderBarView.heightAnchor.constraint(equalToConstant: orderBarHeight),
+            orderBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: orderBarMargin),
+            orderBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -orderBarMargin),
+            orderBarView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -orderBarMargin),
+            blurEffect.topAnchor.constraint(equalTo: orderBarView.topAnchor),
+            blurEffect.leadingAnchor.constraint(equalTo: orderBarView.leadingAnchor),
+            blurEffect.trailingAnchor.constraint(equalTo: orderBarView.trailingAnchor),
+            blurEffect.bottomAnchor.constraint(equalTo: orderBarView.bottomAnchor),
+            addItemBlockView.topAnchor.constraint(equalTo: orderBarView.topAnchor, constant: orderBarPadding),
+            addItemBlockView.leadingAnchor.constraint(equalTo: orderBarView.leadingAnchor, constant: orderBarPadding),
+            addItemBlockView.bottomAnchor.constraint(equalTo: orderBarView.bottomAnchor, constant: -orderBarPadding),
+            addItemBlockView.widthAnchor.constraint(equalToConstant: 120),
+            addToCartButton.topAnchor.constraint(equalTo: orderBarView.topAnchor, constant: orderBarPadding),
+            addToCartButton.leadingAnchor.constraint(equalTo: addItemBlockView.trailingAnchor, constant: orderBarPadding),
+            addToCartButton.trailingAnchor.constraint(equalTo: orderBarView.trailingAnchor, constant: -orderBarPadding),
+            addToCartButton.bottomAnchor.constraint(equalTo: orderBarView.bottomAnchor, constant: -orderBarPadding),
+            minusItemButton.centerYAnchor.constraint(equalTo: addItemBlockView.centerYAnchor),
+            minusItemButton.leadingAnchor.constraint(equalTo: addItemBlockView.leadingAnchor, constant: orderBarPadding + 6),
+            minusItemButton.heightAnchor.constraint(equalToConstant: plusMinusButtonsSize),
+            minusItemButton.widthAnchor.constraint(equalToConstant: plusMinusButtonsSize),
+            plusItemButton.centerYAnchor.constraint(equalTo: addItemBlockView.centerYAnchor),
+            plusItemButton.trailingAnchor.constraint(equalTo: addItemBlockView.trailingAnchor, constant: -(orderBarPadding + 6)),
+            plusItemButton.heightAnchor.constraint(equalToConstant: plusMinusButtonsSize),
+            plusItemButton.widthAnchor.constraint(equalToConstant: plusMinusButtonsSize),
+            itemCounterLabel.centerXAnchor.constraint(equalTo: addItemBlockView.centerXAnchor),
+            itemCounterLabel.centerYAnchor.constraint(equalTo: addItemBlockView.centerYAnchor)
         ])
     }
     
