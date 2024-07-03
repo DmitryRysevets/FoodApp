@@ -59,6 +59,7 @@ final class DishVC: UIViewController {
     // MARK: - Photo carousele props.
     
     private lazy var carouselPhotos: [UIImage] = []
+    private var dataSource: UICollectionViewDiffableDataSource<Int, UIImage>!
     
     private lazy var photoCarouseleView: UIView = {
         let view = UIView()
@@ -74,24 +75,28 @@ final class DishVC: UIViewController {
     }()
     
     private lazy var carouselCollectionView: UICollectionView = {
-        loadCarouselPhotos()
-        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: createCompositionalLayout())
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .horizontal
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.isPagingEnabled = true
         collectionView.backgroundColor = .clear
         collectionView.showsHorizontalScrollIndicator = false
         collectionView.register(CarouselCell.self, forCellWithReuseIdentifier: CarouselCell.id)
-        collectionView.dataSource = self
         collectionView.delegate = self
         return collectionView
     }()
     
-    private lazy var pageControl: UIPageControl = {
-        let pageControl = UIPageControl()
+    private lazy var pageControl: PageControl = {
+        let pageControl = PageControl()
         pageControl.translatesAutoresizingMaskIntoConstraints = false
-        pageControl.currentPageIndicatorTintColor = .black
-        pageControl.pageIndicatorTintColor = .lightGray
         pageControl.numberOfPages = carouselPhotos.count
+        pageControl.currentPage = 1
+        pageControl.dotRadius = 3
+        pageControl.dotSpacings = 7
+        pageControl.pageIndicatorTintColor = .gray
+        pageControl.currentPageIndicatorTintColor = .label
+        pageControl.backgroundColor = .clear
         return pageControl
     }()
     
@@ -129,7 +134,7 @@ final class DishVC: UIViewController {
     }()
     
     private lazy var ratingIcon: UIImageView = {
-        let image = UIImage(systemName: "star.fill")?.withTintColor(ColorManager.shared.orderButton)
+        let image = UIImage(named: "Star")
         let imageView = UIImageView(image: image)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -150,7 +155,7 @@ final class DishVC: UIViewController {
     }()
     
     private lazy var deliveriIcon: UIImageView = {
-        let image = UIImage(systemName: "clock.fill")?.withTintColor(ColorManager.shared.green)
+        let image = UIImage(named: "Clock")
         let imageView = UIImageView(image: image)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
@@ -302,8 +307,11 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        loadCarouselPhotos()
         setupUI()
         setupConstraints()
+        configureDataSource()
+        applySnapshot()
     }
     
     // MARK: - Private methods
@@ -323,7 +331,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         photoCarouseleView.addSubview(coloredBackgroundView)
         photoCarouseleView.addSubview(carouselCollectionView)
         photoCarouseleView.addSubview(pageControl)
-        
+
         descriptionSectionView.addSubview(dishName)
         descriptionSectionView.addSubview(ratingAndDeliveryStack)
         descriptionSectionView.addSubview(ingredientsLabel)
@@ -377,7 +385,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
             carouselCollectionView.leadingAnchor.constraint(equalTo: photoCarouseleView.leadingAnchor),
             carouselCollectionView.trailingAnchor.constraint(equalTo: photoCarouseleView.trailingAnchor),
             carouselCollectionView.bottomAnchor.constraint(equalTo: photoCarouseleView.bottomAnchor, constant: -36),
-            pageControl.topAnchor.constraint(equalTo: carouselCollectionView.bottomAnchor, constant: 8),
+            pageControl.topAnchor.constraint(equalTo: carouselCollectionView.bottomAnchor, constant: 16),
             pageControl.centerXAnchor.constraint(equalTo: photoCarouseleView.centerXAnchor),
             
             descriptionSectionView.topAnchor.constraint(equalTo: photoCarouseleView.bottomAnchor),
@@ -392,8 +400,8 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
             ratingAndDeliveryStack.heightAnchor.constraint(equalToConstant: 44),
             ratingIcon.centerYAnchor.constraint(equalTo: ratingView.centerYAnchor),
             ratingIcon.leadingAnchor.constraint(equalTo: ratingView.leadingAnchor),
-            ratingIcon.heightAnchor.constraint(equalToConstant: 15),
-            ratingIcon.widthAnchor.constraint(equalToConstant: 15),
+            ratingIcon.heightAnchor.constraint(equalToConstant: 18),
+            ratingIcon.widthAnchor.constraint(equalToConstant: 18),
             ratingLabel.centerYAnchor.constraint(equalTo: ratingView.centerYAnchor),
             ratingLabel.leadingAnchor.constraint(equalTo: ratingIcon.trailingAnchor, constant: 8),
             ratingLabel.trailingAnchor.constraint(equalTo: ratingView.trailingAnchor, constant: -8),
@@ -401,8 +409,8 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
             deliveryTimeLabel.trailingAnchor.constraint(equalTo: deliveryTimeView.trailingAnchor),
             deliveriIcon.centerYAnchor.constraint(equalTo: deliveryTimeView.centerYAnchor),
             deliveriIcon.trailingAnchor.constraint(equalTo: deliveryTimeLabel.leadingAnchor, constant: -8),
-            deliveriIcon.heightAnchor.constraint(equalToConstant: 15),
-            deliveriIcon.widthAnchor.constraint(equalToConstant: 15),
+            deliveriIcon.heightAnchor.constraint(equalToConstant: 18),
+            deliveriIcon.widthAnchor.constraint(equalToConstant: 18),
             ingredientsLabel.topAnchor.constraint(equalTo: ratingAndDeliveryStack.bottomAnchor, constant: 6),
             ingredientsLabel.leadingAnchor.constraint(equalTo: descriptionSectionView.leadingAnchor, constant: 16),
             ingredientsLabel.trailingAnchor.constraint(equalTo: descriptionSectionView.trailingAnchor, constant: -16),
@@ -449,23 +457,26 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     
     private func loadCarouselPhotos() {
         for _ in 0...3 {
-            guard let data = dish.imageData else { continue }
-            guard let image = UIImage(data: data) else { continue }
+            guard let data = dish.imageData, let image = UIImage(data: data) else { continue }
             carouselPhotos.append(image)
         }
     }
     
-    private func createCompositionalLayout() -> UICollectionViewLayout {
-        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
-        let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .fractionalHeight(1.0))
-        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
-        
-        let section = NSCollectionLayoutSection(group: group)
-        section.orthogonalScrollingBehavior = .paging
-        
-        return UICollectionViewCompositionalLayout(section: section)
+    private func configureDataSource() {
+        dataSource = UICollectionViewDiffableDataSource<Int, UIImage>(collectionView: carouselCollectionView) { (collectionView, indexPath, image) -> UICollectionViewCell? in
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CarouselCell.id, for: indexPath) as? CarouselCell else {
+                fatalError("Cannot create new cell")
+            }
+            cell.configure(with: image)
+            return cell
+        }
+    }
+    
+    private func applySnapshot() {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, UIImage>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(carouselPhotos, toSection: 0)
+        dataSource.apply(snapshot, animatingDifferences: false)
     }
     
     // MARK: - Objc methods
@@ -482,22 +493,28 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     
 }
 
-// MARK: - UICollectionViewDataSource
+// MARK: - CollectionView Delegate
 
-extension DishVC: UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return carouselPhotos.count
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CarouselCell.id, for: indexPath) as! CarouselCell
-        cell.configure(with: carouselPhotos[indexPath.item])
-        return cell
+extension DishVC: UICollectionViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        pageControl.scrollViewDidScroll(scrollView)
     }
 }
 
-// MARK: - UICollectionViewDelegate
+// MARK: - Collection FlowLayout Delegate
 
-extension DishVC: UICollectionViewDelegate {
+extension DishVC: UICollectionViewDelegateFlowLayout {
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return carouselCollectionView.bounds.size
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
     
 }

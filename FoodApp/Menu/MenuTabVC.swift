@@ -52,7 +52,7 @@ final class MenuTabVC: UIViewController {
     
     private lazy var profilePhotoView: UIImageView = {
         let view = UIImageView()
-        let image = UIImage(named: "Profile")?.resized(to: CGSize(width: 18, height: 23))
+        let image = UIImage(named: "Profile2")/*?.resized(to: CGSize(width: 18, height: 23))*/
         view.translatesAutoresizingMaskIntoConstraints = false
         view.image = image
         view.contentMode = .center
@@ -168,8 +168,8 @@ final class MenuTabVC: UIViewController {
         super.viewDidAppear(animated)
         searchBar.searchTextField.rightViewMode = .always
         searchBar.setPlaceholderFont(.systemFont(ofSize: 14))
-        searchBar.setSideImage(UIImage(systemName: "magnifyingglass")!,
-                               imageSize: CGSize(width: 24, height: 24),
+        searchBar.setSideImage(UIImage(named: "Magnifying-glass")!,
+                               imageSize: CGSize(width: 18, height: 18),
                                padding: 10,
                                tintColor: ColorManager.shared.label,
                                side: .left)
