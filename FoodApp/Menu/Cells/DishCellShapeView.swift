@@ -13,6 +13,39 @@ class DishCellShapeView: UIView {
         }
     }
     
+    private var gradientLayer: CAGradientLayer!
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupGradientLayer()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        setupGradientLayer()
+    }
+    
+    private func setupGradientLayer() {
+        gradientLayer = CAGradientLayer()
+        gradientLayer.type = .radial
+        gradientLayer.colors = [
+            UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 0.25).cgColor,
+            UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 0.8).cgColor
+        ]
+        gradientLayer.startPoint = CGPoint(x: 0.6, y: 0.2)
+        gradientLayer.endPoint = CGPoint(x: 0, y: 1)
+        layer.addSublayer(gradientLayer)
+        updateGradientLayerVisibility()
+    }
+    
+    private func updateGradientLayerVisibility() {
+        if traitCollection.userInterfaceStyle == .dark {
+            gradientLayer.isHidden = false
+        } else {
+            gradientLayer.isHidden = true
+        }
+    }
+    
     override func draw(_ rect: CGRect) {
         super.draw(rect)
         
@@ -41,6 +74,15 @@ class DishCellShapeView: UIView {
         
         fillColor.setFill()
         path.fill()
+        
+        gradientLayer.frame = rect
+        let maskLayer = CAShapeLayer()
+        maskLayer.path = path.cgPath
+        gradientLayer.mask = maskLayer
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        updateGradientLayerVisibility()
     }
 }
-

@@ -8,7 +8,7 @@ import UIKit
 final class DishCell: UICollectionViewCell {
     static let id = "DishCell"
     
-    lazy var dishData = Dish(id: "", name: "", description: "", tags: [], weight: 0, calories: 0, protein: 0, carbs: 0, fats: 0, isOffer: true, price: 0, recentPrice: 0, imageData: nil) {
+    lazy var dishData = Dish(id: "", name: "", description: "", tags: [], weight: 0, calories: 0, protein: 0, carbs: 0, fats: 0, isOffer: false, price: 0, recentPrice: 0, imageData: nil) {
         didSet {
             nameLabel.text = dishData.name
             actualPriseLabel.text = String(dishData.price)

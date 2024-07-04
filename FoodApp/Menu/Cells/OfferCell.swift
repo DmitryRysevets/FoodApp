@@ -43,7 +43,6 @@ final class OfferCell: UICollectionViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.frame.size = CGSize(width: 130, height: 40)
-        label.textColor = ColorManager.shared.getGradientColor(bounds: label.bounds, colors: ColorManager.shared.offerLabelGradientColors, direction: .vertical)
         label.font = .systemFont(ofSize: 50, weight: .bold)
         return label
     }()
@@ -56,7 +55,7 @@ final class OfferCell: UICollectionViewCell {
         label.font = conditionLabelFont
         label.textAlignment = .center
         label.textColor = .white
-        label.backgroundColor = ColorManager.shared.orderButton
+        label.backgroundColor = ColorManager.shared.orange
         return label
     }()
     
@@ -72,8 +71,6 @@ final class OfferCell: UICollectionViewCell {
         view.frame = bounds
         view.layer.cornerRadius = 16
         view.layer.borderWidth = 0.5
-        view.layer.borderColor = ColorManager.shared.getGradientColor(bounds: bounds, colors: ColorManager.shared.offerBorderGradientColors, direction: .semiDiagonal)?.cgColor
-        view.backgroundColor = ColorManager.shared.getGradientColor(bounds: bounds, colors: ColorManager.shared.offerBackgroundGradientColors, direction: .diagonal)
         return view
     }()
     
@@ -87,6 +84,14 @@ final class OfferCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            updateGradients()
+        }
+    }
+    
     private func setupUI() {
         backgroundColor = .clear
         layer.cornerRadius = 16
@@ -96,6 +101,8 @@ final class OfferCell: UICollectionViewCell {
         addSubview(offerLabel)
         addSubview(conditionLabel)
         addSubview(offerImage)
+        
+        updateGradients()
     }
     
     private func setupConstraints() {
@@ -133,4 +140,9 @@ final class OfferCell: UICollectionViewCell {
         offerImage.layer.add(animation, forKey: "offerImageAnimation")
     }
     
+    private func updateGradients() {
+        gradientView.layer.borderColor = ColorManager.shared.getOfferBorderColor(bounds: bounds)
+        gradientView.backgroundColor = ColorManager.shared.getOfferBackgroundColor(for: traitCollection.userInterfaceStyle, bounds: bounds)
+        offerLabel.textColor = ColorManager.shared.getOfferLabelColor(bounds: offerLabel.bounds)
+    }
 }

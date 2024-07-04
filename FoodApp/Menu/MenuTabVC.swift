@@ -113,7 +113,7 @@ final class MenuTabVC: UIViewController {
         searchBar.searchTextField.backgroundColor = ColorManager.shared.secondaryGrey
         searchBar.searchTextField.borderStyle = .none
         searchBar.updateHeight(height: 44, radius: 22)
-        searchBar.tintColor = ColorManager.shared.orderButton
+        searchBar.tintColor = ColorManager.shared.orange
         searchBar.searchBarStyle = .minimal
         searchBar.placeholder = "Search"
         searchBar.showsBookmarkButton = true
