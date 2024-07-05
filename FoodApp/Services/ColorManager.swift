@@ -27,11 +27,27 @@ class ColorManager {
         }
     }
     
+    let lalabelDarkGray = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor(red: 0.518, green: 0.518, blue: 0.518, alpha: 1)
+        } else {
+            return UIColor.darkGray
+        }
+    }
+    
     let secondaryGrey = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         if traitCollection.userInterfaceStyle == .dark {
             return UIColor(red: 0.105, green: 0.105, blue: 0.105, alpha: 1)
         } else {
             return UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1)
+        }
+    }
+    
+    let tabBarBackground = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor.white.withAlphaComponent(0.4)
+        } else {
+            return UIColor(red: 0.13, green: 0.13, blue: 0.13, alpha: 0.4)
         }
     }
     
@@ -101,7 +117,7 @@ class ColorManager {
         }
     }
     
-    private let offerBackgroundPrimaryColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+    private let offerBackgroundSecondaryColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         if traitCollection.userInterfaceStyle == .dark {
             return UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 1)
         } else {
@@ -141,8 +157,8 @@ class ColorManager {
         return getGradientColor(bounds: bounds, colors: colors, parameter: .forOfferBorder)?.cgColor
     }
     
-    func getOfferBackgroundColor(for theme: UIUserInterfaceStyle, bounds: CGRect) -> UIColor? {
-        let colors = [offerBackgroundPrimaryColor.cgColor, green.cgColor]
+    func getOfferBackgroundColor(for theme: UIUserInterfaceStyle, primaryColor: UIColor, bounds: CGRect) -> UIColor? {
+        let colors = [offerBackgroundSecondaryColor.cgColor, primaryColor.cgColor]
         if theme == .dark {
             return getGradientColor(bounds: bounds, colors: colors, parameter: .forOfferBackDark)
         }

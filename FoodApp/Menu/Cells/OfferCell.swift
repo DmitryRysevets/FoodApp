@@ -26,6 +26,12 @@ final class OfferCell: UICollectionViewCell {
         }
     }
     
+    lazy var primaryColor = ColorManager.shared.green {
+        didSet {
+            updateGradients()
+        }
+    }
+    
     private let fontWeightAxis = 2003265652
     private let conditionLabelFont = UIFont.systemFont(ofSize: 13, weight: .semibold)
     private var conditionLabelWidth: CGFloat = 0
@@ -142,7 +148,7 @@ final class OfferCell: UICollectionViewCell {
     
     private func updateGradients() {
         gradientView.layer.borderColor = ColorManager.shared.getOfferBorderColor(bounds: bounds)
-        gradientView.backgroundColor = ColorManager.shared.getOfferBackgroundColor(for: traitCollection.userInterfaceStyle, bounds: bounds)
+        gradientView.backgroundColor = ColorManager.shared.getOfferBackgroundColor(for: traitCollection.userInterfaceStyle, primaryColor: primaryColor, bounds: bounds)
         offerLabel.textColor = ColorManager.shared.getOfferLabelColor(bounds: offerLabel.bounds)
     }
 }

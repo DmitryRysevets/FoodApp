@@ -11,7 +11,7 @@ final class DishCell: UICollectionViewCell {
     lazy var dishData = Dish(id: "", name: "", description: "", tags: [], weight: 0, calories: 0, protein: 0, carbs: 0, fats: 0, isOffer: false, price: 0, recentPrice: 0, imageData: nil) {
         didSet {
             nameLabel.text = dishData.name
-            actualPriseLabel.text = String(dishData.price)
+            actualPriceLabel.text = String(dishData.price)
             if let data = dishData.imageData {
                 dishImage.image = UIImage(data: data)
             }
@@ -58,7 +58,7 @@ final class DishCell: UICollectionViewCell {
         return label
     }()
     
-    private lazy var actualPriseLabel: UILabel = {
+    private lazy var actualPriceLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = "$4.00"
@@ -67,7 +67,7 @@ final class DishCell: UICollectionViewCell {
         return label
     }()
     
-    private lazy var regularPriseLabel: UILabel = {
+    private lazy var regularPriceLabel: UILabel = {
         let label = UILabel()
         let text = "$5.00"
         let attributes: [NSAttributedString.Key: Any] = [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
@@ -75,7 +75,7 @@ final class DishCell: UICollectionViewCell {
         label.attributedText = attributedString
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 11)
-        label.textColor = .darkGray
+        label.textColor = ColorManager.shared.lalabelDarkGray
         label.textAlignment = .left
         return label
     }()
@@ -117,8 +117,8 @@ final class DishCell: UICollectionViewCell {
         addSubview(addButton)
         addSubview(nameLabel)
         addSubview(favoriteButton)
-        addSubview(actualPriseLabel)
-        addSubview(regularPriseLabel)
+        addSubview(actualPriceLabel)
+        addSubview(regularPriceLabel)
         addSubview(startingFromLabel)
         
         customShapeView.addSubview(dishImage)
@@ -138,13 +138,13 @@ final class DishCell: UICollectionViewCell {
             favoriteButton.topAnchor.constraint(equalTo: topAnchor, constant: 10),
             favoriteButton.heightAnchor.constraint(equalToConstant: 28),
             favoriteButton.widthAnchor.constraint(equalToConstant: 28),
-            actualPriseLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            actualPriseLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
-            actualPriseLabel.heightAnchor.constraint(equalToConstant: 20),
-            regularPriseLabel.leadingAnchor.constraint(equalTo: actualPriseLabel.trailingAnchor, constant: 6),
-            regularPriseLabel.bottomAnchor.constraint(equalTo: actualPriseLabel.bottomAnchor),
-            regularPriseLabel.heightAnchor.constraint(equalTo: actualPriseLabel.heightAnchor),
-            startingFromLabel.bottomAnchor.constraint(equalTo: actualPriseLabel.topAnchor),
+            actualPriceLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            actualPriceLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+            actualPriceLabel.heightAnchor.constraint(equalToConstant: 20),
+            regularPriceLabel.leadingAnchor.constraint(equalTo: actualPriceLabel.trailingAnchor, constant: 6),
+            regularPriceLabel.bottomAnchor.constraint(equalTo: actualPriceLabel.bottomAnchor),
+            regularPriceLabel.heightAnchor.constraint(equalTo: actualPriceLabel.heightAnchor),
+            startingFromLabel.bottomAnchor.constraint(equalTo: actualPriceLabel.topAnchor),
             startingFromLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             startingFromLabel.heightAnchor.constraint(equalToConstant: 12)
         ])

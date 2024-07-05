@@ -11,7 +11,7 @@ class TabBarVC: UIViewController {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.cornerRadius = tabBarHeight / 2
-        view.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.5)
+        view.backgroundColor = ColorManager.shared.tabBarBackground
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOpacity = 0.2
         view.layer.shadowOffset = CGSize(width: 0, height: 10)

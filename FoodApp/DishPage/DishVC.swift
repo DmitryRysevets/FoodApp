@@ -7,7 +7,8 @@ import UIKit
 
 final class DishVC: UIViewController {
     
-    let dish: Dish
+    private let dish: Dish
+    private let relatedProducts: [UIImage]
     
     // MARK: - Header props.
     
@@ -30,7 +31,7 @@ final class DishVC: UIViewController {
         button.tintColor = ColorManager.shared.label
         button.backgroundColor = ColorManager.shared.secondaryGrey
         button.layer.cornerRadius = headerButtonSize / 2
-        button.addTarget(self, action: #selector(backButtonTaped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -52,7 +53,7 @@ final class DishVC: UIViewController {
         button.setImage(image, for: .normal)
         button.backgroundColor = ColorManager.shared.secondaryGrey
         button.layer.cornerRadius = headerButtonSize / 2
-        button.addTarget(self, action: #selector(favoritButtonTaped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(favoritButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -71,7 +72,21 @@ final class DishVC: UIViewController {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.cornerRadius = 30
+        view.clipsToBounds = true
         return view
+    }()
+    
+    private lazy var gradientLayer: CAGradientLayer = {
+        let layer = CAGradientLayer()
+        layer.type = .radial
+        layer.colors = [
+            UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 0.20).cgColor,
+            UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 0.7).cgColor
+        ]
+        layer.startPoint = CGPoint(x: 0.5, y: 0.4)
+        layer.endPoint = CGPoint(x: 0, y: 1)
+        layer.isHidden = traitCollection.userInterfaceStyle != .dark
+        return layer
     }()
     
     private lazy var carouselCollectionView: UICollectionView = {
@@ -212,10 +227,11 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         stack.axis = .horizontal
         stack.distribution = .equalSpacing
         stack.alignment = .fill
+        stack.backgroundColor = .red.withAlphaComponent(0.3)
         return stack
     }()
     
-    // MARK: - Order bar view
+    // MARK: - Order bar
     
     private let orderBarHeight: CGFloat = 72
     private let orderBarMargin: CGFloat = 18
@@ -232,6 +248,8 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         view.layer.shadowOpacity = 0.2
         view.layer.shadowOffset = CGSize(width: 0, height: 10)
         view.layer.shadowRadius = 30
+        
+        view.isHidden = true
         return view
     }()
     
@@ -260,6 +278,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         button.layer.cornerRadius = plusMinusButtonsSize / 2
         button.setImage(UIImage(systemName: "minus"), for: .normal)
         button.tintColor = .black
+        button.addTarget(self, action: #selector(minusButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -270,10 +289,11 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         button.layer.cornerRadius = plusMinusButtonsSize / 2
         button.setImage(UIImage(systemName: "plus"), for: .normal)
         button.tintColor = .black
+        button.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
         return button
     }()
     
-    private lazy var itemCounterLabel: UILabel = {
+    private lazy var amountLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .white
@@ -290,13 +310,15 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         button.setTitleColor(.black.withAlphaComponent(0.7), for: .highlighted)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [fontWeightAxis : 650])
         button.layer.cornerRadius = orderBarElementSize / 2
+        button.addTarget(self, action: #selector(addToCartButtonTapped), for: .touchUpInside)
         return button
     }()
     
     // MARK: - Controller methods
     
-    init(dish: Dish, color: UIColor) {
+    init(dish: Dish, related: [UIImage], color: UIColor) {
         self.dish = dish
+        self.relatedProducts = related
         super.init(nibName: nil, bundle: nil)
         coloredBackgroundView.backgroundColor = color
     }
@@ -310,8 +332,26 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         loadCarouselPhotos()
         setupUI()
         setupConstraints()
+        setupRelatedProducts()
         configureDataSource()
         applySnapshot()
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        gradientLayer.frame = coloredBackgroundView.bounds
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        
+        if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+            if traitCollection.userInterfaceStyle == .dark {
+                gradientLayer.isHidden = false
+            } else {
+                gradientLayer.isHidden = true
+            }
+        }
     }
     
     // MARK: - Private methods
@@ -331,6 +371,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         photoCarouseleView.addSubview(coloredBackgroundView)
         photoCarouseleView.addSubview(carouselCollectionView)
         photoCarouseleView.addSubview(pageControl)
+        coloredBackgroundView.layer.addSublayer(gradientLayer)
 
         descriptionSectionView.addSubview(dishName)
         descriptionSectionView.addSubview(ratingAndDeliveryStack)
@@ -344,18 +385,20 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         ratingAndDeliveryStack.addArrangedSubview(deliveryTimeView)
         
         relatedProductSectionView.addSubview(relatedProductLabel)
+        relatedProductSectionView.addSubview(relatedProductStack)
         
         orderBarView.addSubview(blurEffect)
         orderBarView.addSubview(addItemBlockView)
         orderBarView.addSubview(addToCartButton)
         addItemBlockView.addSubview(minusItemButton)
         addItemBlockView.addSubview(plusItemButton)
-        addItemBlockView.addSubview(itemCounterLabel)
+        addItemBlockView.addSubview(amountLabel)
     }
     
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
+            // Header view constraints
             headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -373,6 +416,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
             dishTitleLabel.trailingAnchor.constraint(equalTo: favoritButton.leadingAnchor, constant: -8),
             dishTitleLabel.heightAnchor.constraint(equalToConstant: 30),
             
+            // Photo carousel view constraints
             photoCarouseleView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             photoCarouseleView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             photoCarouseleView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -388,6 +432,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
             pageControl.topAnchor.constraint(equalTo: carouselCollectionView.bottomAnchor, constant: 16),
             pageControl.centerXAnchor.constraint(equalTo: photoCarouseleView.centerXAnchor),
             
+            // Description section view constraints
             descriptionSectionView.topAnchor.constraint(equalTo: photoCarouseleView.bottomAnchor),
             descriptionSectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             descriptionSectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -419,13 +464,19 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
             ingredientsListLabel.trailingAnchor.constraint(equalTo: descriptionSectionView.trailingAnchor, constant: -16),
             ingredientsListLabel.bottomAnchor.constraint(equalTo: descriptionSectionView.bottomAnchor),
             
-            relatedProductSectionView.topAnchor.constraint(equalTo: descriptionSectionView.bottomAnchor),
+            // Related product section view constraints
+            relatedProductSectionView.topAnchor.constraint(equalTo: descriptionSectionView.bottomAnchor, constant: 24),
             relatedProductSectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             relatedProductSectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             relatedProductLabel.topAnchor.constraint(equalTo: relatedProductSectionView.topAnchor, constant: 16),
             relatedProductLabel.leadingAnchor.constraint(equalTo: relatedProductSectionView.leadingAnchor, constant: 16),
             relatedProductLabel.trailingAnchor.constraint(equalTo: relatedProductSectionView.trailingAnchor, constant: -16),
+            relatedProductStack.topAnchor.constraint(equalTo: relatedProductLabel.bottomAnchor, constant: 16),
+            relatedProductStack.leadingAnchor.constraint(equalTo: relatedProductSectionView.leadingAnchor, constant: 16),
+            relatedProductStack.trailingAnchor.constraint(equalTo: relatedProductSectionView.trailingAnchor, constant: -16),
+            relatedProductStack.heightAnchor.constraint(equalToConstant: 130),
             
+            // Order bar view constraints
             orderBarView.heightAnchor.constraint(equalToConstant: orderBarHeight),
             orderBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: orderBarMargin),
             orderBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -orderBarMargin),
@@ -450,9 +501,29 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
             plusItemButton.trailingAnchor.constraint(equalTo: addItemBlockView.trailingAnchor, constant: -(orderBarPadding + 6)),
             plusItemButton.heightAnchor.constraint(equalToConstant: plusMinusButtonsSize),
             plusItemButton.widthAnchor.constraint(equalToConstant: plusMinusButtonsSize),
-            itemCounterLabel.centerXAnchor.constraint(equalTo: addItemBlockView.centerXAnchor),
-            itemCounterLabel.centerYAnchor.constraint(equalTo: addItemBlockView.centerYAnchor)
+            amountLabel.centerXAnchor.constraint(equalTo: addItemBlockView.centerXAnchor),
+            amountLabel.centerYAnchor.constraint(equalTo: addItemBlockView.centerYAnchor)
         ])
+    }
+    
+    private func setupRelatedProducts() {
+        let productBackColors = ColorManager.shared.getColors(relatedProducts.count)
+        for i in 0...relatedProducts.count-1 {
+            let view = UIView()
+            let imageView = UIImageView(image: relatedProducts[i])
+            view.translatesAutoresizingMaskIntoConstraints = false
+            view.backgroundColor = productBackColors[i]
+            view.addSubview(imageView)
+            imageView.translatesAutoresizingMaskIntoConstraints = false
+            imageView.contentMode = .scaleAspectFit
+            relatedProductStack.addArrangedSubview(view)
+            NSLayoutConstraint.activate([
+                imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+                imageView.heightAnchor.constraint(equalToConstant: 50),
+                imageView.widthAnchor.constraint(equalToConstant: 50)
+            ])
+        }
     }
     
     private func loadCarouselPhotos() {
@@ -482,13 +553,34 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     // MARK: - Objc methods
     
     @objc
-    private func backButtonTaped() {
+    private func backButtonTapped() {
         dismiss(animated: true)
     }
 
     @objc
-    private func favoritButtonTaped() {
-        
+    private func favoritButtonTapped() {
+        print(#function)
+    }
+    
+    @objc
+    private func minusButtonTapped() {
+        var amount = Int(amountLabel.text ?? "0") ?? 0
+        if amount > 0 {
+            amount -= 1
+            amountLabel.text = amount > 9 ? "\(amount)" : "0\(amount)"
+        }
+    }
+    
+    @objc 
+    private func plusButtonTapped() {
+        var amount = Int(amountLabel.text ?? "0") ?? 0
+        amount += 1
+        amountLabel.text = amount > 9 ? "\(amount)" : "0\(amount)"
+    }
+    
+    @objc
+    private func addToCartButtonTapped() {
+        print(#function)
     }
     
 }

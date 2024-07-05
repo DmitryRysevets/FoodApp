@@ -32,7 +32,7 @@ final class MenuTabVC: UIViewController {
     private var dishColors: [UIColor] = []
     
     private var isMenuDownloaded = false
-    private var tabBarIsVisible = true
+    private var isTabBarVisible = true
     
     private lazy var preloaderView = PreloaderView(frame: CGRect(x: 32, y: Int(view.center.y - 100), width: Int(view.frame.width - 64), height: 180))
     
@@ -52,7 +52,7 @@ final class MenuTabVC: UIViewController {
     
     private lazy var profilePhotoView: UIImageView = {
         let view = UIImageView()
-        let image = UIImage(named: "Profile2")/*?.resized(to: CGSize(width: 18, height: 23))*/
+        let image = UIImage(named: "Profile2")
         view.translatesAutoresizingMaskIntoConstraints = false
         view.image = image
         view.contentMode = .center
@@ -327,13 +327,13 @@ final class MenuTabVC: UIViewController {
     }
     
     private func hideTabBar() {
-        self.tabBarIsVisible = false
+        isTabBarVisible = false
         let parent = self.parent as! TabBarVC
         parent.hideTabBar()
     }
     
     private func showTabBar() {
-        self.tabBarIsVisible = true
+        isTabBarVisible = true
         let parent = self.parent as! TabBarVC
         parent.showTabBar()
     }
@@ -350,16 +350,33 @@ final class MenuTabVC: UIViewController {
         }
     }
     
+    func findMatchingByTagDish(referenceDish: Dish) -> [UIImage] {
+        let matchingDishes = menu.dishes.filter { dish in
+            return !Set(dish.tags).intersection(referenceDish.tags).isEmpty
+        }
+        
+        let selectedDishes = Array(matchingDishes.prefix(3))
+        
+        var images: [UIImage] = []
+        for dish in selectedDishes {
+            if let data = dish.imageData, let image = UIImage(data: data) {
+                images.append(image)
+            }
+        }
+        
+        return images
+    }
+    
     // MARK: - internal methods
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let translation = scrollView.panGestureRecognizer.translation(in: scrollView.superview)
         if translation.y == 0 { return }
         if translation.y > 0 {
-            if !tabBarIsVisible { showTabBar() }
+            if !isTabBarVisible { showTabBar() }
             if !isSearching { showSearchBar() }
         } else {
-            if tabBarIsVisible { hideTabBar() }
+            if isTabBarVisible { hideTabBar() }
             if !isSearching { hideSearchBar() }
         }
     }
@@ -384,7 +401,7 @@ extension MenuTabVC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let chosenDish: Dish
         let cell = collectionView.cellForItem(at: indexPath) as? DishCell
-        let color: UIColor = cell?.customShapeView.fillColor ?? ColorManager.shared.green
+        let color = cell?.customShapeView.fillColor ?? ColorManager.shared.green
         
         if isSearching {
             chosenDish = filteredDishes[indexPath.item]
@@ -392,10 +409,10 @@ extension MenuTabVC: UICollectionViewDelegate {
             chosenDish = isFilteredByTag ? filteredByTagDishes[indexPath.item] : menu.dishes[indexPath.item]
         }
         
-        let dishPage = DishVC(dish: chosenDish, color: color)
+        let relatedProducts = findMatchingByTagDish(referenceDish: chosenDish)
+        let dishPage = DishVC(dish: chosenDish, related: relatedProducts, color: color)
         dishPage.modalTransitionStyle = .coverVertical
         dishPage.modalPresentationStyle = .overFullScreen
-//        dishPage.modalPresentationStyle = .popover
         
         present(dishPage, animated: true)
     }

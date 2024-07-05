@@ -9,12 +9,14 @@ final class OffersContainerCell: UICollectionViewCell {
     static let id = "OffersContainerCell"
     
     private lazy var slideWidth: CGFloat = frame.width * 0.65
+    private lazy var cellsPrimaryColors: [UIColor] = []
     private let sliderSpacing = 16.0
     private var indexOfCellBeforeDragging = 0
     private var dataSource: UICollectionViewDiffableDataSource<Int, Offer>!
     
     var offersSnapshot = NSDiffableDataSourceSnapshot<Int, Offer>() {
         didSet{
+            cellsPrimaryColors = ColorManager.shared.getColors(offersSnapshot.numberOfItems)
             dataSource.apply(offersSnapshot, animatingDifferences: false)
         }
     }
@@ -49,6 +51,7 @@ final class OffersContainerCell: UICollectionViewCell {
         dataSource = UICollectionViewDiffableDataSource<Int, Offer>(collectionView: collectionView) { collectionView, indexPath, item in
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: OfferCell.id, for: indexPath) as? OfferCell 
             else { fatalError("Unable deque OfferCell") }
+            cell.primaryColor = self.cellsPrimaryColors[indexPath.item]
             cell.offerData = self.offersSnapshot.itemIdentifiers[indexPath.item]
             return cell
         }
