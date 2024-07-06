@@ -10,6 +10,18 @@ final class DishVC: UIViewController {
     private let dish: Dish
     private let relatedProducts: [UIImage]
     
+    private let scrollView: UIScrollView = {
+        let view = UIScrollView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private let spacerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     // MARK: - Header props.
     
     private let headerHeight = 52.0
@@ -62,7 +74,7 @@ final class DishVC: UIViewController {
     private lazy var carouselPhotos: [UIImage] = []
     private var dataSource: UICollectionViewDiffableDataSource<Int, UIImage>!
     
-    private lazy var photoCarouseleView: UIView = {
+    private lazy var carouseleContainerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -117,7 +129,7 @@ final class DishVC: UIViewController {
     
     // MARK: - Description section props.
     
-    private lazy var descriptionSectionView: UIView = {
+    private lazy var descriptionContainerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -207,7 +219,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     
     // MARK: - Related section props.
     
-    private lazy var relatedProductSectionView: UIView = {
+    private lazy var relatedProductsContainerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
@@ -221,13 +233,12 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         return label
     }()
     
-    private lazy var relatedProductStack: UIStackView = {
+    private lazy var relatedProductsStack: UIStackView = {
         let stack = UIStackView()
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .horizontal
         stack.distribution = .equalSpacing
         stack.alignment = .fill
-        stack.backgroundColor = .red.withAlphaComponent(0.3)
         return stack
     }()
     
@@ -243,13 +254,11 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.cornerRadius = orderBarHeight / 2
-        view.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.5)
+        view.backgroundColor = ColorManager.shared.tabBarBackground
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOpacity = 0.2
         view.layer.shadowOffset = CGSize(width: 0, height: 10)
         view.layer.shadowRadius = 30
-        
-        view.isHidden = true
         return view
     }()
     
@@ -297,7 +306,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .white
-        label.text = "01"
+        label.text = "1"
         return label
     }()
     
@@ -359,24 +368,27 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         view.addSubview(headerView)
-        view.addSubview(photoCarouseleView)
-        view.addSubview(descriptionSectionView)
-        view.addSubview(relatedProductSectionView)
+        view.addSubview(scrollView)
         view.addSubview(orderBarView)
-        
+                
         headerView.addSubview(backButton)
         headerView.addSubview(dishTitleLabel)
         headerView.addSubview(favoritButton)
         
-        photoCarouseleView.addSubview(coloredBackgroundView)
-        photoCarouseleView.addSubview(carouselCollectionView)
-        photoCarouseleView.addSubview(pageControl)
+        scrollView.addSubview(carouseleContainerView)
+        scrollView.addSubview(descriptionContainerView)
+        scrollView.addSubview(relatedProductsContainerView)
+        scrollView.addSubview(spacerView)
+
+        carouseleContainerView.addSubview(coloredBackgroundView)
+        carouseleContainerView.addSubview(carouselCollectionView)
+        carouseleContainerView.addSubview(pageControl)
         coloredBackgroundView.layer.addSublayer(gradientLayer)
 
-        descriptionSectionView.addSubview(dishName)
-        descriptionSectionView.addSubview(ratingAndDeliveryStack)
-        descriptionSectionView.addSubview(ingredientsLabel)
-        descriptionSectionView.addSubview(ingredientsListLabel)
+        descriptionContainerView.addSubview(dishName)
+        descriptionContainerView.addSubview(ratingAndDeliveryStack)
+        descriptionContainerView.addSubview(ingredientsLabel)
+        descriptionContainerView.addSubview(ingredientsListLabel)
         ratingView.addSubview(ratingIcon)
         ratingView.addSubview(ratingLabel)
         deliveryTimeView.addSubview(deliveriIcon)
@@ -384,8 +396,8 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         ratingAndDeliveryStack.addArrangedSubview(ratingView)
         ratingAndDeliveryStack.addArrangedSubview(deliveryTimeView)
         
-        relatedProductSectionView.addSubview(relatedProductLabel)
-        relatedProductSectionView.addSubview(relatedProductStack)
+        relatedProductsContainerView.addSubview(relatedProductLabel)
+        relatedProductsContainerView.addSubview(relatedProductsStack)
         
         orderBarView.addSubview(blurEffect)
         orderBarView.addSubview(addItemBlockView)
@@ -398,7 +410,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            // Header view constraints
+            // Header constraints
             headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -416,32 +428,38 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
             dishTitleLabel.trailingAnchor.constraint(equalTo: favoritButton.leadingAnchor, constant: -8),
             dishTitleLabel.heightAnchor.constraint(equalToConstant: 30),
             
-            // Photo carousel view constraints
-            photoCarouseleView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
-            photoCarouseleView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            photoCarouseleView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            photoCarouseleView.heightAnchor.constraint(equalToConstant: 316),
-            coloredBackgroundView.bottomAnchor.constraint(equalTo: photoCarouseleView.bottomAnchor, constant: -36),
-            coloredBackgroundView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor),
-            coloredBackgroundView.trailingAnchor.constraint(equalTo: headerView.trailingAnchor),
-            coloredBackgroundView.heightAnchor.constraint(equalToConstant: 184),
-            carouselCollectionView.topAnchor.constraint(equalTo: photoCarouseleView.topAnchor),
-            carouselCollectionView.leadingAnchor.constraint(equalTo: photoCarouseleView.leadingAnchor),
-            carouselCollectionView.trailingAnchor.constraint(equalTo: photoCarouseleView.trailingAnchor),
-            carouselCollectionView.bottomAnchor.constraint(equalTo: photoCarouseleView.bottomAnchor, constant: -36),
-            pageControl.topAnchor.constraint(equalTo: carouselCollectionView.bottomAnchor, constant: 16),
-            pageControl.centerXAnchor.constraint(equalTo: photoCarouseleView.centerXAnchor),
+            // Scroll view constraints
+            scrollView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            // Description section view constraints
-            descriptionSectionView.topAnchor.constraint(equalTo: photoCarouseleView.bottomAnchor),
-            descriptionSectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            descriptionSectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            dishName.topAnchor.constraint(equalTo: descriptionSectionView.topAnchor, constant: 20),
-            dishName.leadingAnchor.constraint(equalTo: descriptionSectionView.leadingAnchor, constant: 16),
-            dishName.trailingAnchor.constraint(equalTo: descriptionSectionView.trailingAnchor, constant: -16),
+            // Carousel block constraints
+            carouseleContainerView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            carouseleContainerView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            carouseleContainerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            carouseleContainerView.heightAnchor.constraint(equalToConstant: 316),
+            coloredBackgroundView.bottomAnchor.constraint(equalTo: carouseleContainerView.bottomAnchor, constant: -36),
+            coloredBackgroundView.leadingAnchor.constraint(equalTo: carouseleContainerView.leadingAnchor),
+            coloredBackgroundView.trailingAnchor.constraint(equalTo: carouseleContainerView.trailingAnchor),
+            coloredBackgroundView.heightAnchor.constraint(equalToConstant: 184),
+            carouselCollectionView.topAnchor.constraint(equalTo: carouseleContainerView.topAnchor),
+            carouselCollectionView.leadingAnchor.constraint(equalTo: carouseleContainerView.leadingAnchor),
+            carouselCollectionView.trailingAnchor.constraint(equalTo: carouseleContainerView.trailingAnchor),
+            carouselCollectionView.bottomAnchor.constraint(equalTo: carouseleContainerView.bottomAnchor, constant: -36),
+            pageControl.topAnchor.constraint(equalTo: carouselCollectionView.bottomAnchor, constant: 16),
+            pageControl.centerXAnchor.constraint(equalTo: carouseleContainerView.centerXAnchor),
+            
+            // Description block constraints
+            descriptionContainerView.topAnchor.constraint(equalTo: carouseleContainerView.bottomAnchor),
+            descriptionContainerView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            descriptionContainerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            dishName.topAnchor.constraint(equalTo: descriptionContainerView.topAnchor, constant: 20),
+            dishName.leadingAnchor.constraint(equalTo: descriptionContainerView.leadingAnchor, constant: 16),
+            dishName.trailingAnchor.constraint(equalTo: descriptionContainerView.trailingAnchor, constant: -16),
             ratingAndDeliveryStack.topAnchor.constraint(equalTo: dishName.bottomAnchor, constant: 16),
-            ratingAndDeliveryStack.leadingAnchor.constraint(equalTo: descriptionSectionView.leadingAnchor, constant: 16),
-            ratingAndDeliveryStack.trailingAnchor.constraint(equalTo: descriptionSectionView.trailingAnchor, constant: -16),
+            ratingAndDeliveryStack.leadingAnchor.constraint(equalTo: descriptionContainerView.leadingAnchor, constant: 16),
+            ratingAndDeliveryStack.trailingAnchor.constraint(equalTo: descriptionContainerView.trailingAnchor, constant: -16),
             ratingAndDeliveryStack.heightAnchor.constraint(equalToConstant: 44),
             ratingIcon.centerYAnchor.constraint(equalTo: ratingView.centerYAnchor),
             ratingIcon.leadingAnchor.constraint(equalTo: ratingView.leadingAnchor),
@@ -457,26 +475,34 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
             deliveriIcon.heightAnchor.constraint(equalToConstant: 18),
             deliveriIcon.widthAnchor.constraint(equalToConstant: 18),
             ingredientsLabel.topAnchor.constraint(equalTo: ratingAndDeliveryStack.bottomAnchor, constant: 6),
-            ingredientsLabel.leadingAnchor.constraint(equalTo: descriptionSectionView.leadingAnchor, constant: 16),
-            ingredientsLabel.trailingAnchor.constraint(equalTo: descriptionSectionView.trailingAnchor, constant: -16),
+            ingredientsLabel.leadingAnchor.constraint(equalTo: descriptionContainerView.leadingAnchor, constant: 16),
+            ingredientsLabel.trailingAnchor.constraint(equalTo: descriptionContainerView.trailingAnchor, constant: -16),
             ingredientsListLabel.topAnchor.constraint(equalTo: ingredientsLabel.bottomAnchor, constant: 8),
-            ingredientsListLabel.leadingAnchor.constraint(equalTo: descriptionSectionView.leadingAnchor, constant: 16),
-            ingredientsListLabel.trailingAnchor.constraint(equalTo: descriptionSectionView.trailingAnchor, constant: -16),
-            ingredientsListLabel.bottomAnchor.constraint(equalTo: descriptionSectionView.bottomAnchor),
+            ingredientsListLabel.leadingAnchor.constraint(equalTo: descriptionContainerView.leadingAnchor, constant: 16),
+            ingredientsListLabel.trailingAnchor.constraint(equalTo: descriptionContainerView.trailingAnchor, constant: -16),
+            ingredientsListLabel.bottomAnchor.constraint(equalTo: descriptionContainerView.bottomAnchor),
             
-            // Related product section view constraints
-            relatedProductSectionView.topAnchor.constraint(equalTo: descriptionSectionView.bottomAnchor, constant: 24),
-            relatedProductSectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            relatedProductSectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            relatedProductLabel.topAnchor.constraint(equalTo: relatedProductSectionView.topAnchor, constant: 16),
-            relatedProductLabel.leadingAnchor.constraint(equalTo: relatedProductSectionView.leadingAnchor, constant: 16),
-            relatedProductLabel.trailingAnchor.constraint(equalTo: relatedProductSectionView.trailingAnchor, constant: -16),
-            relatedProductStack.topAnchor.constraint(equalTo: relatedProductLabel.bottomAnchor, constant: 16),
-            relatedProductStack.leadingAnchor.constraint(equalTo: relatedProductSectionView.leadingAnchor, constant: 16),
-            relatedProductStack.trailingAnchor.constraint(equalTo: relatedProductSectionView.trailingAnchor, constant: -16),
-            relatedProductStack.heightAnchor.constraint(equalToConstant: 130),
+            // Related product block constraints
+            relatedProductsContainerView.topAnchor.constraint(equalTo: descriptionContainerView.bottomAnchor, constant: 20),
+            relatedProductsContainerView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            relatedProductsContainerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            relatedProductLabel.topAnchor.constraint(equalTo: relatedProductsContainerView.topAnchor, constant: 16),
+            relatedProductLabel.leadingAnchor.constraint(equalTo: relatedProductsContainerView.leadingAnchor, constant: 16),
+            relatedProductLabel.trailingAnchor.constraint(equalTo: relatedProductsContainerView.trailingAnchor, constant: -16),
+            relatedProductsStack.topAnchor.constraint(equalTo: relatedProductLabel.bottomAnchor, constant: 12),
+            relatedProductsStack.leadingAnchor.constraint(equalTo: relatedProductsContainerView.leadingAnchor, constant: 16),
+            relatedProductsStack.trailingAnchor.constraint(equalTo: relatedProductsContainerView.trailingAnchor, constant: -16),
+            relatedProductsStack.bottomAnchor.constraint(equalTo: relatedProductsContainerView.bottomAnchor),
+            relatedProductsStack.heightAnchor.constraint(equalToConstant: 130),
             
-            // Order bar view constraints
+            // Spacer constraints
+            spacerView.topAnchor.constraint(equalTo: relatedProductsContainerView.bottomAnchor),
+            spacerView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            spacerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            spacerView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+            spacerView.heightAnchor.constraint(equalToConstant: 700),
+            
+            // Order bar constraints
             orderBarView.heightAnchor.constraint(equalToConstant: orderBarHeight),
             orderBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: orderBarMargin),
             orderBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -orderBarMargin),
@@ -507,22 +533,29 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     }
     
     private func setupRelatedProducts() {
+        // From the layout it is not clear what kind of interaction should be with related products, so just added their images.
         let productBackColors = ColorManager.shared.getColors(relatedProducts.count)
         for i in 0...relatedProducts.count-1 {
             let view = UIView()
-            let imageView = UIImageView(image: relatedProducts[i])
             view.translatesAutoresizingMaskIntoConstraints = false
             view.backgroundColor = productBackColors[i]
-            view.addSubview(imageView)
+            view.layer.cornerRadius = 20
+            view.widthAnchor.constraint(equalToConstant: 114).isActive = true
+            
+            let imageView = UIImageView(image: relatedProducts[i])
             imageView.translatesAutoresizingMaskIntoConstraints = false
             imageView.contentMode = .scaleAspectFit
-            relatedProductStack.addArrangedSubview(view)
+            
+            view.addSubview(imageView)
+            
             NSLayoutConstraint.activate([
                 imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-                imageView.heightAnchor.constraint(equalToConstant: 50),
-                imageView.widthAnchor.constraint(equalToConstant: 50)
+                imageView.heightAnchor.constraint(equalToConstant: 102),
+                imageView.widthAnchor.constraint(equalToConstant: 102)
             ])
+            
+            relatedProductsStack.addArrangedSubview(view)
         }
     }
     
@@ -564,18 +597,18 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     
     @objc
     private func minusButtonTapped() {
-        var amount = Int(amountLabel.text ?? "0") ?? 0
-        if amount > 0 {
+        var amount = Int(amountLabel.text ?? "1") ?? 1
+        if amount > 1 {
             amount -= 1
-            amountLabel.text = amount > 9 ? "\(amount)" : "0\(amount)"
+            amountLabel.text = "\(amount)"
         }
     }
     
     @objc 
     private func plusButtonTapped() {
-        var amount = Int(amountLabel.text ?? "0") ?? 0
+        var amount = Int(amountLabel.text ?? "1") ?? 1
         amount += 1
-        amountLabel.text = amount > 9 ? "\(amount)" : "0\(amount)"
+        amountLabel.text = "\(amount)"
     }
     
     @objc
