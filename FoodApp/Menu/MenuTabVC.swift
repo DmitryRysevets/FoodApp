@@ -57,7 +57,7 @@ final class MenuTabVC: UIViewController {
         view.image = image
         view.contentMode = .center
         view.tintColor = ColorManager.shared.label
-        view.backgroundColor = ColorManager.shared.secondaryGrey
+        view.backgroundColor = ColorManager.shared.headerElementsColor
         view.layer.cornerRadius = headerButtonCornerRadius
         return view
     }()
@@ -88,7 +88,7 @@ final class MenuTabVC: UIViewController {
         let image = UIImage(named: "GotNotification")?.resized(to: CGSize(width: 20, height: 20))
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image, for: .normal)
-        button.backgroundColor = ColorManager.shared.secondaryGrey
+        button.backgroundColor = ColorManager.shared.headerElementsColor
         button.layer.cornerRadius = headerButtonCornerRadius
         button.addTarget(self, action: #selector(notificationButtonTaped), for: .touchUpInside)
         return button
@@ -99,7 +99,7 @@ final class MenuTabVC: UIViewController {
         let image = UIImage(named: "Layout")?.resized(to: CGSize(width: 20, height: 20))
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image?.withTintColor(ColorManager.shared.label), for: .normal)
-        button.backgroundColor = ColorManager.shared.secondaryGrey
+        button.backgroundColor = ColorManager.shared.headerElementsColor
         button.layer.cornerRadius = headerButtonCornerRadius
         button.addTarget(self, action: #selector(layoutButtonTaped), for: .touchUpInside)
         return button
@@ -110,7 +110,7 @@ final class MenuTabVC: UIViewController {
     private lazy var searchBar: UISearchBar = {
         let searchBar = UISearchBar()
         searchBar.translatesAutoresizingMaskIntoConstraints = false
-        searchBar.searchTextField.backgroundColor = ColorManager.shared.secondaryGrey
+        searchBar.searchTextField.backgroundColor = ColorManager.shared.headerElementsColor
         searchBar.searchTextField.borderStyle = .none
         searchBar.updateHeight(height: 44, radius: 22)
         searchBar.tintColor = ColorManager.shared.orange

@@ -11,6 +11,8 @@ class ColorManager {
     
     private init() {}
     
+    // UI element colors
+    
     let background = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         if traitCollection.userInterfaceStyle == .dark {
             return UIColor(red: 0.063, green: 0.063, blue: 0.063, alpha: 1)
@@ -21,13 +23,14 @@ class ColorManager {
     
     let label = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         if traitCollection.userInterfaceStyle == .dark {
-            return UIColor.white
+            return UIColor(red: 0.883, green: 0.883, blue: 0.883, alpha: 1)
         } else {
             return UIColor(red: 0.118, green: 0.118, blue: 0.118, alpha: 1)
         }
     }
     
-    let lalabelDarkGray = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+    
+    let labelGray = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         if traitCollection.userInterfaceStyle == .dark {
             return UIColor(red: 0.518, green: 0.518, blue: 0.518, alpha: 1)
         } else {
@@ -35,7 +38,7 @@ class ColorManager {
         }
     }
     
-    let secondaryGrey = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+    let headerElementsColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         if traitCollection.userInterfaceStyle == .dark {
             return UIColor(red: 0.105, green: 0.105, blue: 0.105, alpha: 1)
         } else {
@@ -50,6 +53,96 @@ class ColorManager {
             return UIColor(red: 0.13, green: 0.13, blue: 0.13, alpha: 0.4)
         }
     }
+    
+    // Offer cell colors
+    
+    private let offerCell_BorderSecondaryColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 1)
+        } else {
+            return UIColor.lightGray.withAlphaComponent(0.5)
+        }
+    }
+    
+    private let offerCell_BackgroundSecondaryColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 1)
+        } else {
+            return UIColor.white
+        }
+    }
+    
+    // Menu page colors
+    
+    let dishCell_FavoriteButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor.white.withAlphaComponent(0.2)
+        } else {
+            return UIColor.white.withAlphaComponent(0.8)
+        }
+    }
+    
+    // Dish page colors
+    
+    let dishVC_addItemBlockColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor.white.withAlphaComponent(0.2)
+        } else {
+            return UIColor.black
+        }
+    }
+    
+    let dishVC_addToCartButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor(red: 0.05, green: 0.05, blue: 0.05, alpha: 1)
+        } else {
+            return UIColor.white
+        }
+    }
+    
+    // Cart page colors
+    
+    let cart_promoCodeFieldColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor(red: 0.105, green: 0.105, blue: 0.105, alpha: 1)
+        } else {
+            return UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1)
+        }
+    }
+    
+    let cart_applyCodeButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor(red: 0.882, green: 0.882, blue: 0.882, alpha: 1)
+        } else {
+            return UIColor(red: 0.117, green: 0.117, blue: 0.117, alpha: 1)
+        }
+    }
+    
+    let cart_billDetailsViewColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor(red: 0.078, green: 0.078, blue: 0.078, alpha: 1)
+        } else {
+            return UIColor(red: 0.972, green: 0.972, blue: 0.972, alpha: 1)
+        }
+    }
+    
+    let cart_continueOrderButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor(red: 0.172, green: 0.172, blue: 0.172, alpha: 1)
+        } else {
+            return UIColor(red: 0.117, green: 0.117, blue: 0.117, alpha: 1)
+        }
+    }
+    
+    let cartCell_amountBlockColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        if traitCollection.userInterfaceStyle == .dark {
+            return UIColor(red: 0.105, green: 0.105, blue: 0.105, alpha: 1)
+        } else {
+            return UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1)
+        }
+    }
+    
+    // Primary colors
     
     let gold = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         if traitCollection.userInterfaceStyle == .dark {
@@ -109,22 +202,6 @@ class ColorManager {
     
     let orange = UIColor(red: 0.992, green: 0.592, blue: 0.196, alpha: 1)
     
-    private let offerBorderPrimaryColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
-        if traitCollection.userInterfaceStyle == .dark {
-            return UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 1)
-        } else {
-            return UIColor.lightGray.withAlphaComponent(0.5)
-        }
-    }
-    
-    private let offerBackgroundSecondaryColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
-        if traitCollection.userInterfaceStyle == .dark {
-            return UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 1)
-        } else {
-            return UIColor.white
-        }
-    }
-    
     // Returns a sequence of colors where each new color does not repeat the previous three
     func getColors(_ quantity: Int) -> [UIColor] {
         var colors: [UIColor] = []
@@ -153,12 +230,12 @@ class ColorManager {
     }
 
     func getOfferBorderColor(bounds: CGRect) -> CGColor? {
-        let colors = [offerBorderPrimaryColor.cgColor, UIColor.clear.cgColor]
+        let colors = [offerCell_BorderSecondaryColor.cgColor, UIColor.clear.cgColor]
         return getGradientColor(bounds: bounds, colors: colors, parameter: .forOfferBorder)?.cgColor
     }
     
     func getOfferBackgroundColor(for theme: UIUserInterfaceStyle, primaryColor: UIColor, bounds: CGRect) -> UIColor? {
-        let colors = [offerBackgroundSecondaryColor.cgColor, primaryColor.cgColor]
+        let colors = [offerCell_BackgroundSecondaryColor.cgColor, primaryColor.cgColor]
         if theme == .dark {
             return getGradientColor(bounds: bounds, colors: colors, parameter: .forOfferBackDark)
         }

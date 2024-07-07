@@ -41,7 +41,7 @@ final class DishVC: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image, for: .normal)
         button.tintColor = ColorManager.shared.label
-        button.backgroundColor = ColorManager.shared.secondaryGrey
+        button.backgroundColor = ColorManager.shared.headerElementsColor
         button.layer.cornerRadius = headerButtonSize / 2
         button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         return button
@@ -60,10 +60,12 @@ final class DishVC: UIViewController {
     
     private lazy var favoritButton: UIButton = {
         let button = UIButton()
-        let image = UIImage(named: "Favorite")?.resized(to: CGSize(width: 22, height: 20)).withTintColor(ColorManager.shared.label)
+        let imageOff = UIImage(named: "Favorite")?.resized(to: CGSize(width: 22, height: 20)).withTintColor(ColorManager.shared.label)
+        let imageOn = UIImage(named: "Favorite-on")?.resized(to: CGSize(width: 22, height: 20))
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
-        button.backgroundColor = ColorManager.shared.secondaryGrey
+        button.setImage(imageOff, for: .normal)
+        button.setImage(imageOn, for: .selected)
+        button.backgroundColor = ColorManager.shared.headerElementsColor
         button.layer.cornerRadius = headerButtonSize / 2
         button.addTarget(self, action: #selector(favoritButtonTapped), for: .touchUpInside)
         return button
@@ -275,7 +277,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     private lazy var addItemBlockView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .black
+        view.backgroundColor = ColorManager.shared.dishVC_addItemBlockColor
         view.layer.cornerRadius = orderBarElementSize / 2
         return view
     }()
@@ -313,10 +315,10 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     private lazy var addToCartButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .white
+        button.backgroundColor = ColorManager.shared.dishVC_addToCartButtonColor
         button.setTitle("Add to Cart", for: .normal)
-        button.setTitleColor(.black, for: .normal)
-        button.setTitleColor(.black.withAlphaComponent(0.7), for: .highlighted)
+        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.7), for: .highlighted)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [fontWeightAxis : 650])
         button.layer.cornerRadius = orderBarElementSize / 2
         button.addTarget(self, action: #selector(addToCartButtonTapped), for: .touchUpInside)
@@ -592,7 +594,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
 
     @objc
     private func favoritButtonTapped() {
-        print(#function)
+        favoritButton.isSelected.toggle()
     }
     
     @objc

@@ -8,7 +8,7 @@ import UIKit
 final class DishCell: UICollectionViewCell {
     static let id = "DishCell"
     
-    lazy var dishData = Dish(id: "", name: "", description: "", tags: [], weight: 0, calories: 0, protein: 0, carbs: 0, fats: 0, isOffer: false, price: 0, recentPrice: 0, imageData: nil) {
+    var dishData: Dish! {
         didSet {
             nameLabel.text = dishData.name
             actualPriceLabel.text = String(dishData.price)
@@ -75,7 +75,7 @@ final class DishCell: UICollectionViewCell {
         label.attributedText = attributedString
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 11)
-        label.textColor = ColorManager.shared.lalabelDarkGray
+        label.textColor = ColorManager.shared.labelGray
         label.textAlignment = .left
         return label
     }()
@@ -91,13 +91,14 @@ final class DishCell: UICollectionViewCell {
     
     private lazy var favoriteButton: UIButton = {
         let button = UIButton()
-        let image = UIImage(named: "Favorite")
-        let resizedImage = image?.resized(to: CGSize(width: 16, height: 15))
-        button.setImage(resizedImage, for: .normal)
+        let imageOff = UIImage(named: "Favorite-litle-off")
+        let imageOn = UIImage(named: "Favorite-litle-on")
+        button.setImage(imageOff, for: .normal)
+        button.setImage(imageOn, for: .selected)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .white
-        button.layer.cornerRadius = 14
+        button.backgroundColor = ColorManager.shared.dishCell_FavoriteButtonColor
         button.tintColor = ColorManager.shared.label
+        button.layer.cornerRadius = 14
         button.addTarget(self, action: #selector(favoriteButtonDidTaped), for: .touchUpInside)
         return button
     }()
@@ -157,7 +158,7 @@ final class DishCell: UICollectionViewCell {
     
     @objc
     private func favoriteButtonDidTaped() {
-        print(#function)
+        favoriteButton.isSelected.toggle()
     }
     
 }

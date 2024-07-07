@@ -48,7 +48,7 @@ final class PreloaderView: UIView {
     private lazy var reloadButton: UIButton = {
         let frame = CGRect(x: Int(frame.width / 2 - 48), y: Int(frame.height - 40), width: 96, height: 32)
         let button = UIButton(frame: frame)
-        button.backgroundColor = ColorManager.shared.secondaryGrey
+        button.backgroundColor = ColorManager.shared.headerElementsColor
         button.setTitle("Retry", for: .normal)
         button.setTitleColor(ColorManager.shared.label, for: .normal)
         button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.5), for: .highlighted)
