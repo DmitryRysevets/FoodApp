@@ -6,23 +6,36 @@
 import UIKit
 
 class CartCell: UITableViewCell {
+    
     static let id = "CartCell"
     
-    var dishData: Dish! {
+    var viewModel: CartCellViewModelProtocol! {
         didSet {
+            setupUI()
+            setupConstraints()
             
+            productNameLabel.text = viewModel.productName
+            productWeightLabel.text = viewModel.productWeight
+            productPriceLabel.text = viewModel.productPrice
+            amountLabel.text = viewModel.amountOfProduct
+            
+            if let image = viewModel.producImageData {
+                producImageView.image = UIImage(data: image)
+            } else {
+                producImageView.image = UIImage(named: "EmptyPlate")
+            }
         }
     }
     
     private lazy var imageColorBackground: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.green
         return view
     }()
     
     private lazy var producImageView: UIImageView = {
-        let image = UIImage()
-        let imageView = UIImageView(image: image)
+        let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -80,16 +93,6 @@ class CartCell: UITableViewCell {
         label.text = "1"
         return label
     }()
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: style, reuseIdentifier: reuseIdentifier)
-        setupUI()
-        setupConstraints()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
     
     private func setupUI() {
         
