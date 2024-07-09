@@ -107,8 +107,8 @@ class ColorManager {
     
     let cartCell_amountBlockColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
-            ? UIColor(red: 0.882, green: 0.882, blue: 0.882, alpha: 1)
-            : UIColor(red: 0.117, green: 0.117, blue: 0.117, alpha: 1)
+            ? UIColor(red: 0.117, green: 0.117, blue: 0.117, alpha: 1)
+            : UIColor(red: 0.882, green: 0.882, blue: 0.882, alpha: 1)
     }
     
     // Primary colors

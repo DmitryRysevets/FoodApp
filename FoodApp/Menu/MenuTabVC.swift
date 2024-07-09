@@ -25,6 +25,14 @@ final class MenuTabVC: UIViewController {
             self.nestedCategoriesSnapshot = categoriesSnapshot
             
             applySnapshot()
+            
+            var dataToSend: [CartItem] = []
+            for i in 0...2 {
+                let item = CartItem(id: i, dish: menu.dishes[i], quantity: Int.random(in: 1...5))
+                dataToSend.append(item)
+            }
+            NotificationCenter.default.post(name: NSNotification.Name("DataNotification"), object: nil, userInfo: ["data": dataToSend])
+            
         }
     }
     

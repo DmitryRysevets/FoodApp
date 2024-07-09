@@ -7,13 +7,22 @@ import UIKit
 
 class CartTabVC: UIViewController {
     
-    var viewModel: CartViewModelProtocol! {
+    lazy var cartContent: [CartItem] = [] {
         didSet {
-            
+            tableView.reloadData()
         }
     }
     
     private let fontWeightAxis = 2003265652
+    
+    private lazy var cartTitle: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [fontWeightAxis : 650])
+        label.text = "Cart"
+        return label
+    }()
     
     private lazy var scrollView: UIScrollView = {
         let view = UIScrollView()
@@ -31,10 +40,15 @@ class CartTabVC: UIViewController {
         let table = UITableView()
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = ColorManager.shared.background
+        table.separatorStyle = .none
+        table.allowsSelection = false
+        table.register(CartCell.self, forCellReuseIdentifier: CartCell.id)
+        table.dataSource = self
+        table.delegate = self
         return table
     }()
     
-    // Promo code block
+    // MARK: - Promo code block props.
     
     private let promoCodeViewHeight: CGFloat = 68
     private let promoCodeViewPadding: CGFloat = 10
@@ -70,13 +84,13 @@ class CartTabVC: UIViewController {
         return button
     }()
     
-    // Bill details
+    // MARK: - Bill details block props.
     
     private lazy var billDetailsView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = ColorManager.shared.cart_billDetailsViewColor
-        view.layer.cornerRadius = 20
+        view.layer.cornerRadius = 24
         return view
     }()
     
@@ -165,12 +179,18 @@ class CartTabVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(handleDataNotification(_:)), name: NSNotification.Name("DataNotification"), object: nil)
+        
         setupUI()
         setupConstraints()
     }
     
+    // MARK: - Private methods
+    
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
+        view.addSubview(cartTitle)
         view.addSubview(scrollView)
         scrollView.addSubview(tableView)
         scrollView.addSubview(promoCodeView)
@@ -194,7 +214,10 @@ class CartTabVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            cartTitle.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 4),
+            cartTitle.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
+            scrollView.topAnchor.constraint(equalTo: cartTitle.bottomAnchor, constant: 16),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -255,6 +278,8 @@ class CartTabVC: UIViewController {
         ])
     }
     
+    // MARK: - ObjC methods
+    
     @objc
     private func applyCodeButtonTapped() {
         print(#function)
@@ -264,5 +289,29 @@ class CartTabVC: UIViewController {
     private func continueOrderButtonTapped() {
         print(#function)
     }
+    
+    @objc 
+    private func handleDataNotification(_ notification: Notification) {
+        if let data = notification.userInfo?["data"] as? [CartItem] {
+            cartContent = data
+        }
+    }
 }
 
+// MARK: - TableView delegate methods
+
+extension CartTabVC: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        cartContent.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: CartCell.id, for: indexPath) as! CartCell
+        cell.cartItem = cartContent[indexPath.row]
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        110
+    }
+}
