@@ -284,10 +284,12 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     
     private lazy var minusItemButton: UIButton = {
         let button = UIButton()
+        let configuration = UIImage.SymbolConfiguration(pointSize: 12, weight: .regular)
+        let image = UIImage(systemName: "minus", withConfiguration: configuration)
+        button.setImage(image, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .white
         button.layer.cornerRadius = plusMinusButtonsSize / 2
-        button.setImage(UIImage(systemName: "minus"), for: .normal)
         button.tintColor = .black
         button.addTarget(self, action: #selector(minusButtonTapped), for: .touchUpInside)
         return button
@@ -295,16 +297,18 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     
     private lazy var plusItemButton: UIButton = {
         let button = UIButton()
+        let configuration = UIImage.SymbolConfiguration(pointSize: 12, weight: .regular)
+        let image = UIImage(systemName: "plus", withConfiguration: configuration)
+        button.setImage(image, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .white
         button.layer.cornerRadius = plusMinusButtonsSize / 2
-        button.setImage(UIImage(systemName: "plus"), for: .normal)
         button.tintColor = .black
         button.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
         return button
     }()
     
-    private lazy var amountLabel: UILabel = {
+    private lazy var quantityLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = .white
@@ -406,7 +410,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         orderBarView.addSubview(addToCartButton)
         addItemBlockView.addSubview(minusItemButton)
         addItemBlockView.addSubview(plusItemButton)
-        addItemBlockView.addSubview(amountLabel)
+        addItemBlockView.addSubview(quantityLabel)
     }
     
     private func setupConstraints() {
@@ -533,8 +537,8 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
             plusItemButton.trailingAnchor.constraint(equalTo: addItemBlockView.trailingAnchor, constant: -(orderBarPadding + 6)),
             plusItemButton.heightAnchor.constraint(equalToConstant: plusMinusButtonsSize),
             plusItemButton.widthAnchor.constraint(equalToConstant: plusMinusButtonsSize),
-            amountLabel.centerXAnchor.constraint(equalTo: addItemBlockView.centerXAnchor),
-            amountLabel.centerYAnchor.constraint(equalTo: addItemBlockView.centerYAnchor)
+            quantityLabel.centerXAnchor.constraint(equalTo: addItemBlockView.centerXAnchor),
+            quantityLabel.centerYAnchor.constraint(equalTo: addItemBlockView.centerYAnchor)
         ])
     }
     
@@ -603,18 +607,18 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     
     @objc
     private func minusButtonTapped() {
-        var amount = Int(amountLabel.text ?? "1") ?? 1
-        if amount > 1 {
-            amount -= 1
-            amountLabel.text = "\(amount)"
+        var quantity = Int(quantityLabel.text ?? "1") ?? 1
+        if quantity > 1 {
+            quantity -= 1
+            quantityLabel.text = "\(quantity)"
         }
     }
     
     @objc 
     private func plusButtonTapped() {
-        var amount = Int(amountLabel.text ?? "1") ?? 1
-        amount += 1
-        amountLabel.text = "\(amount)"
+        var quantity = Int(quantityLabel.text ?? "1") ?? 1
+        quantity += 1
+        quantityLabel.text = "\(quantity)"
     }
     
     @objc

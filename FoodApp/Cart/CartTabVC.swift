@@ -9,11 +9,18 @@ class CartTabVC: UIViewController {
     
     lazy var cartContent: [CartItem] = [] {
         didSet {
+            calculateTheBill()
             tableView.reloadData()
+            updateTableViewHeight()
         }
     }
     
     private let fontWeightAxis = 2003265652
+    private var tableViewHeightConstraint: NSLayoutConstraint?
+
+    private var productPrice: Double = 0
+    private var deliveryPrice: Double = 2.0
+    private var totalAmount: Double = 0
     
     private lazy var cartTitle: UILabel = {
         let label = UILabel()
@@ -24,15 +31,26 @@ class CartTabVC: UIViewController {
         return label
     }()
     
+    private lazy var cartIsEmptyLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        label.textColor = ColorManager.shared.label
+        label.text = "Cart Is Empty"
+        label.font = UIFont(name: "Raleway", size: 22)
+        label.numberOfLines = 1
+        label.layer.shadowOffset = CGSize(width: 3, height: 3)
+        label.layer.shadowOpacity = 0.2
+        label.layer.shadowColor = UIColor.black.cgColor
+        label.layer.shadowRadius = 2
+        label.isHidden = false
+        return label
+    }()
+    
     private lazy var scrollView: UIScrollView = {
         let view = UIScrollView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private let spacerView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = true
         return view
     }()
     
@@ -46,6 +64,12 @@ class CartTabVC: UIViewController {
         table.dataSource = self
         table.delegate = self
         return table
+    }()
+    
+    private let spacerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
     }()
     
     // MARK: - Promo code block props.
@@ -117,7 +141,7 @@ class CartTabVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = .systemFont(ofSize: 16)
-        label.text = "$17.68"
+        label.text = "$0.00"
         return label
     }()
     
@@ -135,7 +159,7 @@ class CartTabVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = .systemFont(ofSize: 16)
-        label.text = "$2.00"
+        label.text = "$\(String(format: "%.2f", deliveryPrice))"
         return label
     }()
     
@@ -160,7 +184,7 @@ class CartTabVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = .systemFont(ofSize: 16, weight: .bold)
-        label.text = "$19.68"
+        label.text = "$0.00"
         return label
     }()
     
@@ -179,18 +203,21 @@ class CartTabVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(handleDataNotification(_:)), name: NSNotification.Name("DataNotification"), object: nil)
-        
         setupUI()
         setupConstraints()
+        checkCart()
     }
     
     // MARK: - Private methods
     
+    private func checkCart() {
+        NotificationCenter.default.addObserver(self, selector: #selector(handleDataNotification(_:)), name: NSNotification.Name("DataNotification"), object: nil)
+    }
+    
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         view.addSubview(cartTitle)
+        view.addSubview(cartIsEmptyLabel)
         view.addSubview(scrollView)
         scrollView.addSubview(tableView)
         scrollView.addSubview(promoCodeView)
@@ -217,6 +244,9 @@ class CartTabVC: UIViewController {
             cartTitle.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 4),
             cartTitle.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
+            cartIsEmptyLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            cartIsEmptyLabel.topAnchor.constraint(equalTo: cartTitle.bottomAnchor, constant: 120),
+            
             scrollView.topAnchor.constraint(equalTo: cartTitle.bottomAnchor, constant: 16),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -225,7 +255,6 @@ class CartTabVC: UIViewController {
             tableView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             tableView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            tableView.heightAnchor.constraint(equalToConstant: 370),
             tableView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             
             promoCodeView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 12),
@@ -276,6 +305,25 @@ class CartTabVC: UIViewController {
             spacerView.heightAnchor.constraint(equalToConstant: 92),
             spacerView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor)
         ])
+        
+        tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 0)
+        tableViewHeightConstraint?.isActive = true
+    }
+    
+    private func updateTableViewHeight() {
+        let numberOfRows = tableView.numberOfRows(inSection: 0)
+        let cellHeight: CGFloat = 110
+        tableViewHeightConstraint?.constant = CGFloat(numberOfRows) * cellHeight
+    }
+    
+    private func calculateTheBill() {
+        var amount: Double = 0
+        for item in cartContent {
+            amount += Double(item.quantity) * item.dish.price
+        }
+        totalAmount = amount + deliveryPrice
+        productPrice_amountOfMoneyLabel.text = "$\(String(format: "%.2f", amount))"
+        totalAmount_amountOfMoneyLabel.text = "$\(String(format: "%.2f", totalAmount))"
     }
     
     // MARK: - ObjC methods
@@ -293,6 +341,8 @@ class CartTabVC: UIViewController {
     @objc 
     private func handleDataNotification(_ notification: Notification) {
         if let data = notification.userInfo?["data"] as? [CartItem] {
+            cartIsEmptyLabel.isHidden = true
+            scrollView.isHidden = false
             cartContent = data
         }
     }
@@ -307,7 +357,12 @@ extension CartTabVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: CartCell.id, for: indexPath) as! CartCell
+        cell.cartItemID = cartContent[indexPath.row].id
         cell.cartItem = cartContent[indexPath.row]
+        cell.cartItemImageBackColor = cartContent[indexPath.row].productImageBackColor
+        cell.itemQuantityHandler = { [weak self] id, quantity in
+            self?.cartContent[id].quantity = quantity
+        }
         return cell
     }
     

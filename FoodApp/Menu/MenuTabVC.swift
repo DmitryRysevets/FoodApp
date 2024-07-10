@@ -27,8 +27,10 @@ final class MenuTabVC: UIViewController {
             applySnapshot()
             
             var dataToSend: [CartItem] = []
-            for i in 0...2 {
-                let item = CartItem(id: i, dish: menu.dishes[i], quantity: Int.random(in: 1...5))
+            let quantity = 4
+            let colors: [UIColor] = ColorManager.shared.getColors(quantity)
+            for i in 0...quantity-1 {
+                let item = CartItem(id: i, dish: menu.dishes[i], quantity: Int.random(in: 1...3), productImageBackColor: colors[i])
                 dataToSend.append(item)
             }
             NotificationCenter.default.post(name: NSNotification.Name("DataNotification"), object: nil, userInfo: ["data": dataToSend])

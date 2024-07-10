@@ -9,6 +9,8 @@ class CartCell: UITableViewCell {
     
     static let id = "CartCell"
     
+    var cartItemID: Int!
+    
     var cartItem: CartItem! {
         didSet {
             setupUI()
@@ -17,7 +19,8 @@ class CartCell: UITableViewCell {
             productNameLabel.text = cartItem.dish.name
             productWeightLabel.text = "\(cartItem.dish.weight)g (1 pcs)"
             productPriceLabel.text = "$\(cartItem.dish.price)"
-            amountLabel.text = String(cartItem.quantity)
+            quantityLabel.text = String(cartItem.quantity)
+            checkAmountLabelTextColor()
             
             if let image = cartItem.dish.imageData {
                 producImageView.image = UIImage(data: image)
@@ -27,23 +30,13 @@ class CartCell: UITableViewCell {
         }
     }
     
-//    var viewModel: CartCellViewModelProtocol! {
-//        didSet {
-//            setupUI()
-//            setupConstraints()
-//            
-//            productNameLabel.text = viewModel.productName
-//            productWeightLabel.text = viewModel.productWeight
-//            productPriceLabel.text = viewModel.productPrice
-//            amountLabel.text = viewModel.amountOfProduct
-//            
-//            if let image = viewModel.producImageData {
-//                producImageView.image = UIImage(data: image)
-//            } else {
-//                producImageView.image = UIImage(named: "EmptyPlate")
-//            }
-//        }
-//    }
+    var cartItemImageBackColor: UIColor = ColorManager.shared.green {
+        didSet {
+            imageColorBackground.backgroundColor = cartItemImageBackColor
+        }
+    }
+    
+    var itemQuantityHandler: ((Int, Int) -> Void)!
     
     private let fontWeightAxis = 2003265652
     private let amountOfProductViewWidth = 47.0
@@ -52,7 +45,7 @@ class CartCell: UITableViewCell {
     private lazy var imageColorBackground: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.green
+        view.backgroundColor = cartItemImageBackColor
         view.layer.cornerRadius = 24
         return view
     }()
@@ -88,7 +81,7 @@ class CartCell: UITableViewCell {
         return label
     }()
     
-    private lazy var amountOfProductView: UIView = {
+    private lazy var productQuantityView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = ColorManager.shared.cartCell_amountBlockColor
@@ -98,27 +91,31 @@ class CartCell: UITableViewCell {
     
     private lazy var minusItemButton: UIButton = {
         let button = UIButton()
+        let configuration = UIImage.SymbolConfiguration(pointSize: 12, weight: .regular)
+        let image = UIImage(systemName: "minus", withConfiguration: configuration)
+        button.setImage(image, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = ColorManager.shared.background
         button.tintColor = ColorManager.shared.label
         button.layer.cornerRadius = plusMinusButtonsSize / 2
-        button.setImage(UIImage(systemName: "minus"), for: .normal)
         button.addTarget(self, action: #selector(minusButtonTapped), for: .touchUpInside)
         return button
     }()
     
     private lazy var plusItemButton: UIButton = {
         let button = UIButton()
+        let configuration = UIImage.SymbolConfiguration(pointSize: 12, weight: .regular)
+        let image = UIImage(systemName: "plus", withConfiguration: configuration)
+        button.setImage(image, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = ColorManager.shared.label
         button.tintColor = ColorManager.shared.background
         button.layer.cornerRadius = plusMinusButtonsSize / 2
-        button.setImage(UIImage(systemName: "plus"), for: .normal)
         button.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
         return button
     }()
     
-    private lazy var amountLabel: UILabel = {
+    private lazy var quantityLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
@@ -134,13 +131,13 @@ class CartCell: UITableViewCell {
         addSubview(productNameLabel)
         addSubview(productWeightLabel)
         addSubview(productPriceLabel)
-        addSubview(amountOfProductView)
+        addSubview(productQuantityView)
         
         imageColorBackground.addSubview(producImageView)
         
-        amountOfProductView.addSubview(minusItemButton)
-        amountOfProductView.addSubview(plusItemButton)
-        amountOfProductView.addSubview(amountLabel)
+        productQuantityView.addSubview(minusItemButton)
+        productQuantityView.addSubview(plusItemButton)
+        productQuantityView.addSubview(quantityLabel)
     }
     
     private func setupConstraints() {
@@ -156,48 +153,50 @@ class CartCell: UITableViewCell {
             
             productNameLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             productNameLabel.leadingAnchor.constraint(equalTo: imageColorBackground.trailingAnchor, constant: 12),
-            productNameLabel.trailingAnchor.constraint(equalTo: amountOfProductView.leadingAnchor, constant: -12),
+            productNameLabel.trailingAnchor.constraint(equalTo: productQuantityView.leadingAnchor, constant: -12),
             productWeightLabel.topAnchor.constraint(equalTo: productNameLabel.bottomAnchor, constant: 4),
             productWeightLabel.leadingAnchor.constraint(equalTo: productNameLabel.leadingAnchor),
             productPriceLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
             productPriceLabel.leadingAnchor.constraint(equalTo: productNameLabel.leadingAnchor),
             
-            amountOfProductView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            amountOfProductView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            amountOfProductView.heightAnchor.constraint(equalTo: heightAnchor, constant: -22),
-            amountOfProductView.widthAnchor.constraint(equalToConstant: amountOfProductViewWidth),
-            plusItemButton.centerXAnchor.constraint(equalTo: amountOfProductView.centerXAnchor),
-            plusItemButton.topAnchor.constraint(equalTo: amountOfProductView.topAnchor, constant: 10),
+            productQuantityView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            productQuantityView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            productQuantityView.heightAnchor.constraint(equalTo: heightAnchor, constant: -22),
+            productQuantityView.widthAnchor.constraint(equalToConstant: amountOfProductViewWidth),
+            plusItemButton.centerXAnchor.constraint(equalTo: productQuantityView.centerXAnchor),
+            plusItemButton.topAnchor.constraint(equalTo: productQuantityView.topAnchor, constant: 10),
             plusItemButton.widthAnchor.constraint(equalToConstant: plusMinusButtonsSize),
             plusItemButton.heightAnchor.constraint(equalToConstant: plusMinusButtonsSize),
-            minusItemButton.centerXAnchor.constraint(equalTo: amountOfProductView.centerXAnchor),
-            minusItemButton.bottomAnchor.constraint(equalTo: amountOfProductView.bottomAnchor, constant: -10),
+            minusItemButton.centerXAnchor.constraint(equalTo: productQuantityView.centerXAnchor),
+            minusItemButton.bottomAnchor.constraint(equalTo: productQuantityView.bottomAnchor, constant: -10),
             minusItemButton.widthAnchor.constraint(equalToConstant: plusMinusButtonsSize),
             minusItemButton.heightAnchor.constraint(equalToConstant: plusMinusButtonsSize),
-            amountLabel.centerXAnchor.constraint(equalTo: amountOfProductView.centerXAnchor),
-            amountLabel.centerYAnchor.constraint(equalTo: amountOfProductView.centerYAnchor)
+            quantityLabel.centerXAnchor.constraint(equalTo: productQuantityView.centerXAnchor),
+            quantityLabel.centerYAnchor.constraint(equalTo: productQuantityView.centerYAnchor)
         ])
     }
     
     private func checkAmountLabelTextColor() {
-        amountLabel.textColor = amountLabel.text == "0" ? ColorManager.shared.labelGray : ColorManager.shared.label
+        quantityLabel.textColor = quantityLabel.text == "0" ? ColorManager.shared.labelGray.withAlphaComponent(0.5) : ColorManager.shared.label
     }
     
     @objc
     private func minusButtonTapped() {
-        var amount = Int(amountLabel.text ?? "0") ?? 0
-        if amount > 0 {
-            amount -= 1
-            amountLabel.text = "\(amount)"
+        var quantity = Int(quantityLabel.text ?? "0") ?? 0
+        if quantity > 0 {
+            quantity -= 1
+            quantityLabel.text = "\(quantity)"
         }
         checkAmountLabelTextColor()
+        itemQuantityHandler(cartItemID, quantity)
     }
     
     @objc
     private func plusButtonTapped() {
-        var amount = Int(amountLabel.text ?? "0") ?? 0
-        amount += 1
-        amountLabel.text = "\(amount)"
+        var quantity = Int(quantityLabel.text ?? "0") ?? 0
+        quantity += 1
+        quantityLabel.text = "\(quantity)"
         checkAmountLabelTextColor()
+        itemQuantityHandler(cartItemID, quantity)
     }
 }

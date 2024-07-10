@@ -3,10 +3,11 @@
 //  FoodApp
 //
 
-import Foundation
+import UIKit
 
-struct CartItem: Hashable {
+struct CartItem {
     let id: Int
     let dish: Dish
     var quantity: Int
+    var productImageBackColor: UIColor
 }
