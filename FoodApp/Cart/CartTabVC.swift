@@ -5,7 +5,7 @@
 
 import UIKit
 
-class CartTabVC: UIViewController {
+final class CartTabVC: UIViewController {
     
     lazy var cartContent: [CartItem] = [] {
         didSet {
@@ -14,6 +14,8 @@ class CartTabVC: UIViewController {
             updateTableViewHeight()
         }
     }
+    
+    private let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
     private let fontWeightAxis = 2003265652
     private var tableViewHeightConstraint: NSLayoutConstraint?
@@ -335,7 +337,10 @@ class CartTabVC: UIViewController {
     
     @objc
     private func continueOrderButtonTapped() {
-        print(#function)
+        let paymentPage = PaymentVC()
+        paymentPage.modalTransitionStyle = .coverVertical
+        paymentPage.modalPresentationStyle = .overFullScreen
+        present(paymentPage, animated: true)
     }
     
     @objc 

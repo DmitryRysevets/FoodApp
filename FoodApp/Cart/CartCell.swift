@@ -5,7 +5,7 @@
 
 import UIKit
 
-class CartCell: UITableViewCell {
+final class CartCell: UITableViewCell {
     
     static let id = "CartCell"
     

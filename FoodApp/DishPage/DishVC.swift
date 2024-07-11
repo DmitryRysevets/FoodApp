@@ -10,6 +10,8 @@ final class DishVC: UIViewController {
     private let dish: Dish
     private let relatedProducts: [UIImage]
     
+    private let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    
     private let scrollView: UIScrollView = {
         let view = UIScrollView()
         view.translatesAutoresizingMaskIntoConstraints = false
