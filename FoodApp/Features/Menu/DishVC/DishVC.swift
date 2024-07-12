@@ -26,10 +26,6 @@ final class DishVC: UIViewController {
     
     // MARK: - Header props.
     
-    private let headerHeight = 52.0
-    private let headerButtonSize = 44.0
-    private let fontWeightAxis = 2003265652
-    
     private lazy var headerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -44,7 +40,7 @@ final class DishVC: UIViewController {
         button.setImage(image, for: .normal)
         button.tintColor = ColorManager.shared.label
         button.backgroundColor = ColorManager.shared.headerElementsColor
-        button.layer.cornerRadius = headerButtonSize / 2
+        button.layer.cornerRadius = Constants.headerButtonSize / 2
         button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -52,7 +48,7 @@ final class DishVC: UIViewController {
     private lazy var dishTitleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [fontWeightAxis : 650])
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
         label.text = dish.name
         label.textColor = ColorManager.shared.label
         label.textAlignment = .center
@@ -68,7 +64,7 @@ final class DishVC: UIViewController {
         button.setImage(imageOff, for: .normal)
         button.setImage(imageOn, for: .selected)
         button.backgroundColor = ColorManager.shared.headerElementsColor
-        button.layer.cornerRadius = headerButtonSize / 2
+        button.layer.cornerRadius = Constants.headerButtonSize / 2
         button.addTarget(self, action: #selector(favoritButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -143,7 +139,7 @@ final class DishVC: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 25, axis: [fontWeightAxis : 470])
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 25, axis: [Constants.fontWeightAxis : 470])
         label.text = dish.name
         label.numberOfLines = 1
         return label
@@ -203,7 +199,7 @@ final class DishVC: UIViewController {
     private lazy var ingredientsLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [fontWeightAxis : 600])
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
         label.text = "Ingredients"
         return label
     }()
@@ -232,7 +228,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
     private lazy var relatedProductLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [fontWeightAxis : 600])
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
         label.text = "Related Product"
         return label
     }()
@@ -325,7 +321,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
         button.setTitle("Add to Cart", for: .normal)
         button.setTitleColor(ColorManager.shared.label, for: .normal)
         button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.7), for: .highlighted)
-        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [fontWeightAxis : 650])
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 650])
         button.layer.cornerRadius = orderBarElementSize / 2
         button.addTarget(self, action: #selector(addToCartButtonTapped), for: .touchUpInside)
         return button
@@ -422,7 +418,7 @@ Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
             headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: headerHeight),
+            headerView.heightAnchor.constraint(equalToConstant: Constants.headerHeight),
             backButton.topAnchor.constraint(equalTo: headerView.topAnchor),
             backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             backButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),

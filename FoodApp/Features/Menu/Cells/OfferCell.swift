@@ -32,7 +32,6 @@ final class OfferCell: UICollectionViewCell {
         }
     }
     
-    private let fontWeightAxis = 2003265652
     private let conditionLabelFont = UIFont.systemFont(ofSize: 13, weight: .semibold)
     private var conditionLabelWidth: CGFloat = 0
     private lazy var conditionLabelWidthConstraint = conditionLabel.widthAnchor.constraint(equalToConstant: conditionLabelWidth)
@@ -41,7 +40,7 @@ final class OfferCell: UICollectionViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 18, axis: [fontWeightAxis : 800])
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 18, axis: [Constants.fontWeightAxis : 800])
         return label
     }()
         

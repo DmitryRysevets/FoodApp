@@ -38,7 +38,6 @@ final class CartCell: UITableViewCell {
     
     var itemQuantityHandler: ((Int, Int) -> Void)!
     
-    private let fontWeightAxis = 2003265652
     private let amountOfProductViewWidth = 47.0
     private let plusMinusButtonsSize = 20.0
     
@@ -61,7 +60,7 @@ final class CartCell: UITableViewCell {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [fontWeightAxis : 650])
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 650])
         return label
     }()
     

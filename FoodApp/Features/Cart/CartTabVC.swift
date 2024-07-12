@@ -17,7 +17,6 @@ final class CartTabVC: UIViewController {
     
     private let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     
-    private let fontWeightAxis = 2003265652
     private var tableViewHeightConstraint: NSLayoutConstraint?
 
     private var productPrice: Double = 0
@@ -28,7 +27,7 @@ final class CartTabVC: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [fontWeightAxis : 650])
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
         label.text = "Cart"
         return label
     }()
@@ -91,7 +90,7 @@ final class CartTabVC: UIViewController {
         let field = UITextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.placeholder = "Promo Code"
-        field.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [fontWeightAxis : 600])
+        field.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
         field.textColor = ColorManager.shared.label
         field.tintColor = ColorManager.shared.orange
         return field
@@ -105,7 +104,7 @@ final class CartTabVC: UIViewController {
         button.setTitle("Apply Code", for: .normal)
         button.setTitleColor(ColorManager.shared.background, for: .normal)
         button.setTitleColor(ColorManager.shared.background.withAlphaComponent(0.7), for: .highlighted)
-        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [fontWeightAxis : 550])
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 550])
         button.addTarget(self, action: #selector(applyCodeButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -124,7 +123,7 @@ final class CartTabVC: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [fontWeightAxis : 750])
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 750])
         label.text = "Bill Details"
         return label
     }()
@@ -133,7 +132,7 @@ final class CartTabVC: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.labelGray
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [fontWeightAxis : 500])
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 500])
         label.text = "Product Price"
         return label
     }()
@@ -151,7 +150,7 @@ final class CartTabVC: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.labelGray
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [fontWeightAxis : 500])
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 500])
         label.text = "Delivery Charge"
         return label
     }()
@@ -176,7 +175,7 @@ final class CartTabVC: UIViewController {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [fontWeightAxis : 700])
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 700])
         label.text = "Total Amount"
         return label
     }()
@@ -198,7 +197,7 @@ final class CartTabVC: UIViewController {
         button.setTitle("Continue Order", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(.white.withAlphaComponent(0.7), for: .highlighted)
-        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [fontWeightAxis : 550])
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 550])
         button.addTarget(self, action: #selector(continueOrderButtonTapped), for: .touchUpInside)
         return button
     }()

@@ -22,8 +22,8 @@ final class PreloaderView: UIView {
         return label
     }()
     
-    private lazy var preloader: CustomPreloader = {
-        let view = CustomPreloader(parentFrame: frame, size: 60)
+    private lazy var preloader: Preloader = {
+        let view = Preloader(parentFrame: frame, size: 60)
         view.layer.shadowOffset = CGSize(width: 3, height: 3)
         view.layer.shadowOpacity = 0.7
         view.layer.shadowColor = UIColor.black.cgColor

@@ -5,7 +5,7 @@
 
 import UIKit
 
-final class CustomPreloader: UIView {
+final class Preloader: UIView {
     
     private lazy var replicatorLayer: CAReplicatorLayer = {
         let caLayer = CAReplicatorLayer()

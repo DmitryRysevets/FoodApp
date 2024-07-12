@@ -50,10 +50,7 @@ final class MenuTabVC: UIViewController {
     
     // MARK: - header vars.
     
-    private let headerHeight = 52.0
-    private let headerButtonSize = 44.0
-    private var headerButtonCornerRadius: Double { headerButtonSize / 2 }
-    private var headerBottomPadding: Double { headerHeight - headerButtonSize }
+    private var headerBottomPadding: Double = Constants.headerHeight - Constants.headerButtonSize
     
     private lazy var headerView: UIView = {
         let view = UIView()
@@ -63,25 +60,23 @@ final class MenuTabVC: UIViewController {
     }()
     
     private lazy var profilePhotoView: UIImageView = {
-        let view = UIImageView()
         let image = UIImage(named: "Profile2")
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.image = image
-        view.contentMode = .center
-        view.tintColor = ColorManager.shared.label
-        view.backgroundColor = ColorManager.shared.headerElementsColor
-        view.layer.cornerRadius = headerButtonCornerRadius
-        return view
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .center
+        imageView.tintColor = ColorManager.shared.label
+        imageView.backgroundColor = ColorManager.shared.headerElementsColor
+        imageView.layer.cornerRadius = Constants.headerButtonSize / 2
+        return imageView
     }()
     
     private lazy var pinImageView: UIImageView = {
-        let view = UIImageView()
         let image = UIImage(named: "Pin")
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.image = image
-        view.tintColor = ColorManager.shared.label
-        view.contentMode = .scaleAspectFit
-        return view
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.tintColor = ColorManager.shared.label
+        imageView.contentMode = .scaleAspectFit
+        return imageView
     }()
     
     private lazy var deliveryAdressLabel: UILabel = {
@@ -101,7 +96,7 @@ final class MenuTabVC: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image, for: .normal)
         button.backgroundColor = ColorManager.shared.headerElementsColor
-        button.layer.cornerRadius = headerButtonCornerRadius
+        button.layer.cornerRadius = Constants.headerButtonSize / 2
         button.addTarget(self, action: #selector(notificationButtonTaped), for: .touchUpInside)
         return button
     }()
@@ -112,7 +107,7 @@ final class MenuTabVC: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image?.withTintColor(ColorManager.shared.label), for: .normal)
         button.backgroundColor = ColorManager.shared.headerElementsColor
-        button.layer.cornerRadius = headerButtonCornerRadius
+        button.layer.cornerRadius = Constants.headerButtonSize / 2
         button.addTarget(self, action: #selector(layoutButtonTaped), for: .touchUpInside)
         return button
     }()
@@ -303,7 +298,7 @@ final class MenuTabVC: UIViewController {
             headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: headerHeight),
+            headerView.heightAnchor.constraint(equalToConstant: Constants.headerHeight),
             
             profilePhotoView.topAnchor.constraint(equalTo: headerView.topAnchor),
             profilePhotoView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
