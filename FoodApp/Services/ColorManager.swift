@@ -111,6 +111,32 @@ class ColorManager {
             : UIColor(red: 0.882, green: 0.882, blue: 0.882, alpha: 1)
     }
     
+    // Payment page colors
+    
+    let payment_fieldColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 1)
+            : .white
+    }
+    
+    let payment_mapViewColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 0.105, green: 0.105, blue: 0.105, alpha: 1)
+            : UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1)
+    }
+    
+    let payment_totalAmountColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 0.105, green: 0.105, blue: 0.105, alpha: 1)
+            : UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1)
+    }
+    
+    let payment_placeOrderButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 1)
+            : UIColor(red: 0.972, green: 0.972, blue: 0.972, alpha: 1)
+    }
+    
     // Primary colors
     
     let gold = UIColor { (traitCollection: UITraitCollection) -> UIColor in

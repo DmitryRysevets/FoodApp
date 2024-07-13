@@ -41,6 +41,12 @@ final class PaymentVC: UIViewController {
         return view
     }()
     
+    private lazy var paymentOptionsView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     //MARK: - Payment by PayPal props.
     
     private lazy var radioButtonPaymentByPayPal: RadioButton = {
@@ -82,6 +88,15 @@ final class PaymentVC: UIViewController {
         return label
     }()
     
+    private lazy var cardImageViewsStack: UIStackView = {
+        let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .horizontal
+        stack.distribution = .equalSpacing
+        stack.alignment = .center
+        return stack
+    }()
+    
     private lazy var visaImageView: UIImageView = {
         let image = UIImage()
         let imageView = UIImageView(image: image)
@@ -90,6 +105,13 @@ final class PaymentVC: UIViewController {
     }()
     
     private lazy var mastercardImageView: UIImageView = {
+        let image = UIImage()
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    private lazy var discoverImageView: UIImageView = {
         let image = UIImage()
         let imageView = UIImageView(image: image)
         imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -115,6 +137,7 @@ final class PaymentVC: UIViewController {
     private lazy var cardholderNameField: UITextField = {
         let field = UITextField()
         field.translatesAutoresizingMaskIntoConstraints = false
+        field.backgroundColor = ColorManager.shared.payment_fieldColor
         field.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
         field.textColor = ColorManager.shared.label
         field.tintColor = ColorManager.shared.orange
@@ -132,6 +155,7 @@ final class PaymentVC: UIViewController {
     private lazy var mmyyField: UITextField = {
         let field = UITextField()
         field.translatesAutoresizingMaskIntoConstraints = false
+        field.backgroundColor = ColorManager.shared.payment_fieldColor
         field.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
         field.textColor = ColorManager.shared.label
         field.tintColor = ColorManager.shared.orange
@@ -149,6 +173,7 @@ final class PaymentVC: UIViewController {
     private lazy var cvcField: UITextField = {
         let field = UITextField()
         field.translatesAutoresizingMaskIntoConstraints = false
+        field.backgroundColor = ColorManager.shared.payment_fieldColor
         field.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
         field.textColor = ColorManager.shared.label
         field.tintColor = ColorManager.shared.orange
@@ -174,6 +199,8 @@ final class PaymentVC: UIViewController {
     private lazy var mapView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.payment_mapViewColor
+        view.layer.cornerRadius = 24
         return view
     }()
     
@@ -201,30 +228,48 @@ final class PaymentVC: UIViewController {
     private lazy var placeOrderView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.payment_mapViewColor
+        view.layer.cornerRadius = 24
         return view
     }()
     
     private lazy var totalAmountLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 650])
+        label.text = "Total Amount"
         return label
     }()
     
     private lazy var seePriceDetailsLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 650])
+        label.text = "Total Amount"
         return label
     }()
     
     private lazy var priceLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 20, axis: [Constants.fontWeightAxis : 650])
+        label.text = "$19.68"
         return label
     }()
     
     private lazy var placeOrderButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.backgroundColor = ColorManager.shared.payment_placeOrderButtonColor
+        button.layer.cornerRadius = 26
+        button.setTitle("Place Order", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 550])
+        button.addTarget(self, action: #selector(placeOrderButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -238,11 +283,45 @@ final class PaymentVC: UIViewController {
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
+
         view.addSubview(headerView)
         view.addSubview(scrollView)
-        
+
         headerView.addSubview(backButton)
         headerView.addSubview(paymentTitleLabel)
+        
+        scrollView.addSubview(paymentOptionsView)
+        scrollView.addSubview(cardDetailsView)
+        scrollView.addSubview(mapView)
+        scrollView.addSubview(placeOrderView)
+        
+        paymentOptionsView.addSubview(radioButtonPaymentByPayPal)
+        paymentOptionsView.addSubview(paymentByPayPalLabel)
+        paymentOptionsView.addSubview(payPalImageView)
+        paymentOptionsView.addSubview(radioButtonPaymentByCard)
+        paymentOptionsView.addSubview(paymentByCardLabel)
+        paymentOptionsView.addSubview(cardImageViewsStack)
+        
+        cardImageViewsStack.addArrangedSubview(visaImageView)
+        cardImageViewsStack.addArrangedSubview(mastercardImageView)
+        cardImageViewsStack.addArrangedSubview(discoverImageView)
+
+        cardDetailsView.addSubview(cardholderNameLabel)
+        cardDetailsView.addSubview(cardholderNameField)
+        cardDetailsView.addSubview(mmyyLabel)
+        cardDetailsView.addSubview(mmyyField)
+        cardDetailsView.addSubview(cvcLabel)
+        cardDetailsView.addSubview(cvcField)
+        cardDetailsView.addSubview(userAgreementCheckBox)
+        cardDetailsView.addSubview(userAgreementLabel)
+        
+        mapView.addSubview(mapPinImageView)
+        mapView.addSubview(deliveryAddressLabel)
+        
+        placeOrderView.addSubview(totalAmountLabel)
+        placeOrderView.addSubview(seePriceDetailsLabel)
+        placeOrderView.addSubview(priceLabel)
+        placeOrderView.addSubview(placeOrderButton)
     }
     
     private func setupConstraints() {
@@ -263,7 +342,29 @@ final class PaymentVC: UIViewController {
             scrollView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            paymentOptionsView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+            paymentOptionsView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            paymentOptionsView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            paymentOptionsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            
+            cardDetailsView.topAnchor.constraint(equalTo: paymentOptionsView.topAnchor),
+            cardDetailsView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            cardDetailsView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            cardDetailsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            
+            mapView.topAnchor.constraint(equalTo: cardDetailsView.topAnchor),
+            mapView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            mapView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            mapView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            
+            placeOrderView.topAnchor.constraint(equalTo: cardDetailsView.topAnchor),
+            placeOrderView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
+            placeOrderView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
+            placeOrderView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            placeOrderView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor)
+            
         ])
     }
     
@@ -284,4 +385,8 @@ final class PaymentVC: UIViewController {
         
     }
 
+    @objc
+    private func placeOrderButtonTapped() {
+        
+    }
 }

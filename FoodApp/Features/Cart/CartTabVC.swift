@@ -196,7 +196,7 @@ final class CartTabVC: UIViewController {
         button.backgroundColor = ColorManager.shared.cart_continueOrderButtonColor
         button.setTitle("Continue Order", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.setTitleColor(.white.withAlphaComponent(0.7), for: .highlighted)
+        button.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 550])
         button.addTarget(self, action: #selector(continueOrderButtonTapped), for: .touchUpInside)
         return button
