@@ -7,16 +7,11 @@ import UIKit
 
 class CheckBox: UIButton {
     
-    let checkedImage = UIImage(systemName: "plus")! as UIImage
-    let uncheckedImage = UIImage(systemName: "minus")! as UIImage
+    let checkedImage = UIImage(systemName: "checkmark")! as UIImage
     
     var isChecked: Bool = false {
         didSet {
-            if isChecked == true {
-                self.setImage(checkedImage, for: UIControl.State.normal)
-            } else {
-                self.setImage(uncheckedImage, for: UIControl.State.normal)
-            }
+            self.setImage(isChecked ? checkedImage : nil, for: .normal)
         }
     }
         

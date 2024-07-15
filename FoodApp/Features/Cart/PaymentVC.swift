@@ -7,6 +7,8 @@ import UIKit
 
 final class PaymentVC: UIViewController {
     
+    private let amountDue: Double
+    
     private lazy var headerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -52,9 +54,9 @@ final class PaymentVC: UIViewController {
     private lazy var radioButtonPaymentByPayPal: RadioButton = {
         let button = RadioButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .label
         button.layer.cornerRadius = 10
         button.addTarget(self, action: #selector(byPayPalButtonDidTapped), for: .touchUpInside)
+        button.isSelected = false
         return button
     }()
     
@@ -64,6 +66,9 @@ final class PaymentVC: UIViewController {
         label.textColor = ColorManager.shared.labelGray
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 550])
         label.text = "Pay With"
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(byPayPalButtonDidTapped))
+        label.addGestureRecognizer(tapGesture)
+        label.isUserInteractionEnabled = true
         return label
     }()
     
@@ -80,9 +85,9 @@ final class PaymentVC: UIViewController {
     private lazy var radioButtonPaymentByCard: RadioButton = {
         let button = RadioButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .label
         button.layer.cornerRadius = 10
         button.addTarget(self, action: #selector(byCardButtonDidTapped), for: .touchUpInside)
+        button.isSelected = true
         return button
     }()
     
@@ -92,6 +97,9 @@ final class PaymentVC: UIViewController {
         label.textColor = ColorManager.shared.label
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 600])
         label.text = "Credit & Debit Card"
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(byCardButtonDidTapped))
+        label.addGestureRecognizer(tapGesture)
+        label.isUserInteractionEnabled = true
         return label
     }()
     
@@ -175,6 +183,9 @@ final class PaymentVC: UIViewController {
         checkbox.layer.borderWidth = 1
         checkbox.layer.borderColor = ColorManager.shared.labelGray.cgColor
         checkbox.backgroundColor = ColorManager.shared.background
+        checkbox.tintColor = ColorManager.shared.orange
+        checkbox.addTarget(self, action: #selector(userAgreementCheckBoxDidTapped), for: .touchUpInside)
+        checkbox.isChecked = false
         return checkbox
     }()
     
@@ -185,6 +196,9 @@ final class PaymentVC: UIViewController {
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 550])
         label.text = "I habe read and accept the terms of use, rules of flight and privacy policy"
         label.numberOfLines = 2
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(userAgreementCheckBoxDidTapped))
+        label.addGestureRecognizer(tapGesture)
+        label.isUserInteractionEnabled = true
         return label
     }()
     
@@ -251,7 +265,8 @@ final class PaymentVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = .systemFont(ofSize: 20, weight: .regular)
-        label.text = "$19.68"
+        label.text = "$\(amountDue)"
+//        label.text = "$19.68"
         return label
     }()
     
@@ -268,10 +283,22 @@ final class PaymentVC: UIViewController {
         return button
     }()
     
+    init(amountDue: Double) {
+        self.amountDue = amountDue
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
+        
+        radioButtonPaymentByPayPal.alternateButton = [radioButtonPaymentByCard]
+        radioButtonPaymentByCard.alternateButton = [radioButtonPaymentByPayPal]
     }
     
     //MARK: - Private methods
@@ -433,12 +460,19 @@ final class PaymentVC: UIViewController {
     
     @objc
     private func byPayPalButtonDidTapped() {
-        
+        radioButtonPaymentByPayPal.isSelected = true
+        radioButtonPaymentByPayPal.unselectAlternateButtons()
     }
     
     @objc
     private func byCardButtonDidTapped() {
-        
+        radioButtonPaymentByCard.isSelected = true
+        radioButtonPaymentByCard.unselectAlternateButtons()
+    }
+    
+    @objc
+    private func userAgreementCheckBoxDidTapped() {
+        userAgreementCheckBox.isChecked.toggle()
     }
 
     @objc
@@ -446,3 +480,4 @@ final class PaymentVC: UIViewController {
         
     }
 }
+

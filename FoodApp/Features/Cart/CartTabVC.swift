@@ -32,22 +32,6 @@ final class CartTabVC: UIViewController {
         return label
     }()
     
-    private lazy var cartIsEmptyLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textAlignment = .center
-        label.textColor = ColorManager.shared.label
-        label.text = "Cart Is Empty"
-        label.font = UIFont(name: "Raleway", size: 22)
-        label.numberOfLines = 1
-        label.layer.shadowOffset = CGSize(width: 3, height: 3)
-        label.layer.shadowOpacity = 0.2
-        label.layer.shadowColor = UIColor.black.cgColor
-        label.layer.shadowRadius = 2
-        label.isHidden = false
-        return label
-    }()
-    
     private lazy var scrollView: UIScrollView = {
         let view = UIScrollView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -142,7 +126,6 @@ final class CartTabVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = .systemFont(ofSize: 16)
-        label.text = "$0.00"
         return label
     }()
     
@@ -202,6 +185,40 @@ final class CartTabVC: UIViewController {
         return button
     }()
     
+    // MARK: - Empty cart view props.
+    
+    private lazy var emptyCartView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.isHidden = false
+        return view
+    }()
+    
+    private lazy var cartIsEmptyLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        label.textColor = ColorManager.shared.label
+        label.text = "Cart Is Empty"
+        label.font = UIFont(name: "Raleway", size: 22)
+        label.numberOfLines = 1
+        label.layer.shadowOffset = CGSize(width: 3, height: 3)
+        label.layer.shadowOpacity = 0.2
+        label.layer.shadowColor = UIColor.black.cgColor
+        label.layer.shadowRadius = 2
+        return label
+    }()
+    
+    private lazy var emptyCartImageView: UIImageView = {
+        let image = UIImage(named: "EmptyCart")
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        return imageView
+    }()
+    
+    // MARK: - Lifecycle methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -218,8 +235,9 @@ final class CartTabVC: UIViewController {
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         view.addSubview(cartTitle)
-        view.addSubview(cartIsEmptyLabel)
+        view.addSubview(emptyCartView)
         view.addSubview(scrollView)
+        
         scrollView.addSubview(tableView)
         scrollView.addSubview(promoCodeView)
         scrollView.addSubview(billDetailsView)
@@ -237,6 +255,8 @@ final class CartTabVC: UIViewController {
         billDetailsView.addSubview(totalAmount_amountOfMoneyLabel)
         billDetailsView.addSubview(continueOrderButton)
         
+        emptyCartView.addSubview(cartIsEmptyLabel)
+        emptyCartView.addSubview(emptyCartImageView)
     }
     
     private func setupConstraints() {
@@ -244,9 +264,6 @@ final class CartTabVC: UIViewController {
         NSLayoutConstraint.activate([
             cartTitle.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 4),
             cartTitle.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            cartIsEmptyLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            cartIsEmptyLabel.topAnchor.constraint(equalTo: cartTitle.bottomAnchor, constant: 120),
             
             scrollView.topAnchor.constraint(equalTo: cartTitle.bottomAnchor, constant: 16),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -304,7 +321,19 @@ final class CartTabVC: UIViewController {
             spacerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             spacerView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             spacerView.heightAnchor.constraint(equalToConstant: 92),
-            spacerView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor)
+            spacerView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            
+            emptyCartView.topAnchor.constraint(equalTo: cartTitle.bottomAnchor, constant: 32),
+            emptyCartView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            emptyCartView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            emptyCartView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100),
+            cartIsEmptyLabel.centerXAnchor.constraint(equalTo: emptyCartView.centerXAnchor),
+            cartIsEmptyLabel.topAnchor.constraint(equalTo: emptyCartView.topAnchor, constant: 100),
+            emptyCartImageView.topAnchor.constraint(equalTo: cartIsEmptyLabel.bottomAnchor, constant: 32),
+            emptyCartImageView.centerXAnchor.constraint(equalTo: emptyCartView.centerXAnchor),
+            emptyCartImageView.heightAnchor.constraint(equalToConstant: 285),
+            emptyCartImageView.widthAnchor.constraint(equalToConstant: 255)
+            
         ])
         
         tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 0)
@@ -336,7 +365,7 @@ final class CartTabVC: UIViewController {
     
     @objc
     private func continueOrderButtonTapped() {
-        let paymentPage = PaymentVC()
+        let paymentPage = PaymentVC(amountDue: totalAmount)
         paymentPage.modalTransitionStyle = .coverVertical
         paymentPage.modalPresentationStyle = .overFullScreen
         present(paymentPage, animated: true)
@@ -345,7 +374,7 @@ final class CartTabVC: UIViewController {
     @objc 
     private func handleDataNotification(_ notification: Notification) {
         if let data = notification.userInfo?["data"] as? [CartItem] {
-            cartIsEmptyLabel.isHidden = true
+            emptyCartView.isHidden = true
             scrollView.isHidden = false
             cartContent = data
         }
