@@ -210,10 +210,7 @@ final class DishVC: UIViewController {
         label.font = UIFont(name: "Raleway", size: 14)
         label.textColor = ColorManager.shared.label.withAlphaComponent(0.7)
         label.numberOfLines = 0
-        label.text = """
-Ground beef, hamburger buns, salt, pepper. 
-Optional: cheese, lattuce, tomato, onion, pickles, mayonnaise.
-"""
+        label.text = dish.ingredients
         return label
     }()
     

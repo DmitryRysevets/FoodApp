@@ -9,6 +9,7 @@ struct Dish: Hashable {
     let id: String
     let name: String
     let description: String
+    let ingredients: String
     let tags: [String]
     let weight: Int
     let calories: Int

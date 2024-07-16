@@ -23,6 +23,12 @@ final class CartTabVC: UIViewController {
     private var deliveryPrice: Double = 2.0
     private var totalAmount: Double = 0
     
+    private lazy var headerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     private lazy var cartTitle: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -234,9 +240,11 @@ final class CartTabVC: UIViewController {
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
-        view.addSubview(cartTitle)
+        view.addSubview(headerView)
         view.addSubview(emptyCartView)
         view.addSubview(scrollView)
+        
+        headerView.addSubview(cartTitle)
         
         scrollView.addSubview(tableView)
         scrollView.addSubview(promoCodeView)
@@ -262,10 +270,14 @@ final class CartTabVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            cartTitle.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 4),
-            cartTitle.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            headerView.heightAnchor.constraint(equalToConstant: Constants.headerHeight),
+            cartTitle.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
+            cartTitle.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
             
-            scrollView.topAnchor.constraint(equalTo: cartTitle.bottomAnchor, constant: 16),
+            scrollView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -323,7 +335,7 @@ final class CartTabVC: UIViewController {
             spacerView.heightAnchor.constraint(equalToConstant: 92),
             spacerView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             
-            emptyCartView.topAnchor.constraint(equalTo: cartTitle.bottomAnchor, constant: 32),
+            emptyCartView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
             emptyCartView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             emptyCartView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             emptyCartView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100),
@@ -390,7 +402,7 @@ extension CartTabVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: CartCell.id, for: indexPath) as! CartCell
-        cell.cartItemID = cartContent[indexPath.row].id
+        cell.cartItemID = cartContent[indexPath.row].cartItemID
         cell.cartItem = cartContent[indexPath.row]
         cell.cartItemImageBackColor = cartContent[indexPath.row].productImageBackColor
         cell.itemQuantityHandler = { [weak self] id, quantity in

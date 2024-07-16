@@ -6,7 +6,7 @@
 import UIKit
 
 struct CartItem {
-    let id: Int
+    let cartItemID: Int
     let dish: Dish
     var quantity: Int
     var productImageBackColor: UIColor

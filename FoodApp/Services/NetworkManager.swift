@@ -89,7 +89,8 @@ class NetworkManager {
 
         return Dish(id: dishData.id,
                     name: dishData.name,
-                    description: dishData.description,
+                    description: dishData.description, 
+                    ingredients: dishData.ingredients,
                     tags: dishData.tags,
                     weight: dishData.weight,
                     calories: dishData.calories,
