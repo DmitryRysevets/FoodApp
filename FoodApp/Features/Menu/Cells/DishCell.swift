@@ -11,7 +11,15 @@ final class DishCell: UICollectionViewCell {
     var dishData: Dish! {
         didSet {
             nameLabel.text = dishData.name
-            actualPriceLabel.text = String(dishData.price)
+            actualPriceLabel.text = "$\(String(format: "%.2f", dishData.price))"
+            
+            if let recentPrice = dishData.recentPrice {
+                let text = "$\(String(format: "%.2f", recentPrice))"
+                let attributes: [NSAttributedString.Key: Any] = [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
+                let attributedString = NSAttributedString(string: text, attributes: attributes)
+                regularPriceLabel.attributedText = attributedString
+            }
+            
             if let data = dishData.imageData {
                 dishImage.image = UIImage(data: data)
             }
@@ -69,10 +77,6 @@ final class DishCell: UICollectionViewCell {
     
     private lazy var regularPriceLabel: UILabel = {
         let label = UILabel()
-        let text = "$5.00"
-        let attributes: [NSAttributedString.Key: Any] = [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
-        let attributedString = NSAttributedString(string: text, attributes: attributes)
-        label.attributedText = attributedString
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 11)
         label.textColor = ColorManager.shared.labelGray

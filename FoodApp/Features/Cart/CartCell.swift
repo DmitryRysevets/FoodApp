@@ -18,7 +18,7 @@ final class CartCell: UITableViewCell {
             
             productNameLabel.text = cartItem.dish.name
             productWeightLabel.text = "\(cartItem.dish.weight)g (1 pcs)"
-            productPriceLabel.text = "$\(cartItem.dish.price)"
+            productPriceLabel.text = "$\(String(format: "%.2f", cartItem.dish.price))"
             quantityLabel.text = String(cartItem.quantity)
             checkAmountLabelTextColor()
             

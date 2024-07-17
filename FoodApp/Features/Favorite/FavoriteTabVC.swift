@@ -7,7 +7,11 @@ import UIKit
 
 final class FavoriteTabVC: UIViewController {
     
-    private lazy var content: [CartItem] = []
+    private lazy var content: [CartItem] = [] {
+        didSet {
+            tableView.reloadData()
+        }
+    }
 
     private lazy var headerView: UIView = {
         let view = UIView()
@@ -29,7 +33,6 @@ final class FavoriteTabVC: UIViewController {
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = ColorManager.shared.background
         table.separatorStyle = .none
-        table.allowsSelection = false
         table.register(FavoriteCell.self, forCellReuseIdentifier: FavoriteCell.id)
         table.dataSource = self
         table.delegate = self
@@ -133,11 +136,52 @@ final class FavoriteTabVC: UIViewController {
 extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        1
+        content.count + 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        UITableViewCell()
+        
+        if indexPath.row == content.count {
+            let cell = UITableViewCell()
+            cell.backgroundColor = ColorManager.shared.background
+            cell.selectionStyle = .none
+            return cell
+        }
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: FavoriteCell.id, for: indexPath) as! FavoriteCell
+        cell.favoriteDish = content[indexPath.row].dish
+        cell.cartItemImageBackColor = content[indexPath.row].productImageBackColor
+        cell.selectionStyle = .none
+        
+        return cell
     }
     
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 90
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if indexPath.row != content.count {
+            var relatedProducts: [UIImage] = []
+            
+            for item in content {
+                if let data = item.dish.imageData, let image = UIImage(data: data) {
+                    if relatedProducts.count != 3 {
+                        relatedProducts.append(image)
+                    } else {
+                        break
+                    }
+                }
+            }
+            
+            let dishPage = DishVC(dish: content[indexPath.row].dish,
+                                  related: relatedProducts,
+                                  color: content[indexPath.row].productImageBackColor)
+            
+            dishPage.modalTransitionStyle = .coverVertical
+            dishPage.modalPresentationStyle = .overFullScreen
+            
+            present(dishPage, animated: true)
+        }
+    }
 }

@@ -27,7 +27,7 @@ final class MenuTabVC: UIViewController {
             applySnapshot()
             
             var dataToSend: [CartItem] = []
-            let quantity = 4
+            let quantity = 9
             let colors: [UIColor] = ColorManager.shared.getColors(quantity)
             for i in 0...quantity-1 {
                 let item = CartItem(cartItemID: i, dish: menu.dishes[i], quantity: Int.random(in: 1...3), productImageBackColor: colors[i])
