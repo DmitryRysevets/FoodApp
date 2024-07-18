@@ -21,3 +21,22 @@ struct Dish: Hashable {
     let recentPrice: Double?
     let imageData: Data?
 }
+
+extension Dish {
+    init(from entity: DishEntity) {
+        self.id = entity.id!
+        self.name = entity.name!
+        self.description = entity.dishDescription!
+        self.ingredients = entity.ingredients!
+        self.tags = entity.tags as? [String] ?? []
+        self.weight = Int(entity.weight)
+        self.calories = Int(entity.calories)
+        self.protein = Int(entity.protein)
+        self.carbs = Int(entity.carbs)
+        self.fats = Int(entity.fats)
+        self.isOffer = entity.isOffer
+        self.price = entity.price
+        self.recentPrice = entity.recentPrice
+        self.imageData = entity.imageData
+    }
+}

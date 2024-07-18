@@ -7,9 +7,23 @@ import UIKit
 
 final class FavoriteTabVC: UIViewController {
     
-    private lazy var content: [CartItem] = [] {
+    private lazy var favoriteDishes: [Dish] = [] {
         didSet {
             tableView.reloadData()
+            favoriteIsEmpty = false
+        }
+    }
+    
+    private var favoriteIsEmpty: Bool = true {
+        didSet {
+            switch favoriteIsEmpty {
+            case true:
+                emptyFavoriteView.isHidden = false
+                tableView.isHidden = true
+            case false:
+                emptyFavoriteView.isHidden = true
+                tableView.isHidden = false
+            }
         }
     }
 
@@ -36,6 +50,7 @@ final class FavoriteTabVC: UIViewController {
         table.register(FavoriteCell.self, forCellReuseIdentifier: FavoriteCell.id)
         table.dataSource = self
         table.delegate = self
+        table.isHidden = true
         return table
     }()
     
@@ -44,7 +59,6 @@ final class FavoriteTabVC: UIViewController {
     private lazy var emptyFavoriteView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.isHidden = true
         return view
     }()
     
@@ -64,7 +78,7 @@ final class FavoriteTabVC: UIViewController {
     }()
     
     private lazy var emptyFavoriteImageView: UIImageView = {
-        let image = UIImage()
+        let image = UIImage(named: "EmptyFavorite")
         let imageView = UIImageView(image: image)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
@@ -90,7 +104,7 @@ final class FavoriteTabVC: UIViewController {
         emptyFavoriteView.addSubview(favoriteIsEmptyLabel)
         emptyFavoriteView.addSubview(emptyFavoriteImageView)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(handleDataNotification(_:)), name: NSNotification.Name("DataNotification"), object: nil)
+//        NotificationCenter.default.addObserver(self, selector: #selector(handleDataNotification(_:)), name: NSNotification.Name("DataNotification"), object: nil)
     }
     
     private func setupConstraints() {
@@ -114,21 +128,19 @@ final class FavoriteTabVC: UIViewController {
             emptyFavoriteView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100),
             favoriteIsEmptyLabel.centerXAnchor.constraint(equalTo: emptyFavoriteView.centerXAnchor),
             favoriteIsEmptyLabel.topAnchor.constraint(equalTo: emptyFavoriteView.topAnchor, constant: 100),
-            emptyFavoriteImageView.topAnchor.constraint(equalTo: favoriteIsEmptyLabel.bottomAnchor, constant: 32),
+            emptyFavoriteImageView.topAnchor.constraint(equalTo: favoriteIsEmptyLabel.bottomAnchor, constant: 47),
             emptyFavoriteImageView.centerXAnchor.constraint(equalTo: emptyFavoriteView.centerXAnchor),
-            emptyFavoriteImageView.heightAnchor.constraint(equalToConstant: 285),
+            emptyFavoriteImageView.heightAnchor.constraint(equalToConstant: 270),
             emptyFavoriteImageView.widthAnchor.constraint(equalToConstant: 255)
         ])
     }
     
-    @objc
-    private func handleDataNotification(_ notification: Notification) {
-        if let data = notification.userInfo?["data"] as? [CartItem] {
-//            emptyFavoriteView.isHidden = true
-//            tableView.isHidden = false
-            content = data
-        }
-    }
+//    @objc
+//    private func handleDataNotification(_ notification: Notification) {
+//        if let data = notification.userInfo?["data"] as? [CartItem] {
+//            favoriteDishes = data
+//        }
+//    }
 }
 
 // MARK: - TableView delegate methods
@@ -136,12 +148,12 @@ final class FavoriteTabVC: UIViewController {
 extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        content.count + 1
+        favoriteDishes.count + 1
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        if indexPath.row == content.count {
+        if indexPath.row == favoriteDishes.count {
             let cell = UITableViewCell()
             cell.backgroundColor = ColorManager.shared.background
             cell.selectionStyle = .none
@@ -149,8 +161,8 @@ extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
         }
         
         let cell = tableView.dequeueReusableCell(withIdentifier: FavoriteCell.id, for: indexPath) as! FavoriteCell
-        cell.favoriteDish = content[indexPath.row].dish
-        cell.cartItemImageBackColor = content[indexPath.row].productImageBackColor
+//        cell.favoriteDish = favoriteDishes[indexPath.row].dish
+//        cell.cartItemImageBackColor = favoriteDishes[indexPath.row].productImageBackColor
         cell.selectionStyle = .none
         
         return cell
@@ -160,28 +172,28 @@ extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
         return 90
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.row != content.count {
-            var relatedProducts: [UIImage] = []
-            
-            for item in content {
-                if let data = item.dish.imageData, let image = UIImage(data: data) {
-                    if relatedProducts.count != 3 {
-                        relatedProducts.append(image)
-                    } else {
-                        break
-                    }
-                }
-            }
-            
-            let dishPage = DishVC(dish: content[indexPath.row].dish,
-                                  related: relatedProducts,
-                                  color: content[indexPath.row].productImageBackColor)
-            
-            dishPage.modalTransitionStyle = .coverVertical
-            dishPage.modalPresentationStyle = .overFullScreen
-            
-            present(dishPage, animated: true)
-        }
-    }
+//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+//        if indexPath.row != favoriteDishes.count {
+//            var relatedProducts: [UIImage] = []
+//            
+//            for item in favoriteDishes {
+//                if let data = item.dish.imageData, let image = UIImage(data: data) {
+//                    if relatedProducts.count != 3 {
+//                        relatedProducts.append(image)
+//                    } else {
+//                        break
+//                    }
+//                }
+//            }
+//            
+//            let dishPage = DishVC(dish: favoriteDishes[indexPath.row].dish,
+//                                  related: relatedProducts,
+//                                  color: favoriteDishes[indexPath.row].productImageBackColor)
+//            
+//            dishPage.modalTransitionStyle = .coverVertical
+//            dishPage.modalPresentationStyle = .overFullScreen
+//            
+//            present(dishPage, animated: true)
+//        }
+//    }
 }

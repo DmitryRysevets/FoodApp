@@ -38,8 +38,6 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    private let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-    
     private var offerColors: [UIColor] = []
     private var dishColors: [UIColor] = []
     

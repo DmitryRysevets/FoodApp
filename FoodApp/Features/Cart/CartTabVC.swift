@@ -12,10 +12,22 @@ final class CartTabVC: UIViewController {
             calculateTheBill()
             tableView.reloadData()
             updateTableViewHeight()
+            cartIsEmpty = false
         }
     }
     
-    private let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    private var cartIsEmpty: Bool = true {
+        didSet {
+            switch cartIsEmpty {
+            case true:
+                emptyCartView.isHidden = false
+                scrollView.isHidden = true
+            case false:
+                emptyCartView.isHidden = true
+                scrollView.isHidden = false
+            }
+        }
+    }
     
     private var tableViewHeightConstraint: NSLayoutConstraint?
 
@@ -386,8 +398,6 @@ final class CartTabVC: UIViewController {
     @objc 
     private func handleDataNotification(_ notification: Notification) {
         if let data = notification.userInfo?["data"] as? [CartItem] {
-            emptyCartView.isHidden = true
-            scrollView.isHidden = false
             cartContent = data
         }
     }
