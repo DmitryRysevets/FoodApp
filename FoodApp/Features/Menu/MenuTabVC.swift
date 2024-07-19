@@ -263,17 +263,6 @@ final class MenuTabVC: UIViewController {
         applySnapshot()
     }
     
-    private func getMenu() {
-        Task {
-            do {
-                let menu = try await NetworkManager.shared.getMenu()
-                self.menu = menu
-            } catch {
-                print("Got some error with network manager: \(error)")
-            }
-        }
-    }
-    
     // MARK: - private methods
     
     private func setupUI() {
@@ -370,6 +359,14 @@ final class MenuTabVC: UIViewController {
         }
         
         return images
+    }
+    
+    private func getMenu() {
+        Task {
+            if let menu = await DataManager.shared.getLatestMenu() {
+                self.menu = menu
+            }
+        }
     }
     
     // MARK: - internal methods

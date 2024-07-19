@@ -55,6 +55,19 @@ final class NetworkManager {
         return Menu(offers: offers, dishes: dishes)
     }
     
+    func getLatestMenuVersion() async throws -> String {
+        let documents = try await getFirestoreData("versions")
+                
+        guard let document = documents.first(where: { $0.documentID == "latest" }),
+              let data = document.data(),
+              let version = data["menu"] as? String
+        else {
+            throw NetworkLayerError.invalidData
+        }
+        
+        return version
+    }
+    
     // MARK: - private methods
     
     private func getFirestoreData(_ collectionName: String) async throws -> [DocumentSnapshot] {
