@@ -10,22 +10,22 @@ final class FavoriteTabVC: UIViewController {
     private lazy var favoriteDishes: [Dish] = [] {
         didSet {
             tableView.reloadData()
-            favoriteIsEmpty = false
-        }
-    }
-    
-    private var favoriteIsEmpty: Bool = true {
-        didSet {
-            switch favoriteIsEmpty {
-            case true:
+            
+            if dishColors.count != favoriteDishes.count {
+                dishColors = ColorManager.shared.getColors(favoriteDishes.count)
+            }
+            
+            if favoriteDishes.isEmpty {
                 emptyFavoriteView.isHidden = false
                 tableView.isHidden = true
-            case false:
+            } else {
                 emptyFavoriteView.isHidden = true
                 tableView.isHidden = false
             }
         }
     }
+    
+    private var dishColors: [UIColor] = []
 
     private lazy var headerView: UIView = {
         let view = UIView()
@@ -91,6 +91,13 @@ final class FavoriteTabVC: UIViewController {
         setupConstraints()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        let favorite = CoreDataManager.shared.fetchFavorites()
+        if favoriteDishes != favorite {
+            favoriteDishes = favorite
+        }
+    }
+    
     // MARK: - Private methods
     
     private func setupUI() {
@@ -103,8 +110,6 @@ final class FavoriteTabVC: UIViewController {
         headerView.addSubview(favoriteTitle)
         emptyFavoriteView.addSubview(favoriteIsEmptyLabel)
         emptyFavoriteView.addSubview(emptyFavoriteImageView)
-        
-//        NotificationCenter.default.addObserver(self, selector: #selector(handleDataNotification(_:)), name: NSNotification.Name("DataNotification"), object: nil)
     }
     
     private func setupConstraints() {
@@ -134,13 +139,6 @@ final class FavoriteTabVC: UIViewController {
             emptyFavoriteImageView.widthAnchor.constraint(equalToConstant: 255)
         ])
     }
-    
-//    @objc
-//    private func handleDataNotification(_ notification: Notification) {
-//        if let data = notification.userInfo?["data"] as? [CartItem] {
-//            favoriteDishes = data
-//        }
-//    }
 }
 
 // MARK: - TableView delegate methods
@@ -161,8 +159,8 @@ extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
         }
         
         let cell = tableView.dequeueReusableCell(withIdentifier: FavoriteCell.id, for: indexPath) as! FavoriteCell
-//        cell.favoriteDish = favoriteDishes[indexPath.row].dish
-//        cell.cartItemImageBackColor = favoriteDishes[indexPath.row].productImageBackColor
+        cell.favoriteDish = favoriteDishes[indexPath.row]
+        cell.cartItemImageBackColor = dishColors[indexPath.row]
         cell.selectionStyle = .none
         
         return cell
@@ -172,28 +170,37 @@ extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
         return 90
     }
     
-//    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        if indexPath.row != favoriteDishes.count {
-//            var relatedProducts: [UIImage] = []
-//            
-//            for item in favoriteDishes {
-//                if let data = item.dish.imageData, let image = UIImage(data: data) {
-//                    if relatedProducts.count != 3 {
-//                        relatedProducts.append(image)
-//                    } else {
-//                        break
-//                    }
-//                }
-//            }
-//            
-//            let dishPage = DishVC(dish: favoriteDishes[indexPath.row].dish,
-//                                  related: relatedProducts,
-//                                  color: favoriteDishes[indexPath.row].productImageBackColor)
-//            
-//            dishPage.modalTransitionStyle = .coverVertical
-//            dishPage.modalPresentationStyle = .overFullScreen
-//            
-//            present(dishPage, animated: true)
-//        }
-//    }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if indexPath.row != favoriteDishes.count {
+            var relatedProducts: [UIImage] = []
+            
+            for item in favoriteDishes {
+                if let data = item.imageData, let image = UIImage(data: data) {
+                    if relatedProducts.count != 3 {
+                        relatedProducts.append(image)
+                    } else {
+                        break
+                    }
+                }
+            }
+            
+            let dishPage = DishVC(dish: favoriteDishes[indexPath.row],
+                                  related: relatedProducts,
+                                  color: dishColors[indexPath.row])
+            
+            dishPage.isFavoriteDidChange = { [weak self] isFavorite in
+                guard let self = self else { return }
+                if isFavorite {
+                    CoreDataManager.shared.setAsFavorite(dishID: self.favoriteDishes[indexPath.row].id)
+                } else {
+                    CoreDataManager.shared.deleteFromFavorite(dishID: self.favoriteDishes[indexPath.row].id)
+                }
+            }
+            
+            dishPage.modalTransitionStyle = .coverVertical
+            dishPage.modalPresentationStyle = .fullScreen
+            
+            present(dishPage, animated: true)
+        }
+    }
 }

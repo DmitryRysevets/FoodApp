@@ -18,14 +18,14 @@ final class FavoriteCell: UITableViewCell {
             productWeightLabel.text = "\(favoriteDish.weight)g (1 pcs)"
             productPriceLabel.text = "$\(String(format: "%.2f", favoriteDish.price))"
             
-            if let recentPrice = favoriteDish.recentPrice {
+            if favoriteDish.isOffer, let recentPrice = favoriteDish.recentPrice {
                 let text = "$\(String(format: "%.2f", recentPrice))"
                 let attributes: [NSAttributedString.Key: Any] = [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
                 let attributedString = NSAttributedString(string: text, attributes: attributes)
                 productRecentPriceLabel.attributedText = attributedString
-                setupPriceConstraintWithRecent()
+                setPriceConstraintWithOffer()
             } else {
-                setupPriceConstraint()
+                setPriceConstraintWithouOffer()
             }
             
             if let image = favoriteDish.imageData {
@@ -41,6 +41,8 @@ final class FavoriteCell: UITableViewCell {
             imageColorBackground.backgroundColor = cartItemImageBackColor
         }
     }
+    
+    private lazy var productPriceLabelCenterYConstraint: NSLayoutConstraint = productPriceLabel.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 0)
     
     private lazy var imageColorBackground: UIView = {
         let view = UIView()
@@ -112,6 +114,11 @@ final class FavoriteCell: UITableViewCell {
         updateGradientLayer()
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        productRecentPriceLabel.attributedText = nil
+    }
+    
     // MARK: - Private methods
     
     private func updateGradientLayer() {
@@ -136,7 +143,7 @@ final class FavoriteCell: UITableViewCell {
         
         imageColorBackground.layer.insertSublayer(gradientLayer, at: 0)
     }
-    
+
     private func setupConstraints() {
         NSLayoutConstraint.activate([
             imageColorBackground.centerYAnchor.constraint(equalTo: centerYAnchor),
@@ -155,24 +162,22 @@ final class FavoriteCell: UITableViewCell {
             
             productWeightLabel.topAnchor.constraint(equalTo: productNameLabel.bottomAnchor, constant: 4),
             productWeightLabel.leadingAnchor.constraint(equalTo: productNameLabel.leadingAnchor),
-        ])
-    }
-    
-    private func setupPriceConstraintWithRecent() {
-        NSLayoutConstraint.activate([
+            
             productRecentPriceLabel.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -9),
             productRecentPriceLabel.centerXAnchor.constraint(equalTo: productPriceLabel.centerXAnchor),
-            productPriceLabel.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 9),
+            
             productPriceLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16)
         ])
+        
+        productPriceLabelCenterYConstraint.isActive = true
     }
     
-    private func setupPriceConstraint() {
-        NSLayoutConstraint.activate([
-            productPriceLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            productPriceLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16)
-        ])
+    private func setPriceConstraintWithOffer() {
+        productPriceLabelCenterYConstraint.constant = 9
     }
-
+    
+    private func setPriceConstraintWithouOffer() {
+        productPriceLabelCenterYConstraint.constant = 0
+    }
 }
 

@@ -20,6 +20,7 @@ struct Dish: Hashable {
     let price: Double
     let recentPrice: Double?
     let imageData: Data?
+    var isFavorite: Bool = false
 }
 
 extension Dish {
@@ -38,5 +39,6 @@ extension Dish {
         self.price = entity.price
         self.recentPrice = entity.recentPrice
         self.imageData = entity.imageData
+        self.isFavorite = entity.isFavorite
     }
 }

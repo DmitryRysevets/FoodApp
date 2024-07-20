@@ -7,6 +7,8 @@ import UIKit
 
 final class DishVC: UIViewController {
     
+    var isFavoriteDidChange: ((Bool) -> Void)!
+    
     private let dish: Dish
     private let relatedProducts: [UIImage]
     
@@ -54,7 +56,7 @@ final class DishVC: UIViewController {
         return label
     }()
     
-    private lazy var favoritButton: UIButton = {
+    private lazy var favoriteButton: UIButton = {
         let button = UIButton()
         let imageOff = UIImage(named: "Favorite")?.resized(to: CGSize(width: 22, height: 20)).withTintColor(ColorManager.shared.label)
         let imageOn = UIImage(named: "Favorite-on")?.resized(to: CGSize(width: 22, height: 20))
@@ -329,6 +331,7 @@ final class DishVC: UIViewController {
         self.relatedProducts = related
         super.init(nibName: nil, bundle: nil)
         coloredBackgroundView.backgroundColor = color
+        favoriteButton.isSelected = dish.isFavorite
     }
     
     required init?(coder: NSCoder) {
@@ -372,7 +375,7 @@ final class DishVC: UIViewController {
                 
         headerView.addSubview(backButton)
         headerView.addSubview(dishTitleLabel)
-        headerView.addSubview(favoritButton)
+        headerView.addSubview(favoriteButton)
         
         scrollView.addSubview(carouseleContainerView)
         scrollView.addSubview(descriptionContainerView)
@@ -418,13 +421,13 @@ final class DishVC: UIViewController {
             backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             backButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
             backButton.widthAnchor.constraint(equalTo: backButton.heightAnchor),
-            favoritButton.topAnchor.constraint(equalTo: headerView.topAnchor),
-            favoritButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
-            favoritButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
-            favoritButton.widthAnchor.constraint(equalTo: favoritButton.heightAnchor),
+            favoriteButton.topAnchor.constraint(equalTo: headerView.topAnchor),
+            favoriteButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
+            favoriteButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
+            favoriteButton.widthAnchor.constraint(equalTo: favoriteButton.heightAnchor),
             dishTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
             dishTitleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
-            dishTitleLabel.trailingAnchor.constraint(equalTo: favoritButton.leadingAnchor, constant: -8),
+            dishTitleLabel.trailingAnchor.constraint(equalTo: favoriteButton.leadingAnchor, constant: -8),
             dishTitleLabel.heightAnchor.constraint(equalToConstant: 30),
             
             // Scroll view constraints
@@ -595,7 +598,8 @@ final class DishVC: UIViewController {
 
     @objc
     private func favoritButtonTapped() {
-        favoritButton.isSelected.toggle()
+        favoriteButton.isSelected.toggle()
+        isFavoriteDidChange(favoriteButton.isSelected)
     }
     
     @objc

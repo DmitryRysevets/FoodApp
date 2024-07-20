@@ -9,7 +9,7 @@ struct Menu: Hashable {
     
     var offersContainer: OffersContainer
     var categoriesContainer = CategoriesContainer()
-    let dishes: [Dish]
+    var dishes: [Dish]
     
     init(offers: [Offer] = [], dishes: [Dish] = [], categories: [String] = []) {
         self.offersContainer = OffersContainer(offers: offers)

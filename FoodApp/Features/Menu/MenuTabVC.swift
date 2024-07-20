@@ -9,9 +9,11 @@ final class MenuTabVC: UIViewController {
     
     private var menu = Menu() {
         didSet {
-            offerColors = ColorManager.shared.getColors(menu.offersContainer.offers.count)
-            dishColors = ColorManager.shared.getColors(menu.dishes.count)
-            isMenuDownloaded = true
+            if dishColors.count != menu.dishes.count {
+                dishColors = ColorManager.shared.getColors(menu.dishes.count)
+            }
+
+            isMenuReceived = true
             preloaderView.isHidden = true
             
             var offersSnapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
@@ -25,23 +27,13 @@ final class MenuTabVC: UIViewController {
             self.nestedCategoriesSnapshot = categoriesSnapshot
             
             applySnapshot()
-            
-            var dataToSend: [CartItem] = []
-            let quantity = 9
-            let colors: [UIColor] = ColorManager.shared.getColors(quantity)
-            for i in 0...quantity-1 {
-                let item = CartItem(cartItemID: i, dish: menu.dishes[i], quantity: Int.random(in: 1...3), productImageBackColor: colors[i])
-                dataToSend.append(item)
-            }
-            NotificationCenter.default.post(name: NSNotification.Name("DataNotification"), object: nil, userInfo: ["data": dataToSend])
-            
+            collectionView.reloadData()
         }
     }
     
-    private var offerColors: [UIColor] = []
     private var dishColors: [UIColor] = []
     
-    private var isMenuDownloaded = false
+    private var isMenuReceived = false
     private var isTabBarVisible = true
     
     private lazy var preloaderView = PreloaderView(frame: CGRect(x: 32, y: Int(view.center.y - 100), width: Int(view.frame.width - 64), height: 180))
@@ -163,8 +155,8 @@ final class MenuTabVC: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
-        collectionView.reloadData()
-        if !isMenuDownloaded {
+        getMenuFromCoreData()
+        if !isMenuReceived {
             preloaderView.startLoadingAnimation()
         }
     }
@@ -231,6 +223,11 @@ final class MenuTabVC: UIViewController {
                 }
                 
                 cell.dishData = dish
+                cell.isFavorite = self.menu.dishes[indexPath.item].isFavorite
+                cell.isFavoriteDidChange = { [weak self] isFavorite in
+                    self?.menu.dishes[indexPath.item].isFavorite = isFavorite
+                }
+                
                 return cell
             default:
                 return nil
@@ -369,6 +366,12 @@ final class MenuTabVC: UIViewController {
         }
     }
     
+    private func getMenuFromCoreData() {
+        if let menu = CoreDataManager.shared.fetchMenu() {
+            self.menu = menu
+        }
+    }
+    
     // MARK: - internal methods
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -392,7 +395,11 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func layoutButtonTaped() {
-        preloaderView.switchState() // for testing
+//        preloaderView.switchState() // for testing
+        collectionView.reloadData()
+        let favoriteDishes = CoreDataManager.shared.fetchFavorites()
+        print(favoriteDishes.count)
+        print("")
     }
 }
 
@@ -413,8 +420,19 @@ extension MenuTabVC: UICollectionViewDelegate {
         
         let relatedProducts = findMatchingByTagDish(referenceDish: chosenDish)
         let dishPage = DishVC(dish: chosenDish, related: relatedProducts, color: color)
+        
+        dishPage.isFavoriteDidChange = { [weak self] isFavorite in
+            guard let self = self else { return }
+            self.menu.dishes[indexPath.item].isFavorite = isFavorite
+            if isFavorite {
+                CoreDataManager.shared.setAsFavorite(dishID: self.menu.dishes[indexPath.row].id)
+            } else {
+                CoreDataManager.shared.deleteFromFavorite(dishID: self.menu.dishes[indexPath.row].id)
+            }
+        }
+        
         dishPage.modalTransitionStyle = .coverVertical
-        dishPage.modalPresentationStyle = .overFullScreen
+        dishPage.modalPresentationStyle = .fullScreen
         
         present(dishPage, animated: true)
     }

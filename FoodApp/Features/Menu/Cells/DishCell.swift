@@ -13,7 +13,7 @@ final class DishCell: UICollectionViewCell {
             nameLabel.text = dishData.name
             actualPriceLabel.text = "$\(String(format: "%.2f", dishData.price))"
             
-            if let recentPrice = dishData.recentPrice {
+            if dishData.isOffer, let recentPrice = dishData.recentPrice {
                 let text = "$\(String(format: "%.2f", recentPrice))"
                 let attributes: [NSAttributedString.Key: Any] = [.strikethroughStyle: NSUnderlineStyle.single.rawValue]
                 let attributedString = NSAttributedString(string: text, attributes: attributes)
@@ -25,6 +25,14 @@ final class DishCell: UICollectionViewCell {
             }
         }
     }
+    
+    var isFavorite: Bool! {
+        didSet {
+            favoriteButton.isSelected = isFavorite
+        }
+    }
+    
+    var isFavoriteDidChange: ((Bool) -> Void)!
     
     lazy var customShapeView: DishCellShapeView = {
         let view = DishCellShapeView()
@@ -117,6 +125,11 @@ final class DishCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        regularPriceLabel.attributedText = nil
+    }
+    
     private func setupUI() {
         addSubview(customShapeView)
         addSubview(addButton)
@@ -162,7 +175,13 @@ final class DishCell: UICollectionViewCell {
     
     @objc
     private func favoriteButtonDidTaped() {
-        favoriteButton.isSelected.toggle()
+        isFavorite.toggle()
+        isFavoriteDidChange(isFavorite)
+        if favoriteButton.isSelected {
+            CoreDataManager.shared.setAsFavorite(dishID: dishData.id)
+        } else {
+            CoreDataManager.shared.deleteFromFavorite(dishID: dishData.id)
+        }
     }
     
 }

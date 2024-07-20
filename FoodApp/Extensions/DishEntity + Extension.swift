@@ -21,5 +21,6 @@ extension DishEntity {
         self.price = dish.price
         self.recentPrice = dish.recentPrice ?? 0.0
         self.imageData = dish.imageData
+        self.isFavorite = dish.isFavorite
     }
 }
