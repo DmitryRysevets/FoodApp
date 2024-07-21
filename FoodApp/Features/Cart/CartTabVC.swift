@@ -12,22 +12,22 @@ final class CartTabVC: UIViewController {
             calculateTheBill()
             tableView.reloadData()
             updateTableViewHeight()
-            cartIsEmpty = false
-        }
-    }
-    
-    private var cartIsEmpty: Bool = true {
-        didSet {
-            switch cartIsEmpty {
-            case true:
+            
+            if cartItemColors.count != cartContent.count {
+                cartItemColors = ColorManager.shared.getColors(cartContent.count)
+            }
+            
+            if cartContent.isEmpty {
                 emptyCartView.isHidden = false
                 scrollView.isHidden = true
-            case false:
+            } else {
                 emptyCartView.isHidden = true
                 scrollView.isHidden = false
             }
         }
     }
+    
+    private var cartItemColors: [UIColor] = []
     
     private var tableViewHeightConstraint: NSLayoutConstraint?
 
@@ -63,6 +63,7 @@ final class CartTabVC: UIViewController {
         table.backgroundColor = ColorManager.shared.background
         table.separatorStyle = .none
         table.allowsSelection = false
+        table.isScrollEnabled = false
         table.register(CartCell.self, forCellReuseIdentifier: CartCell.id)
         table.dataSource = self
         table.delegate = self
@@ -241,13 +242,25 @@ final class CartTabVC: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         checkCart()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        CoreDataManager.shared.saveCart(cartContent)
     }
     
     // MARK: - Private methods
     
     private func checkCart() {
-        NotificationCenter.default.addObserver(self, selector: #selector(handleDataNotification(_:)), name: NSNotification.Name("DataNotification"), object: nil)
+        let items = CoreDataManager.shared.fetchCart()
+        if cartContent != items {
+            cartContent = items
+        }
     }
     
     private func setupUI() {
@@ -395,12 +408,6 @@ final class CartTabVC: UIViewController {
         present(paymentPage, animated: true)
     }
     
-    @objc 
-    private func handleDataNotification(_ notification: Notification) {
-        if let data = notification.userInfo?["data"] as? [CartItem] {
-            cartContent = data
-        }
-    }
 }
 
 // MARK: - TableView delegate methods
@@ -412,9 +419,9 @@ extension CartTabVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: CartCell.id, for: indexPath) as! CartCell
-        cell.cartItemID = cartContent[indexPath.row].cartItemID
+        cell.cartItemID = indexPath.row
         cell.cartItem = cartContent[indexPath.row]
-        cell.cartItemImageBackColor = cartContent[indexPath.row].productImageBackColor
+        cell.cartItemImageBackColor = cartItemColors[indexPath.row]
         cell.itemQuantityHandler = { [weak self] id, quantity in
             self?.cartContent[id].quantity = quantity
         }

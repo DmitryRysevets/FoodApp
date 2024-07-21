@@ -170,7 +170,7 @@ final class DishCell: UICollectionViewCell {
     
     @objc
     private func addButtonDidTaped() {
-        print(#function)
+        CoreDataManager.shared.saveCartItem(dish: dishData, quantity: 1)
     }
     
     @objc

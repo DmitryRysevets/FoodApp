@@ -3,11 +3,13 @@
 //  FoodApp
 //
 
-import UIKit
+import Foundation
 
-struct CartItem {
-    let cartItemID: Int
+struct CartItem: Equatable {
     let dish: Dish
     var quantity: Int
-    var productImageBackColor: UIColor
+    
+    static func == (lhs: CartItem, rhs: CartItem) -> Bool {
+        return lhs.dish.id == rhs.dish.id && lhs.quantity == rhs.quantity
+    }
 }

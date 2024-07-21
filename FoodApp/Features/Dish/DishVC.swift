@@ -10,7 +10,9 @@ final class DishVC: UIViewController {
     var isFavoriteDidChange: ((Bool) -> Void)!
     
     private let dish: Dish
-    private let relatedProducts: [UIImage]
+    private let relatedProducts: [Dish]
+
+    private lazy var relatedProductColors = ColorManager.shared.getColors(relatedProducts.count)
     
     private let scrollView: UIScrollView = {
         let view = UIScrollView()
@@ -234,8 +236,9 @@ final class DishVC: UIViewController {
         let stack = UIStackView()
         stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .horizontal
-        stack.distribution = .equalSpacing
         stack.alignment = .fill
+        stack.distribution = .fillEqually
+        stack.spacing = 12
         return stack
     }()
     
@@ -326,9 +329,9 @@ final class DishVC: UIViewController {
     
     // MARK: - Controller methods
     
-    init(dish: Dish, related: [UIImage], color: UIColor) {
+    init(dish: Dish, color: UIColor) {
         self.dish = dish
-        self.relatedProducts = related
+        relatedProducts = CoreDataManager.shared.findSimilarDishes(to: dish)
         super.init(nibName: nil, bundle: nil)
         coloredBackgroundView.backgroundColor = color
         favoriteButton.isSelected = dish.isFavorite
@@ -539,21 +542,19 @@ final class DishVC: UIViewController {
     }
     
     private func setupRelatedProducts() {
-        // From the layout it is not clear what kind of interaction should be with related products, so just added their images.
-        let productBackColors = ColorManager.shared.getColors(relatedProducts.count)
         for i in 0...relatedProducts.count-1 {
             let view = UIView()
-            view.translatesAutoresizingMaskIntoConstraints = false
-            view.backgroundColor = productBackColors[i]
+            view.backgroundColor = relatedProductColors[i]
             view.layer.cornerRadius = 20
-            view.widthAnchor.constraint(equalToConstant: 114).isActive = true
             
-            let imageView = UIImageView(image: relatedProducts[i])
-            imageView.translatesAutoresizingMaskIntoConstraints = false
+            guard let imageData = relatedProducts[i].imageData else { continue }
+            let imageView = UIImageView(image: UIImage(data: imageData))
             imageView.contentMode = .scaleAspectFit
             
             view.addSubview(imageView)
             
+            view.translatesAutoresizingMaskIntoConstraints = false
+            imageView.translatesAutoresizingMaskIntoConstraints = false
             NSLayoutConstraint.activate([
                 imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -620,7 +621,9 @@ final class DishVC: UIViewController {
     
     @objc
     private func addToCartButtonTapped() {
-        print(#function)
+        if let quantity = Int(quantityLabel.text ?? "1") {
+            CoreDataManager.shared.saveCartItem(dish: dish, quantity: quantity)
+        }
     }
     
 }

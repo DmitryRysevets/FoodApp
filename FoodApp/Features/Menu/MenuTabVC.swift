@@ -341,23 +341,6 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    func findMatchingByTagDish(referenceDish: Dish) -> [UIImage] {
-        let matchingDishes = menu.dishes.filter { dish in
-            return !Set(dish.tags).intersection(referenceDish.tags).isEmpty
-        }
-        
-        let selectedDishes = Array(matchingDishes.prefix(3))
-        
-        var images: [UIImage] = []
-        for dish in selectedDishes {
-            if let data = dish.imageData, let image = UIImage(data: data) {
-                images.append(image)
-            }
-        }
-        
-        return images
-    }
-    
     private func getMenu() {
         Task {
             if let menu = await DataManager.shared.getLatestMenu() {
@@ -396,10 +379,7 @@ final class MenuTabVC: UIViewController {
     @objc
     private func layoutButtonTaped() {
 //        preloaderView.switchState() // for testing
-        collectionView.reloadData()
-        let favoriteDishes = CoreDataManager.shared.fetchFavorites()
-        print(favoriteDishes.count)
-        print("")
+        CoreDataManager.shared.clearCart() // for testing
     }
 }
 
@@ -418,8 +398,7 @@ extension MenuTabVC: UICollectionViewDelegate {
             chosenDish = isFilteredByTag ? filteredByTagDishes[indexPath.item] : menu.dishes[indexPath.item]
         }
         
-        let relatedProducts = findMatchingByTagDish(referenceDish: chosenDish)
-        let dishPage = DishVC(dish: chosenDish, related: relatedProducts, color: color)
+        let dishPage = DishVC(dish: chosenDish, color: color)
         
         dishPage.isFavoriteDidChange = { [weak self] isFavorite in
             guard let self = self else { return }

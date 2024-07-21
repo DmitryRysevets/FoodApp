@@ -184,9 +184,7 @@ extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
                 }
             }
             
-            let dishPage = DishVC(dish: favoriteDishes[indexPath.row],
-                                  related: relatedProducts,
-                                  color: dishColors[indexPath.row])
+            let dishPage = DishVC(dish: favoriteDishes[indexPath.row], color: dishColors[indexPath.row])
             
             dishPage.isFavoriteDidChange = { [weak self] isFavorite in
                 guard let self = self else { return }
