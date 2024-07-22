@@ -265,8 +265,7 @@ final class PaymentVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = .systemFont(ofSize: 20, weight: .regular)
-        label.text = "$\(amountDue)"
-//        label.text = "$19.68"
+        label.text = "$\(String(format: "%.2f", amountDue))"
         return label
     }()
     
@@ -279,7 +278,8 @@ final class PaymentVC: UIViewController {
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 550])
-        button.addTarget(self, action: #selector(placeOrderButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(placeOrderButtonTouchDown), for: .touchDown)
+        button.addTarget(self, action: #selector(placeOrderButtonTouchUp), for: [.touchUpInside, .touchUpOutside])
         return button
     }()
     
@@ -474,10 +474,19 @@ final class PaymentVC: UIViewController {
     private func userAgreementCheckBoxDidTapped() {
         userAgreementCheckBox.isChecked.toggle()
     }
-
+    
     @objc
-    private func placeOrderButtonTapped() {
-        
+    private func placeOrderButtonTouchDown() {
+        UIView.animate(withDuration: 0.05) {
+            self.placeOrderButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }
+    }
+    
+    @objc
+    private func placeOrderButtonTouchUp() {
+        UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
+            self.placeOrderButton.transform = CGAffineTransform.identity
+        }, completion: nil)
     }
 }
 

@@ -50,7 +50,8 @@ final class DishCell: UICollectionViewCell {
         button.setImage(UIImage(systemName: "plus"), for: .normal)
         button.tintColor = ColorManager.shared.background
         button.backgroundColor = ColorManager.shared.label
-        button.addTarget(self, action: #selector(addButtonDidTaped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(addButtonTouchDown), for: .touchDown)
+        button.addTarget(self, action: #selector(addButtonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
         return button
     }()
     
@@ -111,7 +112,7 @@ final class DishCell: UICollectionViewCell {
         button.backgroundColor = ColorManager.shared.dishCell_FavoriteButtonColor
         button.tintColor = ColorManager.shared.label
         button.layer.cornerRadius = 14
-        button.addTarget(self, action: #selector(favoriteButtonDidTaped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(favoriteButtonDidTapped), for: .touchUpInside)
         return button
     }()
     
@@ -168,13 +169,23 @@ final class DishCell: UICollectionViewCell {
         ])
     }
     
-    @objc
-    private func addButtonDidTaped() {
+    @objc 
+    private func addButtonTouchDown() {
+        UIView.animate(withDuration: 0.1) {
+            self.addButton.transform = CGAffineTransform(scaleX: 0.90, y: 0.90)
+        }
+    }
+    
+    @objc 
+    private func addButtonTouchUp() {
         CoreDataManager.shared.saveCartItem(dish: dishData, quantity: 1)
+        UIView.animate(withDuration: 0.1, delay: 0.1, options: [], animations: {
+            self.addButton.transform = CGAffineTransform.identity
+        }, completion: nil)
     }
     
     @objc
-    private func favoriteButtonDidTaped() {
+    private func favoriteButtonDidTapped() {
         isFavorite.toggle()
         isFavoriteDidChange(isFavorite)
         if favoriteButton.isSelected {

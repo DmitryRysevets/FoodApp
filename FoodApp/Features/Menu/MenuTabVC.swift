@@ -118,7 +118,7 @@ final class MenuTabVC: UIViewController {
         return searchBar
     }()
     
-    private var filteredDishes: [Dish] = []
+    private var filteredBySearchDishes: [Dish] = []
     private var filteredByTagDishes: [Dish] = []
     private var isFilteredByTag = false
     private var isSearching = false
@@ -215,17 +215,12 @@ final class MenuTabVC: UIViewController {
                 else { fatalError("Unable deque DishCell") }
                 cell.customShapeView.fillColor = self.dishColors[indexPath.item]
                 
-                let dish: Dish
-                if self.isSearching {
-                    dish = self.filteredDishes[indexPath.item]
-                } else {
-                    dish = self.isFilteredByTag ? self.filteredByTagDishes[indexPath.item] : self.menu.dishes[indexPath.item]
-                }
-                
+                let dish = self.getDish(at: indexPath.item)
                 cell.dishData = dish
-                cell.isFavorite = self.menu.dishes[indexPath.item].isFavorite
+                cell.isFavorite = dish.isFavorite
+                
                 cell.isFavoriteDidChange = { [weak self] isFavorite in
-                    self?.menu.dishes[indexPath.item].isFavorite = isFavorite
+                    self?.updateFavoriteStatus(for: dish.id, isFavorite: isFavorite)
                 }
                 
                 return cell
@@ -240,11 +235,15 @@ final class MenuTabVC: UIViewController {
         baseSnapshot.appendSections([0, 1, 2])
         
         if isSearching {
-            baseSnapshot.appendItems(filteredDishes, toSection: 2)
+            baseSnapshot.appendItems(filteredBySearchDishes, toSection: 2)
+        } else if isFilteredByTag {
+            baseSnapshot.appendItems([menu.offersContainer], toSection: 0)
+            baseSnapshot.appendItems([menu.categoriesContainer], toSection: 1)
+            baseSnapshot.appendItems(filteredByTagDishes, toSection: 2)
         } else {
             baseSnapshot.appendItems([menu.offersContainer], toSection: 0)
             baseSnapshot.appendItems([menu.categoriesContainer], toSection: 1)
-            baseSnapshot.appendItems(isFilteredByTag ? filteredByTagDishes : menu.dishes, toSection: 2)
+            baseSnapshot.appendItems(menu.dishes, toSection: 2)
         }
     
         dataSource.apply(baseSnapshot, animatingDifferences: true)
@@ -258,6 +257,33 @@ final class MenuTabVC: UIViewController {
             isFilteredByTag = false
         }
         applySnapshot()
+    }
+    
+    private func getDish(at index: Int) -> Dish {
+        if isSearching {
+            return filteredBySearchDishes[index]
+        }
+        
+        if isFilteredByTag {
+            return filteredByTagDishes[index]
+        }
+        
+        return menu.dishes[index]
+    }
+    
+    private func updateFavoriteStatus(for id: String, isFavorite: Bool) {
+        
+        if let index = menu.dishes.firstIndex(where: { $0.id == id }) {
+            menu.dishes[index].isFavorite = isFavorite
+        }
+
+        if isSearching, let index = filteredBySearchDishes.firstIndex(where: { $0.id == id }) {
+            filteredBySearchDishes[index].isFavorite = isFavorite
+        }
+
+        if isFilteredByTag, let index = filteredByTagDishes.firstIndex(where: { $0.id == id }) {
+            filteredByTagDishes[index].isFavorite = isFavorite
+        }
     }
     
     // MARK: - private methods
@@ -393,7 +419,7 @@ extension MenuTabVC: UICollectionViewDelegate {
         let color = cell?.customShapeView.fillColor ?? ColorManager.shared.green
         
         if isSearching {
-            chosenDish = filteredDishes[indexPath.item]
+            chosenDish = filteredBySearchDishes[indexPath.item]
         } else {
             chosenDish = isFilteredByTag ? filteredByTagDishes[indexPath.item] : menu.dishes[indexPath.item]
         }
@@ -469,10 +495,10 @@ extension MenuTabVC: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
             isSearching = false
-            filteredDishes.removeAll()
+            filteredBySearchDishes.removeAll()
         } else {
             isSearching = true
-            filteredDishes = menu.dishes.filter { dish in
+            filteredBySearchDishes = menu.dishes.filter { dish in
                 dish.name.lowercased().contains(searchText.lowercased())
             }
         }

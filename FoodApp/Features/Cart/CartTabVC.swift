@@ -108,7 +108,8 @@ final class CartTabVC: UIViewController {
         button.setTitleColor(ColorManager.shared.background, for: .normal)
         button.setTitleColor(ColorManager.shared.background.withAlphaComponent(0.7), for: .highlighted)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 550])
-        button.addTarget(self, action: #selector(applyCodeButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(applyCodeButtonTouchDown), for: .touchDown)
+        button.addTarget(self, action: #selector(applyCodeButtonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
         return button
     }()
     
@@ -200,7 +201,8 @@ final class CartTabVC: UIViewController {
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 550])
-        button.addTarget(self, action: #selector(continueOrderButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(continueOrderButtonTouchDown), for: .touchDown)
+        button.addTarget(self, action: #selector(continueOrderButtonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
         return button
     }()
     
@@ -396,18 +398,37 @@ final class CartTabVC: UIViewController {
     // MARK: - ObjC methods
     
     @objc
-    private func applyCodeButtonTapped() {
-        print(#function)
+    private func applyCodeButtonTouchDown() {
+        UIView.animate(withDuration: 0.1) {
+            self.applyCodeButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }
     }
     
     @objc
-    private func continueOrderButtonTapped() {
+    private func applyCodeButtonTouchUp() {
+        UIView.animate(withDuration: 0.1, delay: 0.1, options: [], animations: {
+            self.applyCodeButton.transform = CGAffineTransform.identity
+        }, completion: nil)
+    }
+    
+    @objc
+    private func continueOrderButtonTouchDown() {
+        UIView.animate(withDuration: 0.05) {
+            self.continueOrderButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }
+    }
+    
+    @objc
+    private func continueOrderButtonTouchUp() {
         let paymentPage = PaymentVC(amountDue: totalAmount)
         paymentPage.modalTransitionStyle = .coverVertical
         paymentPage.modalPresentationStyle = .overFullScreen
         present(paymentPage, animated: true)
+        
+        UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
+            self.continueOrderButton.transform = CGAffineTransform.identity
+        }, completion: nil)
     }
-    
 }
 
 // MARK: - TableView delegate methods

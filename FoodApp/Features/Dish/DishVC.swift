@@ -323,7 +323,8 @@ final class DishVC: UIViewController {
         button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.7), for: .highlighted)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 650])
         button.layer.cornerRadius = orderBarElementSize / 2
-        button.addTarget(self, action: #selector(addToCartButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(addToCartButtonTouchDown), for: .touchDown)
+        button.addTarget(self, action: #selector(addToCartButtonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
         return button
     }()
     
@@ -620,10 +621,21 @@ final class DishVC: UIViewController {
     }
     
     @objc
-    private func addToCartButtonTapped() {
+    private func addToCartButtonTouchDown() {
+        UIView.animate(withDuration: 0.1) {
+            self.addToCartButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }
+    }
+    
+    @objc
+    private func addToCartButtonTouchUp() {
         if let quantity = Int(quantityLabel.text ?? "1") {
             CoreDataManager.shared.saveCartItem(dish: dish, quantity: quantity)
         }
+        
+        UIView.animate(withDuration: 0.1, delay: 0.1, options: [], animations: {
+            self.addToCartButton.transform = CGAffineTransform.identity
+        }, completion: nil)
     }
     
 }
