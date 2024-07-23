@@ -11,7 +11,7 @@ final class ColorManager {
     
     private init() {}
     
-    // UI element colors
+    // MARK: - UI element colors
     
     let background = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
@@ -43,7 +43,7 @@ final class ColorManager {
             : UIColor(red: 0.13, green: 0.13, blue: 0.13, alpha: 0.4)
     }
     
-    // Offer cell colors
+    // MARK: - Offer cell colors
     
     let offerCell_BorderSecondaryColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
@@ -57,7 +57,7 @@ final class ColorManager {
             : UIColor.white
     }
     
-    // Menu page colors
+    // MARK: - Menu page colors
     
     let dishCell_FavoriteButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
@@ -65,7 +65,7 @@ final class ColorManager {
             : UIColor.white.withAlphaComponent(0.8)
     }
     
-    // Dish page colors
+    // MARK: - Dish page colors
     
     let dishVC_addItemBlockColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
@@ -79,7 +79,7 @@ final class ColorManager {
             : UIColor.white
     }
     
-    // Cart page colors
+    // MARK: - Cart page colors
     
     let cart_promoCodeViewColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
@@ -111,7 +111,7 @@ final class ColorManager {
             : UIColor(red: 0.882, green: 0.882, blue: 0.882, alpha: 1)
     }
     
-    // Payment page colors
+    // MARK: - Payment page colors
     
     let payment_selectedRadioButtonBackColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
@@ -143,7 +143,7 @@ final class ColorManager {
             : UIColor(red: 0.117, green: 0.117, blue: 0.117, alpha: 1)
     }
     
-    // Primary colors
+    // MARK: - Primary colors
     
     let gold = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
@@ -188,6 +188,8 @@ final class ColorManager {
     }
     
     let orange = UIColor(red: 0.992, green: 0.592, blue: 0.196, alpha: 1)
+    
+    // MARK: - Color methods
     
     // Returns a sequence of colors where each new color does not repeat the previous three
     func getColors(_ quantity: Int) -> [UIColor] {
@@ -268,6 +270,8 @@ final class ColorManager {
     }
     
 }
+
+// MARK: - AppColor Enum
 
 enum AppColor {
     case background

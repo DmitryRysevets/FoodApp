@@ -189,9 +189,9 @@ final class DishCell: UICollectionViewCell {
         isFavorite.toggle()
         isFavoriteDidChange(isFavorite)
         if favoriteButton.isSelected {
-            CoreDataManager.shared.setAsFavorite(dishID: dishData.id)
+            CoreDataManager.shared.setAsFavorite(byID: dishData.id)
         } else {
-            CoreDataManager.shared.deleteFromFavorite(dishID: dishData.id)
+            CoreDataManager.shared.deleteFromFavorite(byID: dishData.id)
         }
     }
     

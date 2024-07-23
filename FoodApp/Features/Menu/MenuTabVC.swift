@@ -9,25 +9,7 @@ final class MenuTabVC: UIViewController {
     
     private var menu = Menu() {
         didSet {
-            if dishColors.count != menu.dishes.count {
-                dishColors = ColorManager.shared.getColors(menu.dishes.count)
-            }
-
-            isMenuReceived = true
-            preloaderView.isHidden = true
-            
-            var offersSnapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
-            offersSnapshot.appendSections([0])
-            offersSnapshot.appendItems(menu.offersContainer.offers, toSection: 0)
-            self.nestedOffersSnapshot = offersSnapshot
-            
-            var categoriesSnapshot = NSDiffableDataSourceSnapshot<Int, String>()
-            categoriesSnapshot.appendSections([0])
-            categoriesSnapshot.appendItems(menu.categoriesContainer.categories, toSection: 0)
-            self.nestedCategoriesSnapshot = categoriesSnapshot
-            
-            applySnapshot()
-            collectionView.reloadData()
+            self.updateMenu()
         }
     }
     
@@ -38,7 +20,7 @@ final class MenuTabVC: UIViewController {
     
     private lazy var preloaderView = PreloaderView(frame: CGRect(x: 32, y: Int(view.center.y - 100), width: Int(view.frame.width - 64), height: 180))
     
-    // MARK: - header vars.
+    // MARK: - header props.
     
     private var headerBottomPadding: Double = Constants.headerHeight - Constants.headerButtonSize
     
@@ -82,7 +64,7 @@ final class MenuTabVC: UIViewController {
     
     private lazy var notificationButton: UIButton = {
         let button = UIButton()
-        let image = UIImage(named: "GotNotification")?.resized(to: CGSize(width: 20, height: 20))
+        let image = UIImage(named: "GotNotification")
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image, for: .normal)
         button.backgroundColor = ColorManager.shared.headerElementsColor
@@ -102,7 +84,7 @@ final class MenuTabVC: UIViewController {
         return button
     }()
     
-    // MARK: - search bar vars.
+    // MARK: - search bar props.
     
     private lazy var searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -123,7 +105,7 @@ final class MenuTabVC: UIViewController {
     private var isFilteredByTag = false
     private var isSearching = false
     
-    // MARK: - collection view vars.
+    // MARK: - collection view props.
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -149,7 +131,7 @@ final class MenuTabVC: UIViewController {
         setupUI()
         setupConstraints()
         configureDataSource()
-        applySnapshot()
+        applyInitialSnapshot()
         getMenu()
     }
     
@@ -163,33 +145,7 @@ final class MenuTabVC: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        searchBar.searchTextField.rightViewMode = .always
-        searchBar.setPlaceholderFont(.systemFont(ofSize: 14))
-        searchBar.setSideImage(UIImage(named: "Magnifying-glass")!,
-                               imageSize: CGSize(width: 18, height: 18),
-                               padding: 10,
-                               tintColor: ColorManager.shared.label,
-                               side: .left)
-        
-        searchBar.setSideImage(UIImage(named: "Sliders")!,
-                               imageSize: CGSize(width: 22, height: 25),
-                               padding: 10,
-                               tintColor: ColorManager.shared.label,
-                               side: .right)
-    }
-    
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        
-        let notificationButtonImage = UIImage(named: "GotNotification")?.resized(to: CGSize(width: 20, height: 20))
-        
-        switch traitCollection.userInterfaceStyle {
-        case .dark:
-            notificationButton.setImage(notificationButtonImage, for: .normal)
-        case .light:
-            notificationButton.setImage(notificationButtonImage, for: .normal)
-        default: return
-        }
+        setupSearchBar()
     }
     
     // MARK: - collection view methods
@@ -230,23 +186,57 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    private func applySnapshot() {
+    private func applyInitialSnapshot() {
         baseSnapshot = NSDiffableDataSourceSnapshot<Int, AnyHashable>()
         baseSnapshot.appendSections([0, 1, 2])
+        
+        baseSnapshot.appendItems([menu.offersContainer], toSection: 0)
+        baseSnapshot.appendItems([menu.categoriesContainer], toSection: 1)
+        baseSnapshot.appendItems(menu.dishes, toSection: 2)
+    
+        dataSource.apply(baseSnapshot, animatingDifferences: true)
+    }
+    
+    private func applyFilteredSnapshot() {
+        baseSnapshot.deleteItems(baseSnapshot.itemIdentifiers(inSection: 2))
         
         if isSearching {
             baseSnapshot.appendItems(filteredBySearchDishes, toSection: 2)
         } else if isFilteredByTag {
-            baseSnapshot.appendItems([menu.offersContainer], toSection: 0)
-            baseSnapshot.appendItems([menu.categoriesContainer], toSection: 1)
             baseSnapshot.appendItems(filteredByTagDishes, toSection: 2)
         } else {
-            baseSnapshot.appendItems([menu.offersContainer], toSection: 0)
-            baseSnapshot.appendItems([menu.categoriesContainer], toSection: 1)
             baseSnapshot.appendItems(menu.dishes, toSection: 2)
         }
     
         dataSource.apply(baseSnapshot, animatingDifferences: true)
+    }
+    
+    private func updateMenu() {
+        if dishColors.count != menu.dishes.count {
+            dishColors = ColorManager.shared.getColors(menu.dishes.count)
+        }
+
+        isMenuReceived = true
+        preloaderView.isHidden = true
+        
+        nestedOffersSnapshot = createOffersSnapshot()
+        nestedCategoriesSnapshot = createCategoriesSnapshot()
+        
+        applyFilteredSnapshot()
+    }
+    
+    private func createOffersSnapshot() -> NSDiffableDataSourceSnapshot<Int, Offer> {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(menu.offersContainer.offers, toSection: 0)
+        return snapshot
+    }
+    
+    private func createCategoriesSnapshot() -> NSDiffableDataSourceSnapshot<Int, String> {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, String>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(menu.categoriesContainer.categories, toSection: 0)
+        return snapshot
     }
     
     private func filterDishes(by tag: String) {
@@ -256,7 +246,7 @@ final class MenuTabVC: UIViewController {
         } else {
             isFilteredByTag = false
         }
-        applySnapshot()
+        applyFilteredSnapshot()
     }
     
     private func getDish(at index: Int) -> Dish {
@@ -343,6 +333,22 @@ final class MenuTabVC: UIViewController {
         ])
     }
     
+    private func setupSearchBar() {
+        searchBar.searchTextField.rightViewMode = .always
+        searchBar.setPlaceholderFont(.systemFont(ofSize: 14))
+        searchBar.setSideImage(UIImage(named: "Magnifying-glass")!,
+                               imageSize: CGSize(width: 18, height: 18),
+                               padding: 10,
+                               tintColor: ColorManager.shared.label,
+                               side: .left)
+        
+        searchBar.setSideImage(UIImage(named: "Sliders")!,
+                               imageSize: CGSize(width: 22, height: 25),
+                               padding: 10,
+                               tintColor: ColorManager.shared.label,
+                               side: .right)
+    }
+    
     private func hideTabBar() {
         isTabBarVisible = false
         let parent = self.parent as! TabBarVC
@@ -410,7 +416,7 @@ final class MenuTabVC: UIViewController {
 }
 
 
-// MARK: - collection view delegate
+// MARK: - UICollectionViewDelegate
 extension MenuTabVC: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -420,20 +426,16 @@ extension MenuTabVC: UICollectionViewDelegate {
         
         if isSearching {
             chosenDish = filteredBySearchDishes[indexPath.item]
+        } else if isFilteredByTag {
+            chosenDish = filteredByTagDishes[indexPath.item]
         } else {
-            chosenDish = isFilteredByTag ? filteredByTagDishes[indexPath.item] : menu.dishes[indexPath.item]
+            chosenDish = menu.dishes[indexPath.item]
         }
         
         let dishPage = DishVC(dish: chosenDish, color: color)
         
         dishPage.isFavoriteDidChange = { [weak self] isFavorite in
-            guard let self = self else { return }
-            self.menu.dishes[indexPath.item].isFavorite = isFavorite
-            if isFavorite {
-                CoreDataManager.shared.setAsFavorite(dishID: self.menu.dishes[indexPath.row].id)
-            } else {
-                CoreDataManager.shared.deleteFromFavorite(dishID: self.menu.dishes[indexPath.row].id)
-            }
+            self?.menu.dishes[indexPath.item].isFavorite = isFavorite
         }
         
         dishPage.modalTransitionStyle = .coverVertical
@@ -450,7 +452,7 @@ extension MenuTabVC: UICollectionViewDelegate {
 }
 
 
-// MARK: - flow layout delegate
+// MARK: - UICollectionViewDelegateFlowLayout
 extension MenuTabVC: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -489,19 +491,18 @@ extension MenuTabVC: UICollectionViewDelegateFlowLayout {
 }
 
 
-// MARK: - search methods
+// MARK: - UISearchBarDelegate
 extension MenuTabVC: UISearchBarDelegate {
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if searchText.isEmpty {
             isSearching = false
-            filteredBySearchDishes.removeAll()
-        } else {
-            isSearching = true
-            filteredBySearchDishes = menu.dishes.filter { dish in
-                dish.name.lowercased().contains(searchText.lowercased())
-            }
+            applyFilteredSnapshot()
+            return
         }
-        applySnapshot()
+        
+        filteredBySearchDishes = menu.dishes.filter { $0.name.lowercased().contains(searchText.lowercased()) }
+        isSearching = true
+        applyFilteredSnapshot()
     }
 }

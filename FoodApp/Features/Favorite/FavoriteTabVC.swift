@@ -186,15 +186,6 @@ extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
             
             let dishPage = DishVC(dish: favoriteDishes[indexPath.row], color: dishColors[indexPath.row])
             
-            dishPage.isFavoriteDidChange = { [weak self] isFavorite in
-                guard let self = self else { return }
-                if isFavorite {
-                    CoreDataManager.shared.setAsFavorite(dishID: self.favoriteDishes[indexPath.row].id)
-                } else {
-                    CoreDataManager.shared.deleteFromFavorite(dishID: self.favoriteDishes[indexPath.row].id)
-                }
-            }
-            
             dishPage.modalTransitionStyle = .coverVertical
             dishPage.modalPresentationStyle = .fullScreen
             

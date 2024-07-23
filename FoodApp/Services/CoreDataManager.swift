@@ -168,7 +168,7 @@ final class CoreDataManager {
         }
     }
     
-    func setAsFavorite(dishID: String) {
+    func setAsFavorite(byID dishID: String) {
         let fetchRequest: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", dishID)
         
@@ -183,7 +183,7 @@ final class CoreDataManager {
         }
     }
     
-    func deleteFromFavorite(dishID: String) {
+    func deleteFromFavorite(byID dishID: String) {
         let fetchRequest: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", dishID)
         
@@ -225,6 +225,24 @@ final class CoreDataManager {
             saveContext()
         } catch {
             print("Failed to fetch cart item: \(error)")
+        }
+    }
+    
+    func deleteCartItem(by dishID: String) {
+        let fetchRequest: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "dishID == %@", dishID)
+        
+        do {
+            let cartItems = try context.fetch(fetchRequest)
+            
+            if let cartItem = cartItems.first {
+                context.delete(cartItem)
+                saveContext()
+            } else {
+                print("Cart item with dishID \(dishID) not found.")
+            }
+        } catch {
+            print("Failed to fetch cart item for deletion: \(error)")
         }
     }
     

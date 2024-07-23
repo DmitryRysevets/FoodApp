@@ -143,7 +143,7 @@ final class CartCell: UITableViewCell {
         NSLayoutConstraint.activate([
             imageColorBackground.centerYAnchor.constraint(equalTo: centerYAnchor),
             imageColorBackground.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            imageColorBackground.heightAnchor.constraint(equalTo: heightAnchor, constant: -18),
+            imageColorBackground.heightAnchor.constraint(equalToConstant: 92),
             imageColorBackground.widthAnchor.constraint(equalTo: imageColorBackground.heightAnchor),
             producImageView.centerXAnchor.constraint(equalTo: imageColorBackground.centerXAnchor),
             producImageView.centerYAnchor.constraint(equalTo: imageColorBackground.centerYAnchor),
@@ -160,7 +160,7 @@ final class CartCell: UITableViewCell {
             
             productQuantityView.centerYAnchor.constraint(equalTo: centerYAnchor),
             productQuantityView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            productQuantityView.heightAnchor.constraint(equalTo: heightAnchor, constant: -22),
+            productQuantityView.heightAnchor.constraint(equalToConstant: 88),
             productQuantityView.widthAnchor.constraint(equalToConstant: amountOfProductViewWidth),
             plusItemButton.centerXAnchor.constraint(equalTo: productQuantityView.centerXAnchor),
             plusItemButton.topAnchor.constraint(equalTo: productQuantityView.topAnchor, constant: 10),

@@ -10,8 +10,6 @@ final class CartTabVC: UIViewController {
     lazy var cartContent: [CartItem] = [] {
         didSet {
             calculateTheBill()
-            tableView.reloadData()
-            updateTableViewHeight()
             
             if cartItemColors.count != cartContent.count {
                 cartItemColors = ColorManager.shared.getColors(cartContent.count)
@@ -262,6 +260,8 @@ final class CartTabVC: UIViewController {
         let items = CoreDataManager.shared.fetchCart()
         if cartContent != items {
             cartContent = items
+            tableView.reloadData()
+            updateTableViewHeight()
         }
     }
     
@@ -314,7 +314,7 @@ final class CartTabVC: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             tableView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             
-            promoCodeView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 12),
+            promoCodeView.topAnchor.constraint(equalTo: tableView.bottomAnchor, constant: 40),
             promoCodeView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
             promoCodeView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
             promoCodeView.heightAnchor.constraint(equalToConstant: promoCodeViewHeight),
@@ -395,8 +395,23 @@ final class CartTabVC: UIViewController {
         totalAmount_amountOfMoneyLabel.text = "$\(String(format: "%.2f", totalAmount))"
     }
     
-    // MARK: - ObjC methods
+    private func deleteCartItem(at indexPath: IndexPath) {
+        let itemToDelete = cartContent[indexPath.row]
+        CoreDataManager.shared.deleteCartItem(by: itemToDelete.dish.id)
+
+        cartItemColors.remove(at: indexPath.row)
+        cartContent.remove(at: indexPath.row)
+        
+        tableView.deleteRows(at: [indexPath], with: .automatic)
+        
+        UIView.animate(withDuration: 0.3) {
+            self.updateTableViewHeight()
+            self.view.layoutIfNeeded()
+        }
+    }
     
+    // MARK: - ObjC methods
+
     @objc
     private func applyCodeButtonTouchDown() {
         UIView.animate(withDuration: 0.1) {
@@ -451,5 +466,17 @@ extension CartTabVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         110
+    }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: nil) { [weak self] (_, _, completionHandler) in
+            self?.deleteCartItem(at: indexPath)
+            completionHandler(true)
+        }
+        deleteAction.image = UIImage(systemName: "trash")?.withTintColor(ColorManager.shared.label)
+        deleteAction.backgroundColor = ColorManager.shared.background
+
+        let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
+        return configuration
     }
 }

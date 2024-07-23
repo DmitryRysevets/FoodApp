@@ -7,7 +7,7 @@ import UIKit
 
 final class DishVC: UIViewController {
     
-    var isFavoriteDidChange: ((Bool) -> Void)!
+    var isFavoriteDidChange: ((Bool) -> Void)?
     
     private let dish: Dish
     private let relatedProducts: [Dish]
@@ -242,7 +242,7 @@ final class DishVC: UIViewController {
         return stack
     }()
     
-    // MARK: - Order bar
+    // MARK: - Order bar props.
     
     private let orderBarHeight: CGFloat = 72
     private let orderBarMargin: CGFloat = 18
@@ -601,7 +601,13 @@ final class DishVC: UIViewController {
     @objc
     private func favoritButtonTapped() {
         favoriteButton.isSelected.toggle()
-        isFavoriteDidChange(favoriteButton.isSelected)
+        isFavoriteDidChange?(favoriteButton.isSelected)
+        
+        if favoriteButton.isSelected {
+            CoreDataManager.shared.setAsFavorite(byID: dish.id)
+        } else {
+            CoreDataManager.shared.deleteFromFavorite(byID: dish.id)
+        }
     }
     
     @objc
