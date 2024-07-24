@@ -489,4 +489,3 @@ final class PaymentVC: UIViewController {
         }, completion: nil)
     }
 }
-

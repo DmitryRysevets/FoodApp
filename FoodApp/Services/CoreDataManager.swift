@@ -168,7 +168,7 @@ final class CoreDataManager {
         }
     }
     
-    func setAsFavorite(byID dishID: String) {
+    func setAsFavorite(by dishID: String) {
         let fetchRequest: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", dishID)
         
@@ -183,7 +183,7 @@ final class CoreDataManager {
         }
     }
     
-    func deleteFromFavorite(byID dishID: String) {
+    func deleteFromFavorite(by dishID: String) {
         let fetchRequest: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", dishID)
         

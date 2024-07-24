@@ -149,7 +149,7 @@ final class FavoriteCell: UITableViewCell {
             imageColorBackground.centerYAnchor.constraint(equalTo: centerYAnchor),
             imageColorBackground.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             imageColorBackground.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -80),
-            imageColorBackground.heightAnchor.constraint(equalTo: heightAnchor, constant: -14),
+            imageColorBackground.heightAnchor.constraint(equalToConstant: 76),
             
             producImageView.leadingAnchor.constraint(equalTo: imageColorBackground.leadingAnchor, constant: 16),
             producImageView.centerYAnchor.constraint(equalTo: imageColorBackground.centerYAnchor),

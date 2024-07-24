@@ -604,9 +604,9 @@ final class DishVC: UIViewController {
         isFavoriteDidChange?(favoriteButton.isSelected)
         
         if favoriteButton.isSelected {
-            CoreDataManager.shared.setAsFavorite(byID: dish.id)
+            CoreDataManager.shared.setAsFavorite(by: dish.id)
         } else {
-            CoreDataManager.shared.deleteFromFavorite(byID: dish.id)
+            CoreDataManager.shared.deleteFromFavorite(by: dish.id)
         }
     }
     

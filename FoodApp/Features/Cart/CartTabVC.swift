@@ -473,7 +473,16 @@ extension CartTabVC: UITableViewDelegate, UITableViewDataSource {
             self?.deleteCartItem(at: indexPath)
             completionHandler(true)
         }
-        deleteAction.image = UIImage(systemName: "trash")?.withTintColor(ColorManager.shared.label)
+        
+        if let trashImage = UIImage(systemName: "trash") {
+            let size = CGSize(width: 26, height: 30)
+            let renderer = UIGraphicsImageRenderer(size: size)
+            let tintedImage = renderer.image { context in
+                trashImage.withTintColor(UIColor(red: 0.92, green: 0.23, blue: 0.35, alpha: 1.00)).draw(in: CGRect(origin: .zero, size: size))
+            }
+            deleteAction.image = tintedImage
+        }
+        
         deleteAction.backgroundColor = ColorManager.shared.background
 
         let configuration = UISwipeActionsConfiguration(actions: [deleteAction])

@@ -9,8 +9,6 @@ final class FavoriteTabVC: UIViewController {
     
     private lazy var favoriteDishes: [Dish] = [] {
         didSet {
-            tableView.reloadData()
-            
             if dishColors.count != favoriteDishes.count {
                 dishColors = ColorManager.shared.getColors(favoriteDishes.count)
             }
@@ -95,6 +93,7 @@ final class FavoriteTabVC: UIViewController {
         let favorite = CoreDataManager.shared.fetchFavorites()
         if favoriteDishes != favorite {
             favoriteDishes = favorite
+            tableView.reloadData()
         }
     }
     
@@ -138,6 +137,16 @@ final class FavoriteTabVC: UIViewController {
             emptyFavoriteImageView.heightAnchor.constraint(equalToConstant: 270),
             emptyFavoriteImageView.widthAnchor.constraint(equalToConstant: 255)
         ])
+    }
+    
+    private func deleteFromFavorite(at indexPath: IndexPath) {
+        let itemToDelete = favoriteDishes[indexPath.row]
+        CoreDataManager.shared.deleteFromFavorite(by: itemToDelete.id)
+
+        dishColors.remove(at: indexPath.row)
+        favoriteDishes.remove(at: indexPath.row)
+        
+        tableView.deleteRows(at: [indexPath], with: .automatic)
     }
 }
 
@@ -191,5 +200,26 @@ extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
             
             present(dishPage, animated: true)
         }
+    }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: nil) { [weak self] (_, _, completionHandler) in
+            self?.deleteFromFavorite(at: indexPath)
+            completionHandler(true)
+        }
+        
+        if let trashImage = UIImage(systemName: "trash") {
+            let size = CGSize(width: 26, height: 30)
+            let renderer = UIGraphicsImageRenderer(size: size)
+            let tintedImage = renderer.image { context in
+                trashImage.withTintColor(UIColor(red: 0.92, green: 0.23, blue: 0.35, alpha: 1.00)).draw(in: CGRect(origin: .zero, size: size))
+            }
+            deleteAction.image = tintedImage
+        }
+        
+        deleteAction.backgroundColor = ColorManager.shared.background
+
+        let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
+        return configuration
     }
 }
