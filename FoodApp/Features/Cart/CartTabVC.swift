@@ -194,7 +194,7 @@ final class CartTabVC: UIViewController {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 26
-        button.backgroundColor = ColorManager.shared.cart_continueOrderButtonColor
+        button.backgroundColor = ColorManager.shared.regularButtonColor
         button.setTitle("Continue Order", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
@@ -352,7 +352,7 @@ final class CartTabVC: UIViewController {
             continueOrderButton.topAnchor.constraint(equalTo: totalAmountLabel.bottomAnchor, constant: 32),
             continueOrderButton.leadingAnchor.constraint(equalTo: billDetailsView.leadingAnchor, constant: 16),
             continueOrderButton.trailingAnchor.constraint(equalTo: billDetailsView.trailingAnchor, constant: -16),
-            continueOrderButton.heightAnchor.constraint(equalToConstant: 52),
+            continueOrderButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
             continueOrderButton.bottomAnchor.constraint(equalTo: billDetailsView.bottomAnchor, constant: -18),
             
             spacerView.topAnchor.constraint(equalTo: billDetailsView.bottomAnchor),

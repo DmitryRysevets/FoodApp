@@ -7,6 +7,17 @@ import UIKit
 
 class ProfileTabVC: UIViewController {
     
+    private let menuItems: [String] = [
+        "Account", // Name, Mail, Phone Number, Profile Photo
+        "Delivery Address",
+        "Payment Methods",
+        "Order History",
+        "Contact Us"
+        // Settings (Language, Theme)
+        // Privacy
+        // Log Out
+    ]
+    
     private lazy var headerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -38,10 +49,9 @@ class ProfileTabVC: UIViewController {
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = ColorManager.shared.background
         table.isScrollEnabled = false
-//        table.separatorStyle = .none
-//        table.register(CartCell.self, forCellReuseIdentifier: CartCell.id)
-//        table.dataSource = self
-//        table.delegate = self
+        table.register(ProfileMenuCell.self, forCellReuseIdentifier: ProfileMenuCell.id)
+        table.dataSource = self
+        table.delegate = self
         return table
     }()
     
@@ -81,6 +91,35 @@ class ProfileTabVC: UIViewController {
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+    }
+    
+}
+
+extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        menuItems.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: ProfileMenuCell.id, for: indexPath) as! ProfileMenuCell
+        cell.menuItemName = menuItems[indexPath.row]
+        cell.selectionStyle = .none
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        80
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if indexPath.row == 1 {
+            let addressPage = DeliveryAddressVC()
+            
+            addressPage.modalTransitionStyle = .coverVertical
+            addressPage.modalPresentationStyle = .fullScreen
+            
+            present(addressPage, animated: true)
+        }
     }
     
 }

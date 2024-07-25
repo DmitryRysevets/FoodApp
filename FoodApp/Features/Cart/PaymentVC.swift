@@ -344,7 +344,6 @@ final class PaymentVC: UIViewController {
     
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
-        let fieldHeight = 44.0
         NSLayoutConstraint.activate([
             headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -398,17 +397,17 @@ final class PaymentVC: UIViewController {
             cardholderNameField.topAnchor.constraint(equalTo: cardholderNameLabel.bottomAnchor, constant: 8),
             cardholderNameField.leadingAnchor.constraint(equalTo: cardDetailsView.leadingAnchor, constant: 16),
             cardholderNameField.trailingAnchor.constraint(equalTo: cardDetailsView.trailingAnchor, constant: -16),
-            cardholderNameField.heightAnchor.constraint(equalToConstant: fieldHeight),
+            cardholderNameField.heightAnchor.constraint(equalToConstant: Constants.regularFieldHeight),
             mmyyLabel.topAnchor.constraint(equalTo: cardholderNameField.bottomAnchor, constant: 12),
             mmyyLabel.leadingAnchor.constraint(equalTo: cardDetailsView.leadingAnchor, constant: 16),
             mmyyField.topAnchor.constraint(equalTo: mmyyLabel.bottomAnchor, constant: 8),
             mmyyField.leadingAnchor.constraint(equalTo: cardDetailsView.leadingAnchor, constant: 16),
-            mmyyField.heightAnchor.constraint(equalToConstant: fieldHeight),
+            mmyyField.heightAnchor.constraint(equalToConstant: Constants.regularFieldHeight),
             mmyyField.widthAnchor.constraint(equalTo: cardDetailsView.widthAnchor, multiplier: 0.5, constant: -20),
             cvcField.topAnchor.constraint(equalTo: mmyyField.topAnchor),
             cvcField.leadingAnchor.constraint(equalTo: mmyyField.trailingAnchor, constant: 8),
             cvcField.trailingAnchor.constraint(equalTo: cardDetailsView.trailingAnchor, constant: -16),
-            cvcField.heightAnchor.constraint(equalToConstant: fieldHeight),
+            cvcField.heightAnchor.constraint(equalToConstant: Constants.regularFieldHeight),
             cvcLabel.topAnchor.constraint(equalTo: mmyyLabel.topAnchor),
             cvcLabel.leadingAnchor.constraint(equalTo: cvcField.leadingAnchor),
             userAgreementCheckBox.topAnchor.constraint(equalTo: mmyyField.bottomAnchor, constant: 16),

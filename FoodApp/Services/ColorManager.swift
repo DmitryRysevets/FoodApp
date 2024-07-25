@@ -43,6 +43,12 @@ final class ColorManager {
             : UIColor(red: 0.13, green: 0.13, blue: 0.13, alpha: 0.4)
     }
     
+    let regularButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 0.172, green: 0.172, blue: 0.172, alpha: 1)
+            : UIColor(red: 0.117, green: 0.117, blue: 0.117, alpha: 1)
+    }
+    
     // MARK: - Offer cell colors
     
     let offerCell_BorderSecondaryColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
@@ -97,12 +103,6 @@ final class ColorManager {
         return traitCollection.userInterfaceStyle == .dark
             ? UIColor(red: 0.078, green: 0.078, blue: 0.078, alpha: 1)
             : UIColor(red: 0.972, green: 0.972, blue: 0.972, alpha: 1)
-    }
-    
-    let cart_continueOrderButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
-        return traitCollection.userInterfaceStyle == .dark
-            ? UIColor(red: 0.172, green: 0.172, blue: 0.172, alpha: 1)
-            : UIColor(red: 0.117, green: 0.117, blue: 0.117, alpha: 1)
     }
     
     let cartCell_amountBlockColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
@@ -279,6 +279,7 @@ enum AppColor {
     case labelGray
     case headerElementsColor
     case tabBarBackground
+    case regularButtonColor
     case offerCellBorderSecondaryColor
     case offerCellBackgroundSecondaryColor
     case dishCellFavoriteButtonColor
@@ -287,7 +288,6 @@ enum AppColor {
     case cartPromoCodeFieldColor
     case cartApplyCodeButtonColor
     case cartBillDetailsViewColor
-    case cartContinueOrderButtonColor
     case cartCellAmountBlockColor
     case gold
     case green
@@ -310,6 +310,8 @@ enum AppColor {
             return ColorManager.shared.headerElementsColor.resolvedColor(with: traitCollection)
         case .tabBarBackground:
             return ColorManager.shared.tabBarBackground.resolvedColor(with: traitCollection)
+        case .regularButtonColor:
+            return ColorManager.shared.regularButtonColor.resolvedColor(with: traitCollection)
         case .offerCellBorderSecondaryColor:
             return ColorManager.shared.offerCell_BorderSecondaryColor.resolvedColor(with: traitCollection)
         case .offerCellBackgroundSecondaryColor:
@@ -326,8 +328,6 @@ enum AppColor {
             return ColorManager.shared.cart_applyCodeButtonColor.resolvedColor(with: traitCollection)
         case .cartBillDetailsViewColor:
             return ColorManager.shared.cart_billDetailsViewColor.resolvedColor(with: traitCollection)
-        case .cartContinueOrderButtonColor:
-            return ColorManager.shared.cart_continueOrderButtonColor.resolvedColor(with: traitCollection)
         case .cartCellAmountBlockColor:
             return ColorManager.shared.cartCell_amountBlockColor.resolvedColor(with: traitCollection)
         case .gold:
