@@ -5,15 +5,16 @@
 
 import UIKit
 import GoogleMaps
-import GooglePlaces
 
-final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
+final class DeliveryAddressVC: UIViewController {
     
     private lazy var locationManager: CLLocationManager = {
         let manager = CLLocationManager()
         manager.delegate = self
         return manager
     }()
+    
+    // MARK: - UI props.
 
     private lazy var headerView: UIView = {
         let view = UIView()
@@ -43,22 +44,15 @@ final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
         return label
     }()
     
-    private lazy var addressLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.labelGray
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
-        label.text = "Adress"
-        return label
-    }()
-
     private lazy var addressField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.backgroundColor = ColorManager.shared.payment_fieldColor
         field.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
+        field.placeholder = "Enter the address"
         field.textColor = ColorManager.shared.label
         field.tintColor = ColorManager.shared.orange
+        field.delegate = self
         return field
     }()
     
@@ -81,6 +75,17 @@ final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
         view.backgroundColor = ColorManager.shared.payment_mapViewColor
         view.layer.cornerRadius = 24
         return view
+    }()
+    
+    private lazy var locationLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 600])
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.text = "Delivery Address"
+        return label
     }()
 
     private lazy var mapView: GMSMapView = {
@@ -106,6 +111,8 @@ final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
         return button
     }()
     
+    // MARK: - Controller life cycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -118,7 +125,6 @@ final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
         view.backgroundColor = ColorManager.shared.background
         
         view.addSubview(headerView)
-        view.addSubview(addressLabel)
         view.addSubview(addressField)
         view.addSubview(geolocationButton)
         view.addSubview(mapSectionView)
@@ -127,6 +133,7 @@ final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
         headerView.addSubview(backButton)
         headerView.addSubview(deliveryAddressTitleLabel)
         
+        mapSectionView.addSubview(locationLabel)
         mapSectionView.addSubview(mapView)
     }
     
@@ -145,9 +152,7 @@ final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
             deliveryAddressTitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
             deliveryAddressTitleLabel.heightAnchor.constraint(equalToConstant: 30),
             
-            addressLabel.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 16),
-            addressLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
-            addressField.topAnchor.constraint(equalTo: addressLabel.bottomAnchor, constant: 8),
+            addressField.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
             addressField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             addressField.trailingAnchor.constraint(equalTo: geolocationButton.leadingAnchor, constant: -12),
             addressField.heightAnchor.constraint(equalToConstant: Constants.regularFieldHeight),
@@ -161,7 +166,10 @@ final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
             mapSectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             mapSectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             mapSectionView.heightAnchor.constraint(equalToConstant: 300),
-            mapView.topAnchor.constraint(equalTo: mapSectionView.topAnchor, constant: 16),
+            locationLabel.topAnchor.constraint(equalTo: mapSectionView.topAnchor, constant: 16),
+            locationLabel.leadingAnchor.constraint(equalTo: mapSectionView.leadingAnchor, constant: 16),
+            locationLabel.trailingAnchor.constraint(equalTo: mapSectionView.trailingAnchor, constant: -16),
+            mapView.topAnchor.constraint(equalTo: locationLabel.bottomAnchor, constant: 16),
             mapView.leadingAnchor.constraint(equalTo: mapSectionView.leadingAnchor, constant: 16),
             mapView.trailingAnchor.constraint(equalTo: mapSectionView.trailingAnchor, constant: -16),
             mapView.bottomAnchor.constraint(equalTo: mapSectionView.bottomAnchor, constant: -16),
@@ -171,6 +179,41 @@ final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
             okButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             okButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16)
         ])
+    }
+    
+    private func getAddressFrom(location: CLLocation) {
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(location) { (placemarks, error) in
+            if let error = error {
+                print("Error reverse geocoding: \(error.localizedDescription)")
+            } else if let placemark = placemarks?.first {
+                if let address = placemark.name {
+                    self.locationLabel.text = address
+                }
+            }
+        }
+    }
+    
+    private func getCoordinatesFrom(address: String) {
+        let geocoder = CLGeocoder()
+        geocoder.geocodeAddressString(address) { (placemarks, error) in
+            if let error = error {
+                print("Error geocoding address: \(error.localizedDescription)")
+            } else if let placemark = placemarks?.first, let location = placemark.location {
+                self.updateMapView(with: location.coordinate, address: address)
+            }
+        }
+    }
+    
+    private func updateMapView(with coordinate: CLLocationCoordinate2D, address: String) {
+        let camera = GMSCameraPosition.camera(withLatitude: coordinate.latitude, longitude: coordinate.longitude, zoom: 15.0)
+        mapView.animate(to: camera)
+        
+        let marker = GMSMarker()
+        marker.position = coordinate
+        marker.map = mapView
+        
+        locationLabel.text = address
     }
     
     // MARK: - ObjC methods
@@ -210,9 +253,12 @@ final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
         }, completion: nil)
         dismiss(animated: true)
     }
-    
-    // MARK: - Location manager methods
-    
+}
+
+// MARK: - CLLocationManagerDelegate
+
+extension DeliveryAddressVC: CLLocationManagerDelegate {
+
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
             let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude, longitude: location.coordinate.longitude, zoom: 15.0)
@@ -222,6 +268,8 @@ final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
             marker.position = location.coordinate
             marker.map = mapView
             
+            getAddressFrom(location: location)
+            
             locationManager.stopUpdatingLocation()
         }
     }
@@ -229,10 +277,20 @@ final class DeliveryAddressVC: UIViewController, CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if status == .authorizedWhenInUse || status == .authorizedAlways {
             locationManager.startUpdatingLocation()
-        } else if status == .denied {
-            // Need a handler for a denied case
+        } else if status == .denied || status == .restricted {
+            // Need a handler for a that case
         }
     }
-    
 }
 
+// MARK: - UITextFieldDelegate
+
+extension DeliveryAddressVC: UITextFieldDelegate {
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        guard let address = textField.text, !address.isEmpty else { return false }
+        getCoordinatesFrom(address: address)
+        textField.resignFirstResponder()
+        textField.text = ""
+        return true
+    }
+}

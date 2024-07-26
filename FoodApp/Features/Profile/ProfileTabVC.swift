@@ -112,14 +112,20 @@ extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if indexPath.row == 1 {
-            let addressPage = DeliveryAddressVC()
-            
-            addressPage.modalTransitionStyle = .coverVertical
-            addressPage.modalPresentationStyle = .fullScreen
-            
-            present(addressPage, animated: true)
+        let targetVC: UIViewController
+        
+        switch menuItems[indexPath.row] {
+        case "Delivery Address":
+            targetVC = DeliveryAddressVC()
+        case "Payment Methods":
+            targetVC = PaymentMethodsVC()
+        default: return
         }
+        
+        targetVC.modalTransitionStyle = .coverVertical
+        targetVC.modalPresentationStyle = .fullScreen
+        
+        present(targetVC, animated: true)
     }
     
 }
