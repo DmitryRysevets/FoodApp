@@ -3,8 +3,8 @@
 //  FoodApp
 //
 
+import Foundation
 import CoreData
-import UIKit
 
 final class CoreDataManager {
     

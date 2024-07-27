@@ -3,7 +3,7 @@
 //  FoodApp
 //
 
-import UIKit
+import Foundation
 
 final class DataManager {
     

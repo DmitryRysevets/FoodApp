@@ -131,10 +131,6 @@ final class PaymentVC: UIViewController {
     private lazy var cardholderNameField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
-        field.backgroundColor = ColorManager.shared.payment_fieldColor
-        field.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
-        field.textColor = ColorManager.shared.label
-        field.tintColor = ColorManager.shared.orange
         return field
     }()
     
@@ -150,10 +146,6 @@ final class PaymentVC: UIViewController {
     private lazy var mmyyField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
-        field.backgroundColor = ColorManager.shared.payment_fieldColor
-        field.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
-        field.textColor = ColorManager.shared.label
-        field.tintColor = ColorManager.shared.orange
         return field
     }()
     
@@ -169,10 +161,6 @@ final class PaymentVC: UIViewController {
     private lazy var cvcField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
-        field.backgroundColor = ColorManager.shared.payment_fieldColor
-        field.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
-        field.textColor = ColorManager.shared.label
-        field.tintColor = ColorManager.shared.orange
         return field
     }()
     
@@ -282,6 +270,8 @@ final class PaymentVC: UIViewController {
         button.addTarget(self, action: #selector(placeOrderButtonTouchUp), for: [.touchUpInside, .touchUpOutside])
         return button
     }()
+    
+    //MARK: - Life cycles methods
     
     init(amountDue: Double) {
         self.amountDue = amountDue

@@ -47,11 +47,7 @@ final class DeliveryAddressVC: UIViewController {
     private lazy var addressField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
-        field.backgroundColor = ColorManager.shared.payment_fieldColor
-        field.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
         field.placeholder = "Enter the address"
-        field.textColor = ColorManager.shared.label
-        field.tintColor = ColorManager.shared.orange
         field.delegate = self
         return field
     }()
@@ -111,7 +107,7 @@ final class DeliveryAddressVC: UIViewController {
         return button
     }()
     
-    // MARK: - Controller life cycle
+    // MARK: - Lifecycle methods
     
     override func viewDidLoad() {
         super.viewDidLoad()

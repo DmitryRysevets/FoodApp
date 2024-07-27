@@ -5,12 +5,26 @@
 
 import UIKit
 
-class TextField: UITextField {
+final class TextField: UITextField {
 
     var paddingTop: CGFloat = 8
     var paddingLeft: CGFloat = 16
     var paddingBottom: CGFloat = 8
     var paddingRight: CGFloat = 16
+    
+    private let normalBorderColor = ColorManager.shared.regularFieldBorderColor
+    private let warningBorderColor = ColorManager.shared.warningRedColor.cgColor
+    
+    var isInWarning: Bool = false {
+        didSet {
+            updateBorder()
+        }
+    }
+    
+    private func updateBorder() {
+        layer.borderColor = isInWarning ? warningBorderColor : normalBorderColor
+        layer.borderWidth = isInWarning ? 1 : 0.5
+    }
 
     override func textRect(forBounds bounds: CGRect) -> CGRect {
         let insetBounds = bounds.inset(by: UIEdgeInsets(top: paddingTop, left: paddingLeft, bottom: paddingBottom, right: paddingRight))
@@ -26,12 +40,20 @@ class TextField: UITextField {
         let insetBounds = bounds.inset(by: UIEdgeInsets(top: paddingTop, left: paddingLeft, bottom: paddingBottom, right: paddingRight))
         return insetBounds
     }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        layer.cornerRadius = 22
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
         layer.masksToBounds = true
+        layer.cornerRadius = 22
         layer.borderWidth = 0.5
-        layer.borderColor = UIColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 0.3).cgColor
+        layer.borderColor = normalBorderColor
+        backgroundColor = ColorManager.shared.regularFieldColor
+        tintColor = ColorManager.shared.orange
+        textColor = ColorManager.shared.label
+        font = UIFont.systemFont(ofSize: 17)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }

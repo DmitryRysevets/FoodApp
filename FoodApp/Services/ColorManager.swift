@@ -49,6 +49,16 @@ final class ColorManager {
             : UIColor(red: 0.117, green: 0.117, blue: 0.117, alpha: 1)
     }
     
+    let regularFieldColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 1)
+            : .white
+    }
+    
+    let regularFieldBorderColor = UIColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 0.3).cgColor
+    
+    let warningRedColor = UIColor(red: 0.92, green: 0.23, blue: 0.35, alpha: 1.00)
+    
     // MARK: - Offer cell colors
     
     let offerCell_BorderSecondaryColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
@@ -117,12 +127,6 @@ final class ColorManager {
         return traitCollection.userInterfaceStyle == .dark
             ? .white
             : UIColor(red: 0.063, green: 0.063, blue: 0.063, alpha: 1)
-    }
-    
-    let payment_fieldColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
-        return traitCollection.userInterfaceStyle == .dark
-            ? UIColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 1)
-            : .white
     }
     
     let payment_mapViewColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
