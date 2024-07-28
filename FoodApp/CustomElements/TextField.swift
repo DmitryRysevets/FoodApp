@@ -5,7 +5,7 @@
 
 import UIKit
 
-final class TextField: UITextField {
+final class TextField: UITextField, Warningable {
 
     var paddingTop: CGFloat = 8
     var paddingLeft: CGFloat = 16

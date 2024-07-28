@@ -5,7 +5,7 @@
 
 import UIKit
 
-final class CheckBox: UIButton {
+final class CheckBox: UIButton, Warningable {
     
     private let checkedImage = UIImage(systemName: "checkmark")! as UIImage
     private let normalBorderColor = ColorManager.shared.labelGray.cgColor
@@ -14,7 +14,6 @@ final class CheckBox: UIButton {
     var isChecked: Bool = false {
         didSet {
             self.setImage(isChecked ? checkedImage : nil, for: .normal)
-            isInWarning = false
         }
     }
     

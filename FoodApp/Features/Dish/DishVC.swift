@@ -432,7 +432,6 @@ final class DishVC: UIViewController {
             dishTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
             dishTitleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
             dishTitleLabel.trailingAnchor.constraint(equalTo: favoriteButton.leadingAnchor, constant: -8),
-            dishTitleLabel.heightAnchor.constraint(equalToConstant: 30),
             
             // Scroll view constraints
             scrollView.topAnchor.constraint(equalTo: headerView.bottomAnchor),

@@ -5,7 +5,7 @@
 
 import UIKit
 
-final class PaymentMethodsVC: UIViewController {
+final class AddNewCardVC: UIViewController {
     
     private lazy var headerView: UIView = {
         let view = UIView()
@@ -26,7 +26,7 @@ final class PaymentMethodsVC: UIViewController {
         return button
     }()
     
-    private lazy var paymentMethodsTitleLabel: UILabel = {
+    private lazy var newCardTitleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
@@ -55,7 +55,6 @@ final class PaymentMethodsVC: UIViewController {
     private lazy var cardNameField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
-        field.keyboardType = .numberPad
         field.delegate = self
         return field
     }()
@@ -188,7 +187,7 @@ final class PaymentMethodsVC: UIViewController {
         view.addSubview(addCardButton)
 
         headerView.addSubview(backButton)
-        headerView.addSubview(paymentMethodsTitleLabel)
+        headerView.addSubview(newCardTitleLabel)
         
         cardSectionView.addSubview(cardNumberLabel)
         cardSectionView.addSubview(cardNumberField)
@@ -211,9 +210,9 @@ final class PaymentMethodsVC: UIViewController {
             backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             backButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
             backButton.widthAnchor.constraint(equalTo: backButton.heightAnchor),
-            paymentMethodsTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
-            paymentMethodsTitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            paymentMethodsTitleLabel.heightAnchor.constraint(equalToConstant: 30),
+            newCardTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
+            newCardTitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            newCardTitleLabel.heightAnchor.constraint(equalToConstant: 30),
             
             cardNameLabel.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
             cardNameLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 40),
@@ -266,6 +265,81 @@ final class PaymentMethodsVC: UIViewController {
         ])
     }
     
+    private func validateForm() {
+        var isValid = true
+        
+        if cardNameField.text?.isEmpty ?? true {
+            isValid = false
+            setWarning(for: cardNameField, label: cardNameLabel)
+        }
+        
+        if cardNumberField.text?.replacingOccurrences(of: " ", with: "").count != 16 {
+            isValid = false
+            setWarning(for: cardNumberField, label: cardNumberLabel)
+        }
+        
+        if let mmyyText = mmyyField.text, mmyyText.count == 5 {
+            let components = mmyyText.split(separator: "/")
+            if components.count == 2, let month = Int(components[0]), let year = Int(components[1]) {
+                if month < 1 || month > 12 || !isValidDate(month: month, year: year) {
+                    isValid = false
+                    setWarning(for: mmyyField, label: mmyyLabel)
+                }
+            } else {
+                isValid = false
+                setWarning(for: mmyyField, label: mmyyLabel)
+            }
+        } else {
+            isValid = false
+            setWarning(for: mmyyField, label: mmyyLabel)
+        }
+        
+        if cvcField.text?.count != 3 {
+            isValid = false
+            setWarning(for: cvcField, label: cvcLabel)
+        }
+        
+        if let cardholderName = cardholderNameField.text, cardholderName.count < 2 {
+            isValid = false
+            setWarning(for: cardholderNameField, label: cardholderNameLabel)
+        }
+        
+        if !userAgreementCheckBox.isChecked {
+            isValid = false
+            setWarning(for: userAgreementCheckBox, label: userAgreementLabel)
+        }
+        
+        if isValid {
+            // add a method to save the card
+            dismiss(animated: true)
+        }
+    }
+    
+    private func setWarning<T: Warningable>(for element: T, label: UILabel) {
+        element.isInWarning = true
+        label.textColor = ColorManager.shared.warningRedColor
+    }
+    
+    private func updateWarning<T: Warningable>(for element: T, label: UILabel) {
+        if element.isInWarning {
+            element.isInWarning = false
+            label.textColor = ColorManager.shared.labelGray
+        }
+    }
+    
+    private func isValidDate(month: Int, year: Int) -> Bool {
+        let calendar = Calendar.current
+        var components = DateComponents()
+        components.year = 2000 + year
+        components.month = month
+        components.day = 1
+
+        if let date = calendar.date(from: components), date >= Date() {
+            return true
+        }
+        return false
+    }
+    
     // MARK: - Objc methods
     
     @objc
@@ -276,6 +350,7 @@ final class PaymentMethodsVC: UIViewController {
     @objc
     private func userAgreementCheckBoxDidTapped() {
         userAgreementCheckBox.isChecked.toggle()
+        updateWarning(for: userAgreementCheckBox, label: userAgreementLabel)
     }
     
     @objc
@@ -290,7 +365,7 @@ final class PaymentMethodsVC: UIViewController {
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.addCardButton.transform = CGAffineTransform.identity
         }, completion: nil)
-        dismiss(animated: true)
+        validateForm()
     }
     
     @objc
@@ -302,18 +377,31 @@ final class PaymentMethodsVC: UIViewController {
 
 // MARK: - Text fields methods
 
-extension PaymentMethodsVC: UITextFieldDelegate {
+extension AddNewCardVC: UITextFieldDelegate {
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         if textField == cardNumberField {
             return formatCardNumber(textField: textField, range: range, replacementString: string)
-        } else if textField == mmyyField {
+        }
+        
+        if textField == mmyyField {
+            let resultString = (textField.text as NSString?)?.replacingCharacters(in: range, with: string) ?? string
+            if resultString.count == 2 || resultString.count == 3 {
+                if let month = Int(resultString.prefix(2)), month < 1 || month > 12 {
+                    return false
+                }
+            }
             return formatMMYY(textField: textField, range: range, replacementString: string)
-        } else if textField == cvcField {
+        }
+        
+        if textField == cvcField {
             return formatCVC(textField: textField, range: range, replacementString: string)
-        } else if textField == cardholderNameField {
+        } 
+        
+        if textField == cardholderNameField {
             return formatCardholderName(textField: textField, range: range, replacementString: string)
         }
+        
         return true
     }
     
@@ -325,7 +413,16 @@ extension PaymentMethodsVC: UITextFieldDelegate {
     }
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        if textField == cardholderNameField {
+        if textField == cardNameField {
+            updateWarning(for: cardNameField, label: cardNameLabel)
+        } else if textField == cardNumberField {
+            updateWarning(for: cardNumberField, label: cardNumberLabel)
+        } else if textField == mmyyField {
+            updateWarning(for: mmyyField, label: mmyyLabel)
+        } else if textField == cvcField {
+            updateWarning(for: cvcField, label: cvcLabel)
+        } else if textField == cardholderNameField {
+            updateWarning(for: cardholderNameField, label: cardholderNameLabel)
             textField.keyboardType = .asciiCapable
             textField.reloadInputViews()
         }

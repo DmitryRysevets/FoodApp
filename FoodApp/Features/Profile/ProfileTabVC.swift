@@ -9,7 +9,7 @@ class ProfileTabVC: UIViewController {
     
     private let menuItems: [String] = [
         "Account", // Name, Mail, Phone Number, Profile Photo
-        "Delivery Address",
+        "Delivery Addresses",
         "Payment Methods",
         "Order History",
         "Contact Us"
@@ -115,7 +115,7 @@ extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
         let targetVC: UIViewController
         
         switch menuItems[indexPath.row] {
-        case "Delivery Address":
+        case "Delivery Addresses":
             targetVC = DeliveryAddressVC()
         case "Payment Methods":
             targetVC = PaymentMethodsVC()
