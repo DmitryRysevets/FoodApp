@@ -6,7 +6,7 @@
 import UIKit
 import GoogleMaps
 
-final class DeliveryAddressVC: UIViewController {
+final class AddNewAddressVC: UIViewController {
     
     private lazy var locationManager: CLLocationManager = {
         let manager = CLLocationManager()
@@ -35,12 +35,12 @@ final class DeliveryAddressVC: UIViewController {
         return button
     }()
 
-    private lazy var deliveryAddressTitleLabel: UILabel = {
+    private lazy var newAddressTitleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
-        label.text = "Delivery Address"
+        label.text = "New Address"
         return label
     }()
     
@@ -127,7 +127,7 @@ final class DeliveryAddressVC: UIViewController {
         view.addSubview(okButton)
 
         headerView.addSubview(backButton)
-        headerView.addSubview(deliveryAddressTitleLabel)
+        headerView.addSubview(newAddressTitleLabel)
         
         mapSectionView.addSubview(locationLabel)
         mapSectionView.addSubview(mapView)
@@ -144,9 +144,9 @@ final class DeliveryAddressVC: UIViewController {
             backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             backButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
             backButton.widthAnchor.constraint(equalTo: backButton.heightAnchor),
-            deliveryAddressTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
-            deliveryAddressTitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            deliveryAddressTitleLabel.heightAnchor.constraint(equalToConstant: 30),
+            newAddressTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
+            newAddressTitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            newAddressTitleLabel.heightAnchor.constraint(equalToConstant: 30),
             
             addressField.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
             addressField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -253,7 +253,7 @@ final class DeliveryAddressVC: UIViewController {
 
 // MARK: - CLLocationManagerDelegate
 
-extension DeliveryAddressVC: CLLocationManagerDelegate {
+extension AddNewAddressVC: CLLocationManagerDelegate {
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
@@ -281,7 +281,7 @@ extension DeliveryAddressVC: CLLocationManagerDelegate {
 
 // MARK: - UITextFieldDelegate
 
-extension DeliveryAddressVC: UITextFieldDelegate {
+extension AddNewAddressVC: UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         guard let address = textField.text, !address.isEmpty else { return false }
         getCoordinatesFrom(address: address)

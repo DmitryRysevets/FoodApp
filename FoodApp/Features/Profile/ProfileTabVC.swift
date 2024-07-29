@@ -116,7 +116,7 @@ extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
         
         switch menuItems[indexPath.row] {
         case "Delivery Addresses":
-            targetVC = DeliveryAddressVC()
+            targetVC = DeliveryAddressesVC()
         case "Payment Methods":
             targetVC = PaymentMethodsVC()
         default: return

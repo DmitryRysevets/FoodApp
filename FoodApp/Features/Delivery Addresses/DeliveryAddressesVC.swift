@@ -1,16 +1,16 @@
 //
-//  PaymentMethodsVC.swift
+//  DeliveryAddressVC.swift
 //  FoodApp
 //
 
 import UIKit
 
-final class PaymentMethodsVC: UIViewController {
+final class DeliveryAddressesVC: UIViewController {
 
-    private var cards: [String] = [] {
+    private var addresses: [String] = [] {
         didSet {
             
-            if cards.isEmpty {
+            if addresses.isEmpty {
                 emptyPageView.isHidden = false
                 tableView.isHidden = true
             } else {
@@ -52,12 +52,12 @@ final class PaymentMethodsVC: UIViewController {
         return button
     }()
     
-    private lazy var paymentMethodsTitleLabel: UILabel = {
+    private lazy var deliveryAddressesTitleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
-        label.text = "Payment Methods"
+        label.text = "Delivery Addresses"
         label.textAlignment = .center
         return label
     }()
@@ -88,7 +88,7 @@ final class PaymentMethodsVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
         label.textColor = ColorManager.shared.label
-        label.text = "You have not added a payment method yet"
+        label.text = "You have not added a delivery address yet"
         label.font = UIFont(name: "Raleway", size: 22)
         label.numberOfLines = 2
         label.layer.shadowOffset = CGSize(width: 3, height: 3)
@@ -98,12 +98,12 @@ final class PaymentMethodsVC: UIViewController {
         return label
     }()
     
-    private lazy var addNewCardButton: UIButton = {
+    private lazy var addNewAddressButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = Constants.regularButtonHeight / 2
         button.backgroundColor = ColorManager.shared.regularButtonColor
-        button.setTitle("Add New Card", for: .normal)
+        button.setTitle("Add New Adderess", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 550])
@@ -131,11 +131,11 @@ final class PaymentMethodsVC: UIViewController {
         view.addSubview(emptyPageView)
         
         headerView.addSubview(backButton)
-        headerView.addSubview(paymentMethodsTitleLabel)
+        headerView.addSubview(deliveryAddressesTitleLabel)
         headerView.addSubview(plusButton)
 
         emptyPageView.addSubview(emptyPageLabel)
-        emptyPageView.addSubview(addNewCardButton)
+        emptyPageView.addSubview(addNewAddressButton)
     }
     
     private func setupConstraints() {
@@ -153,9 +153,9 @@ final class PaymentMethodsVC: UIViewController {
             plusButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             plusButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
             plusButton.widthAnchor.constraint(equalTo: plusButton.heightAnchor),
-            paymentMethodsTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
-            paymentMethodsTitleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
-            paymentMethodsTitleLabel.trailingAnchor.constraint(equalTo: plusButton.leadingAnchor, constant: -8),
+            deliveryAddressesTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
+            deliveryAddressesTitleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
+            deliveryAddressesTitleLabel.trailingAnchor.constraint(equalTo: plusButton.leadingAnchor, constant: -8),
             
             tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -170,10 +170,10 @@ final class PaymentMethodsVC: UIViewController {
             emptyPageLabel.topAnchor.constraint(equalTo: emptyPageView.topAnchor, constant: 16),
             emptyPageLabel.leadingAnchor.constraint(equalTo: emptyPageView.leadingAnchor, constant: 16),
             emptyPageLabel.trailingAnchor.constraint(equalTo: emptyPageView.trailingAnchor, constant: -16),
-            addNewCardButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
-            addNewCardButton.leadingAnchor.constraint(equalTo: emptyPageView.leadingAnchor, constant: 40),
-            addNewCardButton.trailingAnchor.constraint(equalTo: emptyPageView.trailingAnchor, constant: -40),
-            addNewCardButton.bottomAnchor.constraint(equalTo: emptyPageView.bottomAnchor, constant: -16),
+            addNewAddressButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
+            addNewAddressButton.leadingAnchor.constraint(equalTo: emptyPageView.leadingAnchor, constant: 40),
+            addNewAddressButton.trailingAnchor.constraint(equalTo: emptyPageView.trailingAnchor, constant: -40),
+            addNewAddressButton.bottomAnchor.constraint(equalTo: emptyPageView.bottomAnchor, constant: -16),
         ])
     }
     
@@ -186,7 +186,7 @@ final class PaymentMethodsVC: UIViewController {
     
     @objc
     private func plusButtonTapped() {
-        let vc = AddNewCardVC()
+        let vc = AddNewAddressVC()
         vc.modalTransitionStyle = .coverVertical
         vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true)
@@ -195,14 +195,14 @@ final class PaymentMethodsVC: UIViewController {
     @objc
     private func addNewAddressButtonTouchDown() {
         UIView.animate(withDuration: 0.05) {
-            self.addNewCardButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+            self.addNewAddressButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
         }
     }
     
     @objc
     private func addNewAddressButtonTouchUp() {
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
-            self.addNewCardButton.transform = CGAffineTransform.identity
+            self.addNewAddressButton.transform = CGAffineTransform.identity
         }, completion: nil)
         plusButtonTapped()
     }
@@ -211,10 +211,10 @@ final class PaymentMethodsVC: UIViewController {
 
 // MARK: - Table view methods
 
-extension PaymentMethodsVC: UITableViewDelegate, UITableViewDataSource {
+extension DeliveryAddressesVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        cards.count
+        addresses.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
