@@ -127,6 +127,27 @@ final class AddNewCardVC: UIViewController {
         return field
     }()
     
+    private lazy var preferredPaymentMethodCheckBox: CheckBox = {
+        let checkbox = CheckBox()
+        checkbox.translatesAutoresizingMaskIntoConstraints = false
+        checkbox.addTarget(self, action: #selector(preferredPaymentMethodCheckBoxDidTapped), for: .touchUpInside)
+        checkbox.isChecked = false
+        return checkbox
+    }()
+    
+    private lazy var preferredPaymentMethodLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 550])
+        label.text = "Preferred payment method"
+        label.numberOfLines = 2
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(preferredPaymentMethodCheckBoxDidTapped))
+        label.addGestureRecognizer(tapGesture)
+        label.isUserInteractionEnabled = true
+        return label
+    }()
+    
     private lazy var userAgreementCheckBox: CheckBox = {
         let checkbox = CheckBox()
         checkbox.translatesAutoresizingMaskIntoConstraints = false
@@ -182,6 +203,8 @@ final class AddNewCardVC: UIViewController {
         view.addSubview(cardNameLabel)
         view.addSubview(cardNameField)
         view.addSubview(cardSectionView)
+        view.addSubview(preferredPaymentMethodCheckBox)
+        view.addSubview(preferredPaymentMethodLabel)
         view.addSubview(userAgreementCheckBox)
         view.addSubview(userAgreementLabel)
         view.addSubview(addCardButton)
@@ -250,11 +273,19 @@ final class AddNewCardVC: UIViewController {
             cardholderNameField.heightAnchor.constraint(equalToConstant: Constants.regularFieldHeight),
             cardholderNameField.bottomAnchor.constraint(equalTo: cardSectionView.bottomAnchor, constant: -32),
             
-            userAgreementCheckBox.topAnchor.constraint(equalTo: cardSectionView.bottomAnchor, constant: 32),
+            preferredPaymentMethodCheckBox.topAnchor.constraint(equalTo: cardSectionView.bottomAnchor, constant: 32),
+            preferredPaymentMethodCheckBox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            preferredPaymentMethodCheckBox.widthAnchor.constraint(equalToConstant: 20),
+            preferredPaymentMethodCheckBox.heightAnchor.constraint(equalToConstant: 20),
+            preferredPaymentMethodLabel.topAnchor.constraint(equalTo: preferredPaymentMethodCheckBox.topAnchor),
+            preferredPaymentMethodLabel.leadingAnchor.constraint(equalTo: preferredPaymentMethodCheckBox.trailingAnchor, constant: 8),
+            preferredPaymentMethodLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            
+            userAgreementCheckBox.topAnchor.constraint(equalTo: preferredPaymentMethodCheckBox.bottomAnchor, constant: 32),
             userAgreementCheckBox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             userAgreementCheckBox.widthAnchor.constraint(equalToConstant: 20),
             userAgreementCheckBox.heightAnchor.constraint(equalToConstant: 20),
-            userAgreementLabel.topAnchor.constraint(equalTo: userAgreementCheckBox.topAnchor, constant: -4),
+            userAgreementLabel.topAnchor.constraint(equalTo: userAgreementCheckBox.topAnchor),
             userAgreementLabel.leadingAnchor.constraint(equalTo: userAgreementCheckBox.trailingAnchor, constant: 8),
             userAgreementLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
@@ -310,7 +341,21 @@ final class AddNewCardVC: UIViewController {
         }
         
         if isValid {
-            // add a method to save the card
+            do {
+                try CoreDataManager.shared.saveCard(cardName: cardNameField.text!,
+                                                    cardNumber: cardNumberField.text!,
+                                                    cardExpirationDate: mmyyField.text!,
+                                                    cardCVC: cvcField.text!,
+                                                    cardholderName: cardholderNameField.text!,
+                                                    isPreferred: preferredPaymentMethodCheckBox.isChecked)
+            } catch {
+                let error = error as NSError
+                if error.code == 1 {
+                    print("Card with this name already exists")
+                    // Need to warn a user that a card with this name already exists
+                }
+            }
+            
             dismiss(animated: true)
         }
     }
@@ -351,6 +396,11 @@ final class AddNewCardVC: UIViewController {
     private func userAgreementCheckBoxDidTapped() {
         userAgreementCheckBox.isChecked.toggle()
         updateWarning(for: userAgreementCheckBox, label: userAgreementLabel)
+    }
+    
+    @objc
+    private func preferredPaymentMethodCheckBoxDidTapped() {
+        preferredPaymentMethodCheckBox.isChecked.toggle()
     }
     
     @objc

@@ -7,9 +7,8 @@ import UIKit
 
 final class PaymentMethodsVC: UIViewController {
 
-    private var cards: [String] = [] {
+    private var cards: [CardEntity] = [] {
         didSet {
-            
             if cards.isEmpty {
                 emptyPageView.isHidden = false
                 tableView.isHidden = true
@@ -24,8 +23,7 @@ final class PaymentMethodsVC: UIViewController {
         let table = UITableView()
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = ColorManager.shared.background
-        table.isScrollEnabled = false
-//        table.register
+        table.register(PaymentMethodsCell.self, forCellReuseIdentifier: PaymentMethodsCell.id)
         table.dataSource = self
         table.delegate = self
         return table
@@ -45,7 +43,6 @@ final class PaymentMethodsVC: UIViewController {
         let image = UIImage(systemName: "chevron.backward", withConfiguration: configuration)?.resized(to: CGSize(width: 12, height: 16)).withTintColor(ColorManager.shared.label)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.setImage(image, for: .normal)
-        button.tintColor = ColorManager.shared.label
         button.backgroundColor = ColorManager.shared.headerElementsColor
         button.layer.cornerRadius = Constants.headerButtonSize / 2
         button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
@@ -121,6 +118,12 @@ final class PaymentMethodsVC: UIViewController {
         setupConstraints()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        cards = CoreDataManager.shared.fetchAllCards()
+        tableView.reloadData()
+    }
+    
     // MARK: - Private methods
     
     private func setupUI() {
@@ -157,7 +160,7 @@ final class PaymentMethodsVC: UIViewController {
             paymentMethodsTitleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
             paymentMethodsTitleLabel.trailingAnchor.constraint(equalTo: plusButton.leadingAnchor, constant: -8),
             
-            tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -175,6 +178,13 @@ final class PaymentMethodsVC: UIViewController {
             addNewCardButton.trailingAnchor.constraint(equalTo: emptyPageView.trailingAnchor, constant: -40),
             addNewCardButton.bottomAnchor.constraint(equalTo: emptyPageView.bottomAnchor, constant: -16),
         ])
+    }
+    
+    private func deleteCard(at indexPath: IndexPath) {
+        guard let cardName = cards[indexPath.row].cardName else { return }
+        CoreDataManager.shared.deleteCard(by: cardName)
+        cards.remove(at: indexPath.row)
+        tableView.deleteRows(at: [indexPath], with: .automatic)
     }
     
     // MARK: - Objc methods
@@ -218,11 +228,48 @@ extension PaymentMethodsVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        UITableViewCell()
+        let cell = tableView.dequeueReusableCell(withIdentifier: PaymentMethodsCell.id, for: indexPath) as! PaymentMethodsCell
+        
+        cell.cardName = cards[indexPath.row].cardName
+        
+        cell.goToCardInfoHandler = { [weak self] in
+            let vc = PaymentCardInfoVC()
+            vc.cardData = self?.cards[indexPath.row]
+            vc.modalTransitionStyle = .coverVertical
+            vc.modalPresentationStyle = .popover
+            self?.present(vc, animated: true)
+        }
+        
+        cell.selectionStyle = .none
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        80
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
     }
     
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: nil) { [weak self] (_, _, completionHandler) in
+            self?.deleteCard(at: indexPath)
+            completionHandler(true)
+        }
+        
+        if let trashImage = UIImage(systemName: "trash") {
+            let size = CGSize(width: 26, height: 30)
+            let renderer = UIGraphicsImageRenderer(size: size)
+            let tintedImage = renderer.image { context in
+                trashImage.withTintColor(ColorManager.shared.warningRedColor).draw(in: CGRect(origin: .zero, size: size))
+            }
+            deleteAction.image = tintedImage
+        }
+        
+        deleteAction.backgroundColor = ColorManager.shared.background
+
+        let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
+        return configuration
+    }
 }

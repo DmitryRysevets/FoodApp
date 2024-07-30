@@ -329,4 +329,87 @@ final class CoreDataManager {
         return nil
     }
     
+    // MARK: - Payment card methods
+    
+    func fetchAllCards() -> [CardEntity] {
+        let fetchRequest: NSFetchRequest<CardEntity> = CardEntity.fetchRequest()
+        
+        do {
+            return try context.fetch(fetchRequest)
+        } catch {
+            print("Failed to fetch cards: \(error)")
+            return []
+        }
+    }
+    
+    func saveCard(cardName: String, cardNumber: String, cardExpirationDate: String, cardCVC: String, cardholderName: String, isPreferred: Bool) throws {
+        guard !cardNameExists(cardName) else {
+            throw NSError(domain: "", code: 1, userInfo: [NSLocalizedDescriptionKey: "Card with this name already exists."])
+        }
+        
+        if isPreferred {
+            let fetchRequest: NSFetchRequest<CardEntity> = CardEntity.fetchRequest()
+            do {
+                let cards = try context.fetch(fetchRequest)
+                for card in cards {
+                    card.isPreferred = false
+                }
+            } catch {
+                print("Failed to fetch cards: \(error)")
+            }
+        }
+        
+        let cardEntity = CardEntity(context: context)
+        cardEntity.isPreferred = isPreferred
+        cardEntity.cardNumber = cardNumber
+        cardEntity.cardName = cardName
+        cardEntity.cardholderName = cardholderName
+        cardEntity.cardExpirationDate = cardExpirationDate
+        cardEntity.cardCVC = cardCVC
+        
+        saveContext()
+    }
+    
+    func deleteCard(by cardName: String) {
+        let fetchRequest: NSFetchRequest<CardEntity> = CardEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "cardName == %@", cardName)
+        
+        do {
+            let cards = try context.fetch(fetchRequest)
+            if let card = cards.first {
+                context.delete(card)
+            }
+            saveContext()
+        } catch {
+            print("Failed to delete card: \(error)")
+        }
+    }
+    
+    func setPreferredCard(by cardName: String) {
+        let fetchRequest: NSFetchRequest<CardEntity> = CardEntity.fetchRequest()
+        
+        do {
+            let cards = try context.fetch(fetchRequest)
+            for card in cards {
+                card.isPreferred = (card.cardName == cardName)
+            }
+            saveContext()
+        } catch {
+            print("Failed to set preferred card: \(error)")
+        }
+    }
+    
+    func cardNameExists(_ cardName: String) -> Bool {
+        let fetchRequest: NSFetchRequest<CardEntity> = CardEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "cardName == %@", cardName)
+        
+        do {
+            let cards = try context.fetch(fetchRequest)
+            return !cards.isEmpty
+        } catch {
+            print("Failed to fetch card by cardName: \(error)")
+            return false
+        }
+    }
+    
 }
