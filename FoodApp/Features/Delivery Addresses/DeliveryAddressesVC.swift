@@ -25,7 +25,7 @@ final class DeliveryAddressesVC: UIViewController {
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = ColorManager.shared.background
         table.isScrollEnabled = false
-//        table.register
+        table.register(DeliveryAddressCell.self, forCellReuseIdentifier: DeliveryAddressCell.id)
         table.dataSource = self
         table.delegate = self
         return table
@@ -177,6 +177,10 @@ final class DeliveryAddressesVC: UIViewController {
         ])
     }
     
+    private func deleteAddress(at indexPath: IndexPath) {
+        
+    }
+    
     // MARK: - Objc methods
     
     @objc
@@ -218,11 +222,43 @@ extension DeliveryAddressesVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        UITableViewCell()
+        let cell = tableView.dequeueReusableCell(withIdentifier: DeliveryAddressCell.id, for: indexPath) as! DeliveryAddressCell
+        
+//        cell.addressName =
+//        cell.goToAddressHandler =
+//        cell.isPreferredAdress =
+        cell.selectionStyle = .none
+        
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        80
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         
+    }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: nil) { [weak self] (_, _, completionHandler) in
+            self?.deleteAddress(at: indexPath)
+            completionHandler(true)
+        }
+        
+        if let trashImage = UIImage(systemName: "trash") {
+            let size = CGSize(width: 26, height: 30)
+            let renderer = UIGraphicsImageRenderer(size: size)
+            let tintedImage = renderer.image { context in
+                trashImage.withTintColor(ColorManager.shared.warningRed).draw(in: CGRect(origin: .zero, size: size))
+            }
+            deleteAction.image = tintedImage
+        }
+        
+        deleteAction.backgroundColor = ColorManager.shared.background
+
+        let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
+        return configuration
     }
     
 }

@@ -212,7 +212,7 @@ extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
             let size = CGSize(width: 26, height: 30)
             let renderer = UIGraphicsImageRenderer(size: size)
             let tintedImage = renderer.image { context in
-                trashImage.withTintColor(ColorManager.shared.warningRedColor).draw(in: CGRect(origin: .zero, size: size))
+                trashImage.withTintColor(ColorManager.shared.warningRed).draw(in: CGRect(origin: .zero, size: size))
             }
             deleteAction.image = tintedImage
         }

@@ -18,6 +18,23 @@ class PaymentMethodsCell: UITableViewCell {
     
     var goToCardInfoHandler: (() -> Void)!
     
+    var isPreferredPaymentMethod: Bool = false {
+        didSet {
+            if isPreferredPaymentMethod {
+                isPreferredPaymentMethodCheckBox.isChecked = true
+            } else {
+                isPreferredPaymentMethodCheckBox.isChecked = false
+            }
+        }
+    }
+    
+    private lazy var isPreferredPaymentMethodCheckBox: CheckBox = {
+        let checkbox = CheckBox()
+        checkbox.translatesAutoresizingMaskIntoConstraints = false
+        checkbox.tintColor = ColorManager.shared.confirmingGreen
+        return checkbox
+    }()
+    
     private lazy var cardNameLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -42,12 +59,19 @@ class PaymentMethodsCell: UITableViewCell {
     private func setupUI() {
         backgroundColor = ColorManager.shared.background
         
+        addSubview(isPreferredPaymentMethodCheckBox)
         addSubview(cardNameLabel)
         addSubview(goToCardInfoButton)
         
         NSLayoutConstraint.activate([
+            isPreferredPaymentMethodCheckBox.centerYAnchor.constraint(equalTo: centerYAnchor),
+            isPreferredPaymentMethodCheckBox.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 32),
+            isPreferredPaymentMethodCheckBox.heightAnchor.constraint(equalToConstant: Constants.checkboxSize),
+            isPreferredPaymentMethodCheckBox.widthAnchor.constraint(equalToConstant: Constants.checkboxSize),
+            
             cardNameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            cardNameLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 32),
+            cardNameLabel.leadingAnchor.constraint(equalTo: isPreferredPaymentMethodCheckBox.trailingAnchor, constant: 32),
+            cardNameLabel.trailingAnchor.constraint(equalTo: goToCardInfoButton.leadingAnchor, constant: -32),
             
             goToCardInfoButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             goToCardInfoButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),

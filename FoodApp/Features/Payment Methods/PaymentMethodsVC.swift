@@ -19,6 +19,8 @@ final class PaymentMethodsVC: UIViewController {
         }
     }
     
+    private var childInfoVC: PaymentCardInfoVC!
+    
     private lazy var tableView: UITableView = {
         let table = UITableView()
         table.translatesAutoresizingMaskIntoConstraints = false
@@ -70,6 +72,14 @@ final class PaymentMethodsVC: UIViewController {
         button.layer.cornerRadius = Constants.headerButtonSize / 2
         button.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
         return button
+    }()
+    
+    private lazy var overlayView: UIView = {
+        let view = UIView(frame: view.bounds)
+        view.backgroundColor = UIColor.black.withAlphaComponent(0.5)
+        view.alpha = 0
+        view.isHidden = true
+        return view
     }()
     
     // MARK: - Empty page view props.
@@ -132,6 +142,7 @@ final class PaymentMethodsVC: UIViewController {
         view.addSubview(headerView)
         view.addSubview(tableView)
         view.addSubview(emptyPageView)
+        view.addSubview(overlayView)
         
         headerView.addSubview(backButton)
         headerView.addSubview(paymentMethodsTitleLabel)
@@ -139,6 +150,9 @@ final class PaymentMethodsVC: UIViewController {
 
         emptyPageView.addSubview(emptyPageLabel)
         emptyPageView.addSubview(addNewCardButton)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissPaymentCardInfoVC))
+        overlayView.addGestureRecognizer(tapGesture)
     }
     
     private func setupConstraints() {
@@ -187,6 +201,12 @@ final class PaymentMethodsVC: UIViewController {
         tableView.deleteRows(at: [indexPath], with: .automatic)
     }
     
+    private func setPrefferedInLocal(at indexPath: IndexPath) {
+        for i in 0...cards.count-1 {
+            cards[i].isPreferred = (i == indexPath.row)
+        }
+    }
+    
     // MARK: - Objc methods
     
     @objc
@@ -217,6 +237,41 @@ final class PaymentMethodsVC: UIViewController {
         plusButtonTapped()
     }
     
+    @objc
+    private func dismissPaymentCardInfoVC() {
+        UIView.animate(withDuration: 0.3, animations: {
+            self.overlayView.alpha = 0
+            self.childInfoVC.view.frame.origin.y = self.view.bounds.height
+        }) { _ in
+            self.overlayView.isHidden = true
+            self.childInfoVC.willMove(toParent: nil)
+            self.childInfoVC.view.removeFromSuperview()
+            self.childInfoVC.removeFromParent()
+        }
+    }
+    
+    // MARK: - internal methods
+    
+    func presentPaymentCardInfoVC(at indexPath: IndexPath) {
+        childInfoVC = PaymentCardInfoVC()
+        childInfoVC.view.frame = CGRect(x: 0, y: self.view.bounds.height, width: self.view.bounds.width, height: self.view.bounds.height * 0.5)
+        childInfoVC.cardData = cards[indexPath.row]
+        childInfoVC.closePaymentCardInfoVCHandler = { [weak self] in
+            self?.dismissPaymentCardInfoVC()
+        }
+        
+        addChild(childInfoVC)
+        view.addSubview(childInfoVC.view)
+        childInfoVC.didMove(toParent: self)
+        
+        overlayView.isHidden = false
+        
+        UIView.animate(withDuration: 0.3, animations: {
+            self.overlayView.alpha = 1
+            self.childInfoVC.view.frame.origin.y = self.view.bounds.height - self.childInfoVC.view.frame.height
+        })
+    }
+
 }
 
 // MARK: - Table view methods
@@ -231,13 +286,10 @@ extension PaymentMethodsVC: UITableViewDelegate, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: PaymentMethodsCell.id, for: indexPath) as! PaymentMethodsCell
         
         cell.cardName = cards[indexPath.row].cardName
+        cell.isPreferredPaymentMethod = cards[indexPath.row].isPreferred
         
         cell.goToCardInfoHandler = { [weak self] in
-            let vc = PaymentCardInfoVC()
-            vc.cardData = self?.cards[indexPath.row]
-            vc.modalTransitionStyle = .coverVertical
-            vc.modalPresentationStyle = .popover
-            self?.present(vc, animated: true)
+            self?.presentPaymentCardInfoVC(at: indexPath)
         }
         
         cell.selectionStyle = .none
@@ -249,7 +301,12 @@ extension PaymentMethodsVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
+        if !cards[indexPath.row].isPreferred {
+            guard let cardName = cards[indexPath.row].cardName else { return }
+            CoreDataManager.shared.setPreferredCard(by: cardName)
+            setPrefferedInLocal(at: indexPath)
+            tableView.reloadData()
+        }
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
@@ -262,7 +319,7 @@ extension PaymentMethodsVC: UITableViewDelegate, UITableViewDataSource {
             let size = CGSize(width: 26, height: 30)
             let renderer = UIGraphicsImageRenderer(size: size)
             let tintedImage = renderer.image { context in
-                trashImage.withTintColor(ColorManager.shared.warningRedColor).draw(in: CGRect(origin: .zero, size: size))
+                trashImage.withTintColor(ColorManager.shared.warningRed).draw(in: CGRect(origin: .zero, size: size))
             }
             deleteAction.image = tintedImage
         }

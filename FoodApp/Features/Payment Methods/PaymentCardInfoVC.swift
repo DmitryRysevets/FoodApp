@@ -18,6 +18,8 @@ class PaymentCardInfoVC: UIViewController {
         }
     }
     
+    var closePaymentCardInfoVCHandler: (() -> Void)!
+    
     private lazy var cardTitleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -144,17 +146,17 @@ class PaymentCardInfoVC: UIViewController {
         return label
     }()
     
-    private lazy var okButton: UIButton = {
+    private lazy var closeButton: UIButton = {
         let button = UIButton()
+        let configuration = UIImage.SymbolConfiguration(pointSize: 20, weight: .regular)
+        let image = UIImage(systemName: "xmark", withConfiguration: configuration)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.layer.cornerRadius = Constants.regularButtonHeight / 2
-        button.backgroundColor = ColorManager.shared.regularButtonColor
-        button.setTitle("OK", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.setTitleColor(.white.withAlphaComponent(0.6), for: .highlighted)
-        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 550])
-        button.addTarget(self, action: #selector(okButtonTouchDown), for: .touchDown)
-        button.addTarget(self, action: #selector(okButtonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        button.setImage(image, for: .normal)
+        button.tintColor = ColorManager.shared.label
+        button.backgroundColor = ColorManager.shared.headerElementsColor
+        button.layer.cornerRadius = Constants.headerButtonSize / 2
+        button.addTarget(self, action: #selector(closeButtonTouchDown), for: .touchDown)
+        button.addTarget(self, action: #selector(closeButtonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
         return button
     }()
     
@@ -170,10 +172,11 @@ class PaymentCardInfoVC: UIViewController {
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
+        view.layer.cornerRadius = 32
         
         view.addSubview(cardTitleLabel)
         view.addSubview(cardSectionView)
-        view.addSubview(okButton)
+        view.addSubview(closeButton)
         
         cardSectionView.addSubview(cardNumberLabel)
         cardSectionView.addSubview(cardNumberView)
@@ -194,10 +197,10 @@ class PaymentCardInfoVC: UIViewController {
     
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            cardTitleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 32),
+            cardTitleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 24),
             cardTitleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            cardSectionView.topAnchor.constraint(equalTo: cardTitleLabel.bottomAnchor, constant: 40),
+            cardSectionView.topAnchor.constraint(equalTo: cardTitleLabel.bottomAnchor, constant: 32),
             cardSectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             cardSectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             cardNumberLabel.topAnchor.constraint(equalTo: cardSectionView.topAnchor, constant: 32),
@@ -237,28 +240,28 @@ class PaymentCardInfoVC: UIViewController {
             cardholderNameValueLabel.centerYAnchor.constraint(equalTo: cardholderNameView.centerYAnchor),
             cardholderNameValueLabel.leadingAnchor.constraint(equalTo: cardholderNameView.leadingAnchor, constant: 16),
             
-            okButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
-            okButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            okButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            okButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -40)
+            closeButton.heightAnchor.constraint(equalToConstant: Constants.headerButtonSize),
+            closeButton.widthAnchor.constraint(equalTo: closeButton.heightAnchor),
+            closeButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 16),
+            closeButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
         ])
     }
     
     // MARK: - Objc methods
     
     @objc
-    private func okButtonTouchDown() {
+    private func closeButtonTouchDown() {
         UIView.animate(withDuration: 0.05) {
-            self.okButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+            self.closeButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
         }
     }
     
     @objc
-    private func okButtonTouchUp() {
+    private func closeButtonTouchUp() {
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
-            self.okButton.transform = CGAffineTransform.identity
+            self.closeButton.transform = CGAffineTransform.identity
         }, completion: nil)
-        dismiss(animated: true)
+        closePaymentCardInfoVCHandler()
     }
     
 }

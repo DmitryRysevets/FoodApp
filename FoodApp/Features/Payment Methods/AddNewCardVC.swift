@@ -275,16 +275,16 @@ final class AddNewCardVC: UIViewController {
             
             preferredPaymentMethodCheckBox.topAnchor.constraint(equalTo: cardSectionView.bottomAnchor, constant: 32),
             preferredPaymentMethodCheckBox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            preferredPaymentMethodCheckBox.widthAnchor.constraint(equalToConstant: 20),
-            preferredPaymentMethodCheckBox.heightAnchor.constraint(equalToConstant: 20),
+            preferredPaymentMethodCheckBox.widthAnchor.constraint(equalToConstant: Constants.checkboxSize),
+            preferredPaymentMethodCheckBox.heightAnchor.constraint(equalToConstant: Constants.checkboxSize),
             preferredPaymentMethodLabel.topAnchor.constraint(equalTo: preferredPaymentMethodCheckBox.topAnchor),
             preferredPaymentMethodLabel.leadingAnchor.constraint(equalTo: preferredPaymentMethodCheckBox.trailingAnchor, constant: 8),
             preferredPaymentMethodLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
             userAgreementCheckBox.topAnchor.constraint(equalTo: preferredPaymentMethodCheckBox.bottomAnchor, constant: 32),
             userAgreementCheckBox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            userAgreementCheckBox.widthAnchor.constraint(equalToConstant: 20),
-            userAgreementCheckBox.heightAnchor.constraint(equalToConstant: 20),
+            userAgreementCheckBox.widthAnchor.constraint(equalToConstant: Constants.checkboxSize),
+            userAgreementCheckBox.heightAnchor.constraint(equalToConstant: Constants.checkboxSize),
             userAgreementLabel.topAnchor.constraint(equalTo: userAgreementCheckBox.topAnchor),
             userAgreementLabel.leadingAnchor.constraint(equalTo: userAgreementCheckBox.trailingAnchor, constant: 8),
             userAgreementLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -362,7 +362,7 @@ final class AddNewCardVC: UIViewController {
     
     private func setWarning<T: Warningable>(for element: T, label: UILabel) {
         element.isInWarning = true
-        label.textColor = ColorManager.shared.warningRedColor
+        label.textColor = ColorManager.shared.warningRed
     }
     
     private func updateWarning<T: Warningable>(for element: T, label: UILabel) {

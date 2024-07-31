@@ -13,7 +13,7 @@ final class TextField: UITextField, Warningable {
     var paddingRight: CGFloat = 16
     
     private let normalBorderColor = ColorManager.shared.regularFieldBorderColor
-    private let warningBorderColor = ColorManager.shared.warningRedColor.cgColor
+    private let warningBorderColor = ColorManager.shared.warningRed.cgColor
     
     var isInWarning: Bool = false {
         didSet {

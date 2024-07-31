@@ -9,7 +9,7 @@ final class CheckBox: UIButton, Warningable {
     
     private let checkedImage = UIImage(systemName: "checkmark")! as UIImage
     private let normalBorderColor = ColorManager.shared.labelGray.cgColor
-    private let warningBorderColor = ColorManager.shared.warningRedColor.cgColor
+    private let warningBorderColor = ColorManager.shared.warningRed.cgColor
     
     var isChecked: Bool = false {
         didSet {
