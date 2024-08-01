@@ -190,7 +190,8 @@ final class DeliveryAddressesVC: UIViewController {
     
     @objc
     private func plusButtonTapped() {
-        let vc = AddNewAddressVC()
+        let vc = AddressVC()
+        vc.addressTitle = "New Address"
         vc.modalTransitionStyle = .coverVertical
         vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true)
@@ -227,6 +228,7 @@ extension DeliveryAddressesVC: UITableViewDelegate, UITableViewDataSource {
 //        cell.addressName =
 //        cell.goToAddressHandler =
 //        cell.isPreferredAdress =
+        
         cell.selectionStyle = .none
         
         return cell

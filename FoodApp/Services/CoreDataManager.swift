@@ -412,4 +412,87 @@ final class CoreDataManager {
         }
     }
     
+    // MARK: - Delivery address methods
+    
+    func fetchAllAddresses() -> [AddressEntity] {
+        let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
+        
+        do {
+            return try context.fetch(fetchRequest)
+        } catch {
+            print("Failed to fetch addresses: \(error)")
+            return []
+        }
+    }
+    
+    func saveAddress(placeName: String, address: String, latitude: Double, longitude: Double, isDefaultAddress: Bool) throws {
+        guard !placeNameExists(placeName) else {
+            throw NSError(domain: "", code: 1, userInfo: [NSLocalizedDescriptionKey: "Address with this place name already exists."])
+        }
+        
+        // If the new address is default, set all other addresses to not default
+        if isDefaultAddress {
+            let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
+            do {
+                let addresses = try context.fetch(fetchRequest)
+                for address in addresses {
+                    address.isDefaultAddress = false
+                }
+            } catch {
+                print("Failed to fetch addresses: \(error)")
+            }
+        }
+        
+        let addressEntity = AddressEntity(context: context)
+        addressEntity.placeName = placeName
+        addressEntity.address = address
+        addressEntity.latitude = latitude
+        addressEntity.longitude = longitude
+        addressEntity.isDefaultAddress = isDefaultAddress
+        
+        saveContext()
+    }
+    
+    func deleteAddress(by placeName: String) {
+        let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "placeName == %@", placeName)
+        
+        do {
+            let addresses = try context.fetch(fetchRequest)
+            for address in addresses {
+                context.delete(address)
+            }
+            saveContext()
+        } catch {
+            print("Failed to delete address: \(error)")
+        }
+    }
+    
+    func setPreferredAddress(by placeName: String) {
+        let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
+        
+        do {
+            let addresses = try context.fetch(fetchRequest)
+            for address in addresses {
+                address.isDefaultAddress = (address.placeName == placeName)
+            }
+            saveContext()
+        } catch {
+            print("Failed to set preferred address: \(error)")
+        }
+    }
+    
+    func placeNameExists(_ placeName: String) -> Bool {
+        let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "placeName == %@", placeName)
+        
+        do {
+            let addresses = try context.fetch(fetchRequest)
+            return !addresses.isEmpty
+        } catch {
+            print("Failed to fetch address by placeName: \(error)")
+            return false
+        }
+    }
+    
 }
