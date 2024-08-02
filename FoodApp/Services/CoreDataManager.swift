@@ -453,6 +453,33 @@ final class CoreDataManager {
         saveContext()
     }
     
+    func updateAddress(oldPlaceName: String, newPlaceName: String, address: String, latitude: Double, longitude: Double) throws {
+        if oldPlaceName != newPlaceName && placeNameExists(newPlaceName) {
+            throw NSError(domain: "", code: 1, userInfo: [NSLocalizedDescriptionKey: "Address with this new place name already exists."])
+        }
+        
+        let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "placeName == %@", oldPlaceName)
+        
+        do {
+            let addresses = try context.fetch(fetchRequest)
+            
+            if let addressEntity = addresses.first {
+                addressEntity.placeName = newPlaceName
+                addressEntity.address = address
+                addressEntity.latitude = latitude
+                addressEntity.longitude = longitude
+                
+                saveContext()
+            } else {
+                throw NSError(domain: "", code: 2, userInfo: [NSLocalizedDescriptionKey: "Address with the old place name not found."])
+            }
+        } catch {
+            print("Failed to update address: \(error)")
+            throw NSError(domain: "", code: 3, userInfo: [NSLocalizedDescriptionKey: "Failed to fetch or update address."])
+        }
+    }
+    
     func deleteAddress(by placeName: String) {
         let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "placeName == %@", placeName)
@@ -468,7 +495,7 @@ final class CoreDataManager {
         }
     }
     
-    func setPreferredAddress(by placeName: String) {
+    func setAddressAsDefault(by placeName: String) {
         let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
         
         do {

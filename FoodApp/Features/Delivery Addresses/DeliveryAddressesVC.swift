@@ -7,9 +7,8 @@ import UIKit
 
 final class DeliveryAddressesVC: UIViewController {
 
-    private var addresses: [String] = [] {
+    private var addresses: [AddressEntity] = [] {
         didSet {
-            
             if addresses.isEmpty {
                 emptyPageView.isHidden = false
                 tableView.isHidden = true
@@ -121,6 +120,12 @@ final class DeliveryAddressesVC: UIViewController {
         setupConstraints()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        addresses = CoreDataManager.shared.fetchAllAddresses()
+        tableView.reloadData()
+    }
+    
     // MARK: - Private methods
     
     private func setupUI() {
@@ -157,7 +162,7 @@ final class DeliveryAddressesVC: UIViewController {
             deliveryAddressesTitleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
             deliveryAddressesTitleLabel.trailingAnchor.constraint(equalTo: plusButton.leadingAnchor, constant: -8),
             
-            tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -178,7 +183,16 @@ final class DeliveryAddressesVC: UIViewController {
     }
     
     private func deleteAddress(at indexPath: IndexPath) {
-        
+        guard let placeName = addresses[indexPath.row].placeName else { return }
+        CoreDataManager.shared.deleteAddress(by: placeName)
+        addresses.remove(at: indexPath.row)
+        tableView.deleteRows(at: [indexPath], with: .automatic)
+    }
+    
+    private func setAddressAsDefaultInLocal(at indexPath: IndexPath) {
+        for i in 0...addresses.count-1 {
+            addresses[i].isDefaultAddress = (i == indexPath.row)
+        }
     }
     
     // MARK: - Objc methods
@@ -191,7 +205,6 @@ final class DeliveryAddressesVC: UIViewController {
     @objc
     private func plusButtonTapped() {
         let vc = AddressVC()
-        vc.addressTitle = "New Address"
         vc.modalTransitionStyle = .coverVertical
         vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true)
@@ -225,9 +238,17 @@ extension DeliveryAddressesVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: DeliveryAddressCell.id, for: indexPath) as! DeliveryAddressCell
         
-//        cell.addressName =
-//        cell.goToAddressHandler =
-//        cell.isPreferredAdress =
+        cell.placeName = addresses[indexPath.row].placeName
+        cell.isDefaultAdress = addresses[indexPath.row].isDefaultAddress
+        
+        cell.goToAddressVCHandler = { [weak self] in
+            guard let addressEntity = self?.addresses[indexPath.row] else { return }
+            let vc = AddressVC()
+            vc.configureWithExisting(addressEntity)
+            vc.modalTransitionStyle = .coverVertical
+            vc.modalPresentationStyle = .fullScreen
+            self?.present(vc, animated: true)
+        }
         
         cell.selectionStyle = .none
         
@@ -239,7 +260,12 @@ extension DeliveryAddressesVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
+        if !addresses[indexPath.row].isDefaultAddress {
+            guard let placeName = addresses[indexPath.row].placeName else { return }
+            CoreDataManager.shared.setAddressAsDefault(by: placeName)
+            setAddressAsDefaultInLocal(at: indexPath)
+            tableView.reloadData()
+        }
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {

@@ -9,33 +9,33 @@ class DeliveryAddressCell: UITableViewCell {
 
     static let id = "DeliveryAddressCell"
     
-    var addressName: String! {
+    var placeName: String! {
         didSet {
-            addressNameLabel.text = addressName
+            placeNameLabel.text = placeName
             setupUI()
         }
     }
     
-    var goToAddressHandler: (() -> Void)!
+    var goToAddressVCHandler: (() -> Void)!
     
-    var isPreferredAdress: Bool = false {
+    var isDefaultAdress: Bool = false {
         didSet {
-            if isPreferredAdress {
-                isPreferredAdressCheckBox.isChecked = true
+            if isDefaultAdress {
+                isDefaultAdressCheckBox.isChecked = true
             } else {
-                isPreferredAdressCheckBox.isChecked = false
+                isDefaultAdressCheckBox.isChecked = false
             }
         }
     }
     
-    private lazy var isPreferredAdressCheckBox: CheckBox = {
+    private lazy var isDefaultAdressCheckBox: CheckBox = {
         let checkbox = CheckBox()
         checkbox.translatesAutoresizingMaskIntoConstraints = false
         checkbox.tintColor = ColorManager.shared.confirmingGreen
         return checkbox
     }()
     
-    private lazy var addressNameLabel: UILabel = {
+    private lazy var placeNameLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
@@ -59,30 +59,30 @@ class DeliveryAddressCell: UITableViewCell {
     private func setupUI() {
         backgroundColor = ColorManager.shared.background
         
-        addSubview(isPreferredAdressCheckBox)
-        addSubview(addressNameLabel)
+        addSubview(isDefaultAdressCheckBox)
+        addSubview(placeNameLabel)
         addSubview(goToAddressButton)
         
         NSLayoutConstraint.activate([
-            isPreferredAdressCheckBox.centerYAnchor.constraint(equalTo: centerYAnchor),
-            isPreferredAdressCheckBox.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 32),
-            isPreferredAdressCheckBox.heightAnchor.constraint(equalToConstant: Constants.checkboxSize),
-            isPreferredAdressCheckBox.widthAnchor.constraint(equalToConstant: Constants.checkboxSize),
+            isDefaultAdressCheckBox.centerYAnchor.constraint(equalTo: centerYAnchor),
+            isDefaultAdressCheckBox.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 32),
+            isDefaultAdressCheckBox.heightAnchor.constraint(equalToConstant: Constants.checkboxSize),
+            isDefaultAdressCheckBox.widthAnchor.constraint(equalToConstant: Constants.checkboxSize),
             
-            addressNameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            addressNameLabel.leadingAnchor.constraint(equalTo: isPreferredAdressCheckBox.trailingAnchor, constant: 32),
-            addressNameLabel.trailingAnchor.constraint(equalTo: goToAddressButton.leadingAnchor, constant: -32),
+            placeNameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            placeNameLabel.leadingAnchor.constraint(equalTo: isDefaultAdressCheckBox.trailingAnchor, constant: 32),
+            placeNameLabel.trailingAnchor.constraint(equalTo: goToAddressButton.leadingAnchor, constant: -32),
             
             goToAddressButton.centerYAnchor.constraint(equalTo: centerYAnchor),
             goToAddressButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             goToAddressButton.heightAnchor.constraint(equalToConstant: 40),
-            goToAddressButton.widthAnchor.constraint(equalToConstant: 80)
+            goToAddressButton.widthAnchor.constraint(equalToConstant: 100)
         ])
     }
     
     @objc
     private func goToAddressButtonTapped() {
-        goToAddressHandler()
+        goToAddressVCHandler()
     }
     
 }

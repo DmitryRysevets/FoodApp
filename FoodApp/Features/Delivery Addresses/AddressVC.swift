@@ -7,24 +7,15 @@ import UIKit
 import GoogleMaps
 
 final class AddressVC: UIViewController {
-    
-    var addressTitle: String = "" {
+        
+    private var location: CLLocation? {
         didSet {
-            pageTitleLabel.text = addressTitle
+            updateMapView()
         }
     }
     
-    var isDefaultAddress: Bool = false {
-        didSet {
-            if isDefaultAddress {
-                defaultAddressCheckBox.isChecked = true
-            } else {
-                defaultAddressCheckBox.isChecked = false
-            }
-        }
-    }
-    
-    private var location: CLLocation?
+    private var needToUpdateCoreData = false
+    private var oldPlaceName = ""
     
     private lazy var locationManager: CLLocationManager = {
         let manager = CLLocationManager()
@@ -59,7 +50,7 @@ final class AddressVC: UIViewController {
         label.textColor = ColorManager.shared.label
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
         label.textAlignment = .center
-        label.text = "Address"
+        label.text = "New Address"
         return label
     }()
     
@@ -125,6 +116,8 @@ final class AddressVC: UIViewController {
         return mapView
     }()
     
+    private lazy var marker = GMSMarker()
+    
     private lazy var defaultAddressCheckBox: CheckBox = {
         let checkbox = CheckBox()
         checkbox.translatesAutoresizingMaskIntoConstraints = false
@@ -166,6 +159,19 @@ final class AddressVC: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
+    }
+    
+    // MARK: - internal methods
+    
+    func configureWithExisting(_ adress: AddressEntity) {
+        needToUpdateCoreData = true
+        defaultAddressCheckBox.isHidden = true
+        defaultAddressLabel.isHidden = true
+        oldPlaceName = adress.placeName!
+        pageTitleLabel.text = "Address"
+        placeNameField.text = adress.placeName
+        addressField.text = adress.address
+        location = CLLocation(latitude: adress.latitude, longitude: adress.longitude)
     }
     
     // MARK: - Private methods
@@ -255,7 +261,6 @@ final class AddressVC: UIViewController {
                 // here the user needs to be notified
             } else if let placemark = placemarks?.first {
                 self.location = placemark.location
-                self.updateMapView()
             }
         }
     }
@@ -274,13 +279,45 @@ final class AddressVC: UIViewController {
     }
     
     private func updateMapView() {
-        guard let location = location else { return }
-        let camera = GMSCameraPosition.camera(withLatitude: location.coordinate.latitude, longitude: location.coordinate.longitude, zoom: 15.0)
-        mapView.animate(to: camera)
+        if let location = location {
+            let latitude = location.coordinate.latitude
+            let longitude = location.coordinate.longitude
+            let camera = GMSCameraPosition.camera(withLatitude: latitude, longitude: longitude, zoom: 15.0)
+            mapView.moveCamera(GMSCameraUpdate.setCamera(camera))
+            marker.map = mapView
+            marker.position = location.coordinate
+        }
+    }
+    
+    private func isAddressValid() -> Bool {
+        if placeNameField.text?.isEmpty ?? true {
+            setWarning(for: placeNameField, label: placeNameLabel)
+            return false
+        }
+
+        if addressField.text?.isEmpty ?? true {
+            setWarning(for: addressField, label: addressLabel)
+            return false
+        }
         
-        let marker = GMSMarker()
-        marker.position = location.coordinate
-        marker.map = mapView
+        if location == nil {
+            // need warning
+            return false
+        }
+        
+        return true
+    }
+    
+    private func setWarning(for field: TextField, label: UILabel) {
+        field.isInWarning = true
+        label.textColor = ColorManager.shared.warningRed
+    }
+
+    private func updateWarning(for field: TextField, label: UILabel) {
+        if field.isInWarning {
+            field.isInWarning = false
+            label.textColor = ColorManager.shared.labelGray
+        }
     }
     
     // MARK: - ObjC methods
@@ -324,6 +361,35 @@ final class AddressVC: UIViewController {
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.saveButton.transform = CGAffineTransform.identity
         }, completion: nil)
+        
+        if isAddressValid() {
+            guard let location = location else { return }
+            
+            if needToUpdateCoreData {
+                do {
+                    try CoreDataManager.shared.updateAddress(oldPlaceName: oldPlaceName,
+                                                             newPlaceName: placeNameField.text!,
+                                                             address: addressField.text!,
+                                                             latitude: location.coordinate.latitude,
+                                                             longitude: location.coordinate.longitude)
+                    dismiss(animated: true)
+                } catch {
+                    // need warning
+                }
+            } else {
+                do {
+                    try CoreDataManager.shared.saveAddress(placeName: placeNameField.text!,
+                                                           address: addressField.text!,
+                                                           latitude: location.coordinate.latitude,
+                                                           longitude: location.coordinate.longitude,
+                                                           isDefaultAddress: defaultAddressCheckBox.isChecked)
+                    dismiss(animated: true)
+                } catch {
+                    // need warning
+                }
+            }
+        }
+        
     }
 }
 
@@ -334,7 +400,6 @@ extension AddressVC: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
             self.location = location
-            updateMapView()
             getAddressFrom(location)
             locationManager.stopUpdatingLocation()
         }
@@ -358,6 +423,14 @@ extension AddressVC: UITextFieldDelegate {
         }
         textField.resignFirstResponder()
         return true
+    }
+    
+    func textFieldDidBeginEditing(_ textField: UITextField) {
+        if textField == placeNameField {
+            updateWarning(for: placeNameField, label: placeNameLabel)
+        } else if textField == addressField {
+            updateWarning(for: addressField, label: addressLabel)
+        }
     }
     
 }

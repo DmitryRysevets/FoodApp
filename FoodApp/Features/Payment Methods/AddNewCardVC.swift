@@ -296,68 +296,50 @@ final class AddNewCardVC: UIViewController {
         ])
     }
     
-    private func validateForm() {
-        var isValid = true
+    private func isFormValid() -> Bool {
         
         if cardNameField.text?.isEmpty ?? true {
-            isValid = false
             setWarning(for: cardNameField, label: cardNameLabel)
+            return false
         }
         
         if cardNumberField.text?.replacingOccurrences(of: " ", with: "").count != 16 {
-            isValid = false
             setWarning(for: cardNumberField, label: cardNumberLabel)
+            return false
         }
         
         if let mmyyText = mmyyField.text, mmyyText.count == 5 {
             let components = mmyyText.split(separator: "/")
             if components.count == 2, let month = Int(components[0]), let year = Int(components[1]) {
                 if month < 1 || month > 12 || !isValidDate(month: month, year: year) {
-                    isValid = false
                     setWarning(for: mmyyField, label: mmyyLabel)
+                    return false
                 }
             } else {
-                isValid = false
                 setWarning(for: mmyyField, label: mmyyLabel)
+                return false
             }
         } else {
-            isValid = false
             setWarning(for: mmyyField, label: mmyyLabel)
+            return false
         }
         
         if cvcField.text?.count != 3 {
-            isValid = false
             setWarning(for: cvcField, label: cvcLabel)
+            return false
         }
         
         if let cardholderName = cardholderNameField.text, cardholderName.count < 2 {
-            isValid = false
             setWarning(for: cardholderNameField, label: cardholderNameLabel)
+            return false
         }
         
         if !userAgreementCheckBox.isChecked {
-            isValid = false
             setWarning(for: userAgreementCheckBox, label: userAgreementLabel)
+            return false
         }
         
-        if isValid {
-            do {
-                try CoreDataManager.shared.saveCard(cardName: cardNameField.text!,
-                                                    cardNumber: cardNumberField.text!,
-                                                    cardExpirationDate: mmyyField.text!,
-                                                    cardCVC: cvcField.text!,
-                                                    cardholderName: cardholderNameField.text!,
-                                                    isPreferred: preferredPaymentMethodCheckBox.isChecked)
-            } catch {
-                let error = error as NSError
-                if error.code == 1 {
-                    print("Card with this name already exists")
-                    // Need to warn a user that a card with this name already exists
-                }
-            }
-            
-            dismiss(animated: true)
-        }
+        return true
     }
     
     private func setWarning<T: Warningable>(for element: T, label: UILabel) {
@@ -415,7 +397,25 @@ final class AddNewCardVC: UIViewController {
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.addCardButton.transform = CGAffineTransform.identity
         }, completion: nil)
-        validateForm()
+        
+        if isFormValid() {
+            do {
+                try CoreDataManager.shared.saveCard(cardName: cardNameField.text!,
+                                                    cardNumber: cardNumberField.text!,
+                                                    cardExpirationDate: mmyyField.text!,
+                                                    cardCVC: cvcField.text!,
+                                                    cardholderName: cardholderNameField.text!,
+                                                    isPreferred: preferredPaymentMethodCheckBox.isChecked)
+            } catch {
+                let error = error as NSError
+                if error.code == 1 {
+                    print("Card with this name already exists")
+                    // Need to warn a user that a card with this name already exists
+                }
+            }
+            
+            dismiss(animated: true)
+        }
     }
     
     @objc
