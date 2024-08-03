@@ -124,7 +124,7 @@ final class MenuTabVC: UIViewController {
     private var nestedOffersSnapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
     private var nestedCategoriesSnapshot = NSDiffableDataSourceSnapshot<Int, String>()
     
-    // MARK: - controller methods
+    //MARK: - Lifecycle methods
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -410,8 +410,11 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func layoutButtonTaped() {
-//        preloaderView.switchState() // for testing
-        CoreDataManager.shared.clearCart() // for testing
+        // for testing
+        let vc = InitialVC()
+        vc.modalTransitionStyle = .coverVertical
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
     }
 }
 

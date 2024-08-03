@@ -271,7 +271,7 @@ final class PaymentVC: UIViewController {
         return button
     }()
     
-    //MARK: - Life cycles methods
+    //MARK: - Lifecycle methods
     
     init(amountDue: Double) {
         self.amountDue = amountDue

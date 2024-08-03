@@ -60,6 +60,28 @@ final class ColorManager {
     let warningRed = UIColor(red: 0.92, green: 0.23, blue: 0.35, alpha: 1.00)
     let confirmingGreen = UIColor(red: 0.476, green: 0.894, blue: 0.409, alpha: 1)
     
+    // MARK: - Initial screan colors
+    
+    let initialVC_background = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+        ? UIColor(red: 0.063, green: 0.063, blue: 0.063, alpha: 1)
+        : UIColor(red: 0.705, green: 0.9, blue: 0.76, alpha: 1)
+    }
+    
+    let initialVC_loginButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+        ? UIColor(red: 0.25, green: 0.25, blue: 0.25, alpha: 1)
+        : UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+    }
+    
+    let initialVC_createAccountButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+            : UIColor(red: 0.3, green: 0.3, blue: 0.3, alpha: 1)
+    }
+    
+    let initialVC_continueAsGuestButtonColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)
+    
     // MARK: - Offer cell colors
     
     let offerCell_BorderSecondaryColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
@@ -133,7 +155,7 @@ final class ColorManager {
     let payment_mapViewColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
             ? UIColor(red: 0.105, green: 0.105, blue: 0.105, alpha: 1)
-            : UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1)
+            : UIColor(red: 0.985, green: 0.985, blue: 0.985, alpha: 1)
     }
     
     let payment_orderViewColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in

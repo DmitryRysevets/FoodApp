@@ -116,7 +116,13 @@ final class AddressVC: UIViewController {
         return mapView
     }()
     
-    private lazy var marker = GMSMarker()
+    private lazy var marker: GMSMarker = {
+        let marker = GMSMarker()
+        if let customIcon = UIImage(named: "GooglePin") {
+            marker.icon = customIcon
+        }
+        return marker
+    }()
     
     private lazy var defaultAddressCheckBox: CheckBox = {
         let checkbox = CheckBox()
@@ -153,12 +159,21 @@ final class AddressVC: UIViewController {
         return button
     }()
     
-    // MARK: - Lifecycle methods
+    // MARK: - Controller methods
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
+        applyMapStyle(for: mapView)
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        if previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle {
+            applyMapStyle(for: mapView)
+        }
     }
     
     // MARK: - internal methods
@@ -317,6 +332,26 @@ final class AddressVC: UIViewController {
         if field.isInWarning {
             field.isInWarning = false
             label.textColor = ColorManager.shared.labelGray
+        }
+    }
+    
+    private func applyMapStyle(for mapView: GMSMapView) {
+        let userInterfaceStyle = UITraitCollection.current.userInterfaceStyle
+        let styleFileName: String
+
+        switch userInterfaceStyle {
+        case .dark:
+            styleFileName = "dark_map_style"
+        default:
+            styleFileName = "light_map_style"
+        }
+
+        if let styleURL = Bundle.main.url(forResource: styleFileName, withExtension: "json") {
+            do {
+                mapView.mapStyle = try GMSMapStyle(contentsOfFileURL: styleURL)
+            } catch {
+                print("Failed to load map style. \(error)")
+            }
         }
     }
     
