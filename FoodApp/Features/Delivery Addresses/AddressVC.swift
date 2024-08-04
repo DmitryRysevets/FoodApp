@@ -79,6 +79,7 @@ final class AddressVC: UIViewController {
     private lazy var placeNameField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
+        field.returnKeyType = .next
         field.delegate = self
         return field
     }()
@@ -95,6 +96,7 @@ final class AddressVC: UIViewController {
     private lazy var addressField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
+        field.returnKeyType = .next
         field.delegate = self
         return field
     }()
@@ -341,9 +343,9 @@ final class AddressVC: UIViewController {
 
         switch userInterfaceStyle {
         case .dark:
-            styleFileName = "dark_map_style"
+            styleFileName = "map_dark_style"
         default:
-            styleFileName = "light_map_style"
+            styleFileName = "map_light_style"
         }
 
         if let styleURL = Bundle.main.url(forResource: styleFileName, withExtension: "json") {
@@ -452,7 +454,9 @@ extension AddressVC: CLLocationManagerDelegate {
 extension AddressVC: UITextFieldDelegate {
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        if textField == addressField {
+        if textField == placeNameField {
+            addressField.becomeFirstResponder()
+        } else if textField == addressField {
             guard let address = textField.text, !address.isEmpty else { return false }
             getCoordinatesFrom(address)
         }

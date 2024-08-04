@@ -7,6 +7,36 @@ import UIKit
 
 class InitialVC: UIViewController {
     
+    private lazy var weDeliverLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 55, axis: [Constants.fontWeightAxis : 650])
+        label.numberOfLines = 3
+        label.text = """
+            We
+            Deliver
+            Fresh Food
+            """
+        return label
+    }()
+    
+    private lazy var imageBackingView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.1)
+        view.layer.cornerRadius = 80
+        return view
+    }()
+    
+    private lazy var handWithBurgerImageView: UIImageView = {
+        let image = UIImage(named: "HandWithBurger")
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        return imageView
+    }()
+    
     private lazy var loginButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -59,6 +89,10 @@ class InitialVC: UIViewController {
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.initialVC_background
+        
+        view.addSubview(weDeliverLabel)
+        view.addSubview(imageBackingView)
+        view.addSubview(handWithBurgerImageView)
         view.addSubview(loginButton)
         view.addSubview(createAccountButton)
         view.addSubview(continueAsGuestButton)
@@ -67,7 +101,21 @@ class InitialVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            continueAsGuestButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -16),
+            weDeliverLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 48),
+            weDeliverLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
+            weDeliverLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
+            
+            imageBackingView.topAnchor.constraint(equalTo: handWithBurgerImageView.topAnchor, constant: 65),
+            imageBackingView.leadingAnchor.constraint(equalTo: handWithBurgerImageView.leadingAnchor, constant: 12),
+            imageBackingView.heightAnchor.constraint(equalToConstant: 270),
+            imageBackingView.widthAnchor.constraint(equalTo: imageBackingView.heightAnchor),
+            
+            handWithBurgerImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -150),
+            handWithBurgerImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 80),
+            handWithBurgerImageView.heightAnchor.constraint(equalToConstant: 450),
+            handWithBurgerImageView.widthAnchor.constraint(equalTo: handWithBurgerImageView.heightAnchor),
+            
+            continueAsGuestButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
             continueAsGuestButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
             continueAsGuestButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
             continueAsGuestButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
@@ -98,6 +146,11 @@ class InitialVC: UIViewController {
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.loginButton.transform = CGAffineTransform.identity
         }, completion: nil)
+        
+        let vc = LoginVC()
+        vc.modalTransitionStyle = .coverVertical
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
     }
     
     @objc
@@ -112,6 +165,11 @@ class InitialVC: UIViewController {
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.createAccountButton.transform = CGAffineTransform.identity
         }, completion: nil)
+        
+        let vc = CreateAccountVC()
+        vc.modalTransitionStyle = .coverVertical
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
     }
     
     @objc

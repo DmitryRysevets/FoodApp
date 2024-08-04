@@ -6,6 +6,7 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseStorage
+import FirebaseAuth
 
 enum NetworkLayerError: Error {
     case parseDataFailed
@@ -116,8 +117,8 @@ final class NetworkManager {
                     imageData: imageData)
     }
 
-    private func downloadImage(from url: String) async throws -> Data {
-        let imageStorageReference = storage.reference(forURL: url)
+    private func downloadImage(from storageURL: String) async throws -> Data {
+        let imageStorageReference = storage.reference(forURL: storageURL)
         let maxImageSize: Int64 = 2 * 1024 * 1024 // 2MB
 
         return try await withCheckedThrowingContinuation { continuation in

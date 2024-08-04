@@ -55,6 +55,7 @@ final class AddNewCardVC: UIViewController {
     private lazy var cardNameField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
+        field.returnKeyType = .next
         field.delegate = self
         return field
     }()
@@ -123,6 +124,7 @@ final class AddNewCardVC: UIViewController {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.autocapitalizationType = .allCharacters
+        field.returnKeyType = .done
         field.delegate = self
         return field
     }()
@@ -456,7 +458,9 @@ extension AddNewCardVC: UITextFieldDelegate {
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        if textField == cardholderNameField {
+        if textField == cardNameField {
+            cardNumberField.becomeFirstResponder()
+        } else if textField == cardholderNameField {
             textField.resignFirstResponder()
         }
         return true
