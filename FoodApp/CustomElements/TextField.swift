@@ -5,25 +5,32 @@
 
 import UIKit
 
-final class TextField: UITextField, Warningable {
+final class TextField: UITextField {
 
     var paddingTop: CGFloat = 8
     var paddingLeft: CGFloat = 16
     var paddingBottom: CGFloat = 8
     var paddingRight: CGFloat = 16
     
-    private let normalBorderColor = ColorManager.shared.regularFieldBorderColor
-    private let warningBorderColor = ColorManager.shared.warningRed.cgColor
+    weak var associatedLabel: UILabel?
+    
+    private let normalColor = ColorManager.shared.regularFieldBorderColor
+    private let warningColor = ColorManager.shared.warningRed.cgColor
     
     var isInWarning: Bool = false {
         didSet {
             updateBorder()
+            updateLabelColor()
         }
     }
     
     private func updateBorder() {
-        layer.borderColor = isInWarning ? warningBorderColor : normalBorderColor
+        layer.borderColor = isInWarning ? warningColor : normalColor
         layer.borderWidth = isInWarning ? 1 : 0.5
+    }
+    
+    private func updateLabelColor() {
+        associatedLabel?.textColor = isInWarning ? ColorManager.shared.warningRed : ColorManager.shared.labelGray
     }
 
     override func textRect(forBounds bounds: CGRect) -> CGRect {
@@ -46,7 +53,7 @@ final class TextField: UITextField, Warningable {
         layer.masksToBounds = true
         layer.cornerRadius = 22
         layer.borderWidth = 0.5
-        layer.borderColor = normalBorderColor
+        layer.borderColor = normalColor
         backgroundColor = ColorManager.shared.regularFieldColor
         tintColor = ColorManager.shared.orange
         textColor = ColorManager.shared.label

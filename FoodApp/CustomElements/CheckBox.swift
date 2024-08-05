@@ -5,29 +5,37 @@
 
 import UIKit
 
-final class CheckBox: UIButton, Warningable {
+final class CheckBox: UIButton {
     
     private let checkedImage = UIImage(systemName: "checkmark")! as UIImage
-    private let normalBorderColor = ColorManager.shared.labelGray.cgColor
-    private let warningBorderColor = ColorManager.shared.warningRed.cgColor
+    
+    private let normalColor = ColorManager.shared.labelGray.cgColor
+    private let warningColor = ColorManager.shared.warningRed.cgColor
     
     var isChecked: Bool = false {
         didSet {
-            self.setImage(isChecked ? checkedImage : nil, for: .normal)
+            setImage(isChecked ? checkedImage : nil, for: .normal)
         }
     }
     
+    weak var associatedLabel: UILabel?
+    
     var isInWarning: Bool = false {
         didSet {
-            self.layer.borderColor = isInWarning ? warningBorderColor : normalBorderColor
+            layer.borderColor = isInWarning ? warningColor : normalColor
+            updateLabelColor()
         }
+    }
+    
+    private func updateLabelColor() {
+        associatedLabel?.textColor = isInWarning ? ColorManager.shared.warningRed : ColorManager.shared.labelGray
     }
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         layer.cornerRadius = 5
         layer.borderWidth = 1
-        layer.borderColor = normalBorderColor
+        layer.borderColor = normalColor
         backgroundColor = ColorManager.shared.background
         tintColor = ColorManager.shared.orange
     }

@@ -5,7 +5,7 @@
 
 import UIKit
 
-class InitialVC: UIViewController {
+final class InitialVC: UIViewController {
     
     private lazy var weDeliverLabel: UILabel = {
         let label = UILabel()

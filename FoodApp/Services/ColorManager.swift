@@ -81,6 +81,7 @@ final class ColorManager {
     }
     
     let initialVC_continueAsGuestButtonColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)
+    let login_secondaryButtonColor = UIColor(red: 0.451, green: 0.510, blue: 0.794, alpha: 1)
     
     // MARK: - Offer cell colors
     

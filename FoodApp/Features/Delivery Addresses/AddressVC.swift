@@ -80,6 +80,7 @@ final class AddressVC: UIViewController {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.returnKeyType = .next
+        field.associatedLabel = placeNameLabel
         field.delegate = self
         return field
     }()
@@ -97,6 +98,7 @@ final class AddressVC: UIViewController {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.returnKeyType = .next
+        field.associatedLabel = addressLabel
         field.delegate = self
         return field
     }()
@@ -307,34 +309,24 @@ final class AddressVC: UIViewController {
     }
     
     private func isAddressValid() -> Bool {
+        var isValid = true
+        
         if placeNameField.text?.isEmpty ?? true {
-            setWarning(for: placeNameField, label: placeNameLabel)
-            return false
+            placeNameField.isInWarning = true
+            isValid = false
         }
 
         if addressField.text?.isEmpty ?? true {
-            setWarning(for: addressField, label: addressLabel)
-            return false
+            addressField.isInWarning = true
+            isValid = false
         }
         
         if location == nil {
             // need warning
-            return false
+            isValid = false
         }
         
-        return true
-    }
-    
-    private func setWarning(for field: TextField, label: UILabel) {
-        field.isInWarning = true
-        label.textColor = ColorManager.shared.warningRed
-    }
-
-    private func updateWarning(for field: TextField, label: UILabel) {
-        if field.isInWarning {
-            field.isInWarning = false
-            label.textColor = ColorManager.shared.labelGray
-        }
+        return isValid
     }
     
     private func applyMapStyle(for mapView: GMSMapView) {
@@ -426,7 +418,6 @@ final class AddressVC: UIViewController {
                 }
             }
         }
-        
     }
 }
 
@@ -466,9 +457,9 @@ extension AddressVC: UITextFieldDelegate {
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
         if textField == placeNameField {
-            updateWarning(for: placeNameField, label: placeNameLabel)
+            placeNameField.isInWarning = false
         } else if textField == addressField {
-            updateWarning(for: addressField, label: addressLabel)
+            addressField.isInWarning = false
         }
     }
     

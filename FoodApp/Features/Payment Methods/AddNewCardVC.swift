@@ -56,6 +56,7 @@ final class AddNewCardVC: UIViewController {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.returnKeyType = .next
+        field.associatedLabel = cardNameLabel
         field.delegate = self
         return field
     }()
@@ -73,6 +74,7 @@ final class AddNewCardVC: UIViewController {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.keyboardType = .numberPad
+        field.associatedLabel = cardNumberLabel
         field.delegate = self
         return field
     }()
@@ -90,6 +92,7 @@ final class AddNewCardVC: UIViewController {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.keyboardType = .numberPad
+        field.associatedLabel = mmyyLabel
         field.delegate = self
         return field
     }()
@@ -107,6 +110,7 @@ final class AddNewCardVC: UIViewController {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.keyboardType = .numberPad
+        field.associatedLabel = cvcLabel
         field.delegate = self
         return field
     }()
@@ -125,6 +129,7 @@ final class AddNewCardVC: UIViewController {
         field.translatesAutoresizingMaskIntoConstraints = false
         field.autocapitalizationType = .allCharacters
         field.returnKeyType = .done
+        field.associatedLabel = cardholderNameLabel
         field.delegate = self
         return field
     }()
@@ -155,6 +160,7 @@ final class AddNewCardVC: UIViewController {
         checkbox.translatesAutoresizingMaskIntoConstraints = false
         checkbox.addTarget(self, action: #selector(userAgreementCheckBoxDidTapped), for: .touchUpInside)
         checkbox.isChecked = false
+        checkbox.associatedLabel = userAgreementLabel
         return checkbox
     }()
     
@@ -299,61 +305,50 @@ final class AddNewCardVC: UIViewController {
     }
     
     private func isFormValid() -> Bool {
+        var isValid = true
         
         if cardNameField.text?.isEmpty ?? true {
-            setWarning(for: cardNameField, label: cardNameLabel)
-            return false
+            cardNameField.isInWarning = true
+            isValid = false
         }
         
         if cardNumberField.text?.replacingOccurrences(of: " ", with: "").count != 16 {
-            setWarning(for: cardNumberField, label: cardNumberLabel)
-            return false
+            cardNumberField.isInWarning = true
+            isValid = false
         }
         
         if let mmyyText = mmyyField.text, mmyyText.count == 5 {
             let components = mmyyText.split(separator: "/")
             if components.count == 2, let month = Int(components[0]), let year = Int(components[1]) {
                 if month < 1 || month > 12 || !isValidDate(month: month, year: year) {
-                    setWarning(for: mmyyField, label: mmyyLabel)
-                    return false
+                    mmyyField.isInWarning = true
+                    isValid = false
                 }
             } else {
-                setWarning(for: mmyyField, label: mmyyLabel)
-                return false
+                mmyyField.isInWarning = true
+                isValid = false
             }
         } else {
-            setWarning(for: mmyyField, label: mmyyLabel)
-            return false
+            mmyyField.isInWarning = true
+            isValid = false
         }
         
         if cvcField.text?.count != 3 {
-            setWarning(for: cvcField, label: cvcLabel)
-            return false
+            cvcField.isInWarning = true
+            isValid = false
         }
         
         if let cardholderName = cardholderNameField.text, cardholderName.count < 2 {
-            setWarning(for: cardholderNameField, label: cardholderNameLabel)
-            return false
+            cardholderNameField.isInWarning = true
+            isValid = false
         }
         
         if !userAgreementCheckBox.isChecked {
-            setWarning(for: userAgreementCheckBox, label: userAgreementLabel)
-            return false
+            userAgreementCheckBox.isInWarning = true
+            isValid = false
         }
         
-        return true
-    }
-    
-    private func setWarning<T: Warningable>(for element: T, label: UILabel) {
-        element.isInWarning = true
-        label.textColor = ColorManager.shared.warningRed
-    }
-    
-    private func updateWarning<T: Warningable>(for element: T, label: UILabel) {
-        if element.isInWarning {
-            element.isInWarning = false
-            label.textColor = ColorManager.shared.labelGray
-        }
+        return isValid
     }
     
     private func isValidDate(month: Int, year: Int) -> Bool {
@@ -379,7 +374,7 @@ final class AddNewCardVC: UIViewController {
     @objc
     private func userAgreementCheckBoxDidTapped() {
         userAgreementCheckBox.isChecked.toggle()
-        updateWarning(for: userAgreementCheckBox, label: userAgreementLabel)
+        userAgreementCheckBox.isInWarning = false
     }
     
     @objc
@@ -468,15 +463,15 @@ extension AddNewCardVC: UITextFieldDelegate {
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
         if textField == cardNameField {
-            updateWarning(for: cardNameField, label: cardNameLabel)
+            cardNameField.isInWarning = false
         } else if textField == cardNumberField {
-            updateWarning(for: cardNumberField, label: cardNumberLabel)
+            cardNumberField.isInWarning = false
         } else if textField == mmyyField {
-            updateWarning(for: mmyyField, label: mmyyLabel)
+            mmyyField.isInWarning = false
         } else if textField == cvcField {
-            updateWarning(for: cvcField, label: cvcLabel)
+            cvcField.isInWarning = false
         } else if textField == cardholderNameField {
-            updateWarning(for: cardholderNameField, label: cardholderNameLabel)
+            cardholderNameField.isInWarning = false
             textField.keyboardType = .asciiCapable
             textField.reloadInputViews()
         }

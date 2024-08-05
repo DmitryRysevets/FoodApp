@@ -5,7 +5,7 @@
 
 import UIKit
 
-class LoginVC: UIViewController {
+final class LoginVC: UIViewController {
     
     private lazy var loginLabel: UILabel = {
         let label = UILabel()
@@ -55,6 +55,26 @@ class LoginVC: UIViewController {
         button.addTarget(self, action: #selector(loginButtonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
         return button
     }()
+    
+    private lazy var dontHaveAccountLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
+        label.text = "Don't have an account?"
+        return label
+    }()
+    
+    private lazy var createAccountButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("Create Account", for: .normal)
+        button.setTitleColor(ColorManager.shared.login_secondaryButtonColor, for: .normal)
+        button.setTitleColor(ColorManager.shared.login_secondaryButtonColor.withAlphaComponent(0.6), for: .highlighted)
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
+        button.addTarget(self, action: #selector(createAccountButtonTapped), for: .touchUpInside)
+        return button
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -62,6 +82,8 @@ class LoginVC: UIViewController {
         setupConstraints()
         
         loginField.becomeFirstResponder()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
     }
     
     
@@ -73,6 +95,8 @@ class LoginVC: UIViewController {
         view.addSubview(passwordLabel)
         view.addSubview(passwordField)
         view.addSubview(loginButton)
+        view.addSubview(dontHaveAccountLabel)
+        view.addSubview(createAccountButton)
     }
     
     private func setupConstraints() {
@@ -95,24 +119,33 @@ class LoginVC: UIViewController {
             loginButton.topAnchor.constraint(equalTo: passwordField.bottomAnchor, constant: 80),
             loginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
             loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
-            loginButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight)
+            loginButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
+            
+            dontHaveAccountLabel.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
+            dontHaveAccountLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            createAccountButton.topAnchor.constraint(equalTo: dontHaveAccountLabel.bottomAnchor, constant: 8),
+            createAccountButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
     }
     
-    private func showError(_ message: String) {
-        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "ОК", style: .default, handler: nil))
-        present(alert, animated: true, completion: nil)
+    private func authenticateUser() {
+        if isFormValid() {
+            
+        } else {
+            
+        }
     }
     
-    private func authenticateUser() {
-        guard let login = loginField.text, !login.isEmpty,
-              let password = passwordField.text, !password.isEmpty else {
-            showError("Please enter your login and password")
-            return
+    private func isFormValid() -> Bool{
+        if let login = loginField.text, !login.isEmpty {
+            return false
         }
         
+        if let password = passwordField.text, !password.isEmpty {
+            return false
+        }
         
+        return true
     }
     
     @objc
@@ -129,6 +162,16 @@ class LoginVC: UIViewController {
         }, completion: nil)
         authenticateUser()
     }
+    
+    @objc
+    private func createAccountButtonTapped() {
+        dismiss(animated: true)
+    }
+    
+    @objc
+    private func dismissKeyboard() {
+        view.endEditing(true)
+    }
 
 }
 
@@ -140,6 +183,7 @@ extension LoginVC: UITextFieldDelegate {
         if textField == loginField {
             passwordField.becomeFirstResponder()
         } else if textField == passwordField && !loginField.text!.isEmpty {
+            textField.resignFirstResponder()
             authenticateUser()
         }
         return true
