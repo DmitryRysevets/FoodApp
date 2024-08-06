@@ -85,7 +85,7 @@ final class InitialVC: UIViewController {
         setupConstraints()
     }
     
-    // MARK: - private methods
+    // MARK: - Private methods
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.initialVC_background
@@ -132,7 +132,7 @@ final class InitialVC: UIViewController {
         ])
     }
     
-    // MARK: - objc methods
+    // MARK: - Objc methods
 
     @objc
     private func loginButtonTouchDown() {

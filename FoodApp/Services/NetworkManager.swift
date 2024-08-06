@@ -13,6 +13,9 @@ enum NetworkLayerError: Error {
     case downloadImageFailed(Error)
     case firestoreDataWasNotReceived(Error)
     case invalidData
+    case networkError(Error)
+    case authenticationFailed
+    case userAlreadyExists
 }
 
 final class NetworkManager {
@@ -23,6 +26,9 @@ final class NetworkManager {
 
     private let firestore = Firestore.firestore()
     private let storage = Storage.storage()
+    private let auth = Auth.auth()
+    
+    // MARK: - Menu methods
 
     func getMenu() async throws -> Menu {
         let offersData = try await getFirestoreData("offers")
@@ -69,7 +75,11 @@ final class NetworkManager {
         return version
     }
     
-    // MARK: - private methods
+    // MARK: - User authentication methods
+
+    
+    
+    // MARK: - Private methods
     
     private func getFirestoreData(_ collectionName: String) async throws -> [DocumentSnapshot] {
       do {
@@ -103,7 +113,7 @@ final class NetworkManager {
 
         return Dish(id: dishData.id,
                     name: dishData.name,
-                    description: dishData.description, 
+                    description: dishData.description,
                     ingredients: dishData.ingredients,
                     tags: dishData.tags,
                     weight: dishData.weight,
@@ -133,4 +143,5 @@ final class NetworkManager {
             }
         }
     }
+    
 }

@@ -7,18 +7,20 @@ import UIKit
 
 final class LoginVC: UIViewController {
     
-    private lazy var loginLabel: UILabel = {
+    private lazy var emailLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.labelGray
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
-        label.text = "Login"
+        label.text = "Email"
         return label
     }()
     
-    private lazy var loginField: TextField = {
+    private lazy var emailField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
+        field.associatedLabel = emailLabel
+        field.keyboardType = .emailAddress
         field.returnKeyType = .next
         field.delegate = self
         return field
@@ -36,6 +38,7 @@ final class LoginVC: UIViewController {
     private lazy var passwordField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
+        field.associatedLabel = passwordLabel
         field.isSecureTextEntry = true
         field.returnKeyType = .done
         field.delegate = self
@@ -56,6 +59,12 @@ final class LoginVC: UIViewController {
         return button
     }()
     
+    private lazy var createAccountView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     private lazy var dontHaveAccountLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -68,48 +77,82 @@ final class LoginVC: UIViewController {
     private lazy var createAccountButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle("Create Account", for: .normal)
+        button.setTitle("Create account", for: .normal)
         button.setTitleColor(ColorManager.shared.login_secondaryButtonColor, for: .normal)
         button.setTitleColor(ColorManager.shared.login_secondaryButtonColor.withAlphaComponent(0.6), for: .highlighted)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
         button.addTarget(self, action: #selector(createAccountButtonTapped), for: .touchUpInside)
         return button
     }()
+    
+    private lazy var continueAsGuestView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var orContinueAsLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
+        label.text = "Or continue as a"
+        return label
+    }()
+    
+    private lazy var guestButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("guest", for: .normal)
+        button.setTitleColor(ColorManager.shared.login_secondaryButtonColor, for: .normal)
+        button.setTitleColor(ColorManager.shared.login_secondaryButtonColor.withAlphaComponent(0.6), for: .highlighted)
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
+        button.addTarget(self, action: #selector(guestButtonTapped), for: .touchUpInside)
+        return button
+    }()
+    
+    // MARK: - Lifecycle methods
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
         
-        loginField.becomeFirstResponder()
+        emailField.becomeFirstResponder()
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
     }
     
+    // MARK: - Private methods
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         
-        view.addSubview(loginLabel)
-        view.addSubview(loginField)
+        view.addSubview(emailLabel)
+        view.addSubview(emailField)
         view.addSubview(passwordLabel)
         view.addSubview(passwordField)
         view.addSubview(loginButton)
-        view.addSubview(dontHaveAccountLabel)
-        view.addSubview(createAccountButton)
+        view.addSubview(createAccountView)
+        view.addSubview(continueAsGuestView)
+        
+        createAccountView.addSubview(dontHaveAccountLabel)
+        createAccountView.addSubview(createAccountButton)
+        continueAsGuestView.addSubview(orContinueAsLabel)
+        continueAsGuestView.addSubview(guestButton)
     }
     
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            loginLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 40),
-            loginLabel.leadingAnchor.constraint(equalTo: loginField.leadingAnchor, constant: 16),
-            loginField.topAnchor.constraint(equalTo: loginLabel.bottomAnchor, constant: 8),
-            loginField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            loginField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
-            loginField.heightAnchor.constraint(equalToConstant: Constants.regularFieldHeight),
+            emailLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 40),
+            emailLabel.leadingAnchor.constraint(equalTo: emailField.leadingAnchor, constant: 16),
+            emailField.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 8),
+            emailField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            emailField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            emailField.heightAnchor.constraint(equalToConstant: Constants.regularFieldHeight),
             
-            passwordLabel.topAnchor.constraint(equalTo: loginField.bottomAnchor, constant: 12),
+            passwordLabel.topAnchor.constraint(equalTo: emailField.bottomAnchor, constant: 12),
             passwordLabel.leadingAnchor.constraint(equalTo: passwordField.leadingAnchor, constant: 16),
             passwordField.topAnchor.constraint(equalTo: passwordLabel.bottomAnchor, constant: 8),
             passwordField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
@@ -121,10 +164,23 @@ final class LoginVC: UIViewController {
             loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
             loginButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
             
-            dontHaveAccountLabel.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
-            dontHaveAccountLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            createAccountButton.topAnchor.constraint(equalTo: dontHaveAccountLabel.bottomAnchor, constant: 8),
-            createAccountButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            createAccountView.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
+            createAccountView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            createAccountView.leadingAnchor.constraint(equalTo: dontHaveAccountLabel.leadingAnchor),
+            createAccountView.trailingAnchor.constraint(equalTo: createAccountButton.trailingAnchor),
+            createAccountView.bottomAnchor.constraint(equalTo: createAccountButton.bottomAnchor),
+            createAccountButton.topAnchor.constraint(equalTo: createAccountView.topAnchor),
+            createAccountButton.leadingAnchor.constraint(equalTo: dontHaveAccountLabel.trailingAnchor, constant: 4),
+            dontHaveAccountLabel.centerYAnchor.constraint(equalTo: createAccountButton.centerYAnchor),
+            
+            continueAsGuestView.topAnchor.constraint(equalTo: createAccountView.bottomAnchor, constant: 8),
+            continueAsGuestView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            continueAsGuestView.leadingAnchor.constraint(equalTo: orContinueAsLabel.leadingAnchor),
+            continueAsGuestView.trailingAnchor.constraint(equalTo: guestButton.trailingAnchor),
+            continueAsGuestView.bottomAnchor.constraint(equalTo: guestButton.bottomAnchor),
+            guestButton.topAnchor.constraint(equalTo: continueAsGuestView.topAnchor),
+            guestButton.leadingAnchor.constraint(equalTo: orContinueAsLabel.trailingAnchor, constant: 4),
+            orContinueAsLabel.centerYAnchor.constraint(equalTo: guestButton.centerYAnchor)
         ])
     }
     
@@ -136,17 +192,27 @@ final class LoginVC: UIViewController {
         }
     }
     
-    private func isFormValid() -> Bool{
-        if let login = loginField.text, !login.isEmpty {
-            return false
+    private func isFormValid() -> Bool {
+        var isValid = true
+        
+        if emailField.text?.isEmpty ?? true {
+            emailField.isInWarning = true
+            isValid = false
+        } else {
+            emailField.isInWarning = false
         }
         
-        if let password = passwordField.text, !password.isEmpty {
-            return false
+        if passwordField.text?.isEmpty ?? true {
+            passwordField.isInWarning = true
+            isValid = false
+        } else {
+            passwordField.isInWarning = false
         }
         
-        return true
+        return isValid
     }
+    
+    // MARK: - Objc methods
     
     @objc
     private func loginButtonTouchDown() {
@@ -169,6 +235,11 @@ final class LoginVC: UIViewController {
     }
     
     @objc
+    private func guestButtonTapped() {
+        dismiss(animated: true)
+    }
+    
+    @objc
     private func dismissKeyboard() {
         view.endEditing(true)
     }
@@ -180,9 +251,9 @@ final class LoginVC: UIViewController {
 extension LoginVC: UITextFieldDelegate {
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        if textField == loginField {
+        if textField == emailField {
             passwordField.becomeFirstResponder()
-        } else if textField == passwordField && !loginField.text!.isEmpty {
+        } else if textField == passwordField {
             textField.resignFirstResponder()
             authenticateUser()
         }
@@ -190,7 +261,9 @@ extension LoginVC: UITextFieldDelegate {
     }
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        
+        if let field = textField as? TextField {
+            field.isInWarning = false
+        }
     }
     
 }

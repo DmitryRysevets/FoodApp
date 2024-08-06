@@ -314,11 +314,15 @@ final class AddressVC: UIViewController {
         if placeNameField.text?.isEmpty ?? true {
             placeNameField.isInWarning = true
             isValid = false
+        } else {
+            placeNameField.isInWarning = false
         }
 
         if addressField.text?.isEmpty ?? true {
             addressField.isInWarning = true
             isValid = false
+        } else {
+            addressField.isInWarning = false
         }
         
         if location == nil {
@@ -456,10 +460,8 @@ extension AddressVC: UITextFieldDelegate {
     }
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        if textField == placeNameField {
-            placeNameField.isInWarning = false
-        } else if textField == addressField {
-            addressField.isInWarning = false
+        if let field = textField as? TextField {
+            field.isInWarning = false
         }
     }
     

@@ -462,18 +462,12 @@ extension AddNewCardVC: UITextFieldDelegate {
     }
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
-        if textField == cardNameField {
-            cardNameField.isInWarning = false
-        } else if textField == cardNumberField {
-            cardNumberField.isInWarning = false
-        } else if textField == mmyyField {
-            mmyyField.isInWarning = false
-        } else if textField == cvcField {
-            cvcField.isInWarning = false
-        } else if textField == cardholderNameField {
+        if textField == cardholderNameField {
             cardholderNameField.isInWarning = false
             textField.keyboardType = .asciiCapable
             textField.reloadInputViews()
+        } else if let field = textField as? TextField {
+            field.isInWarning = false
         }
     }
     
