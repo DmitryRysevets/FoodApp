@@ -1,10 +1,11 @@
 //
 //  DataManager.swift
-//  FoodApp
+//  FoodAppц
 //
 
 import Foundation
 import CoreData
+import Firebase
 
 final class CoreDataManager {
     
@@ -520,6 +521,32 @@ final class CoreDataManager {
             print("Failed to fetch address by placeName: \(error)")
             return false
         }
+    }
+    
+    // MARK: - User data methods
+    
+    func saveUser(_ user: User) {
+        let userEntity = UserEntity(context: context)
+        userEntity.id = user.uid
+        userEntity.email = user.email
+        userEntity.displayName = user.displayName
+        saveContext()
+    }
+
+    func fetchUser() -> UserEntity? {
+        let fetchRequest: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
+        do {
+            let users = try context.fetch(fetchRequest)
+            return users.first
+        } catch {
+            print("Failed to fetch user: \(error)")
+            return nil
+        }
+    }
+
+    func deleteUser(_ user: UserEntity) {
+        context.delete(user)
+        saveContext()
     }
     
 }

@@ -77,7 +77,47 @@ final class NetworkManager {
     
     // MARK: - User authentication methods
 
-    
+    func loginUser(email: String, password: String) async throws -> User {
+        return try await withCheckedThrowingContinuation { continuation in
+            auth.signIn(withEmail: email, password: password) { authResult, error in
+                if let error = error {
+                    if (error as NSError).code == AuthErrorCode.networkError.rawValue {
+                        continuation.resume(throwing: NetworkLayerError.networkError(error))
+                    } else {
+                        continuation.resume(throwing: NetworkLayerError.authenticationFailed)
+                    }
+                    return
+                }
+                guard let user = authResult?.user else {
+                    continuation.resume(throwing: NetworkLayerError.authenticationFailed)
+                    return
+                }
+                continuation.resume(returning: user)
+            }
+        }
+    }
+
+    func registerUser(email: String, password: String) async throws -> User {
+        return try await withCheckedThrowingContinuation { continuation in
+            auth.createUser(withEmail: email, password: password) { authResult, error in
+                if let error = error {
+                    if (error as NSError).code == AuthErrorCode.emailAlreadyInUse.rawValue {
+                        continuation.resume(throwing: NetworkLayerError.userAlreadyExists)
+                    } else if (error as NSError).code == AuthErrorCode.networkError.rawValue {
+                        continuation.resume(throwing: NetworkLayerError.networkError(error))
+                    } else {
+                        continuation.resume(throwing: NetworkLayerError.authenticationFailed)
+                    }
+                    return
+                }
+                guard let user = authResult?.user else {
+                    continuation.resume(throwing: NetworkLayerError.authenticationFailed)
+                    return
+                }
+                continuation.resume(returning: user)
+            }
+        }
+    }
     
     // MARK: - Private methods
     

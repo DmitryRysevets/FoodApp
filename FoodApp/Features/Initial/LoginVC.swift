@@ -20,6 +20,7 @@ final class LoginVC: UIViewController {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.associatedLabel = emailLabel
+        field.autocapitalizationType = .none
         field.keyboardType = .emailAddress
         field.returnKeyType = .next
         field.delegate = self
@@ -39,6 +40,7 @@ final class LoginVC: UIViewController {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.associatedLabel = passwordLabel
+        field.autocapitalizationType = .none
         field.isSecureTextEntry = true
         field.returnKeyType = .done
         field.delegate = self
@@ -186,9 +188,21 @@ final class LoginVC: UIViewController {
     
     private func authenticateUser() {
         if isFormValid() {
+            guard let email = emailField.text, let password = passwordField.text else { return }
             
+            Task {
+                do {
+                    let user = try await NetworkManager.shared.loginUser(email: email, password: password)
+                    print("User logged in: \(user.uid)")
+                    // Navigate to another screen or load user data
+                } catch NetworkLayerError.networkError(let error) {
+                    // warning "Network error: \(error.localizedDescription)"
+                } catch {
+                    // warning "Failed to login user"
+                }
+            }
         } else {
-            
+            // warning "Please fill in all fields"
         }
     }
     

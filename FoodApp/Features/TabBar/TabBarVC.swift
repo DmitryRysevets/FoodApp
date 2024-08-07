@@ -108,6 +108,15 @@ class TabBarVC: UIViewController {
         setupConstraints()
     }
     
+    func initialSetup(with frame: CGRect) {
+        let menuVC = TabBarVC.menuVC
+        menuVC.view.frame = frame
+        menuVC.didMove(toParent: self)
+        addChild(menuVC)
+        view.addSubview(menuVC.view)
+        view.bringSubviewToFront(tabBarView)
+    }
+    
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         view.addSubview(tabBarView)
