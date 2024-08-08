@@ -4,6 +4,7 @@
 //
 
 import UIKit
+import FirebaseAuth
 
 final class LoginVC: UIViewController {
     
@@ -192,17 +193,35 @@ final class LoginVC: UIViewController {
             
             Task {
                 do {
-                    let user = try await NetworkManager.shared.loginUser(email: email, password: password)
-                    print("User logged in: \(user.uid)")
-                    // Navigate to another screen or load user data
-                } catch NetworkLayerError.networkError(let error) {
-                    // warning "Network error: \(error.localizedDescription)"
+                    try await DataManager.shared.authenticateUser(email: email, password: password)
+                    // -> navigate to menu
                 } catch {
-                    // warning "Failed to login user"
+                    handleAuthenticationError(error)
                 }
             }
         } else {
             // warning "Please fill in all fields"
+        }
+    }
+    
+    private func handleAuthenticationError(_ error: Error) {
+        if let networkError = error as? NetworkLayerError {
+            switch networkError {
+            case .networkError(let underlyingError):
+                // warning - "Network connection error. Please try again later."
+                print(underlyingError.localizedDescription)
+            case .authenticationFailed:
+                // warning - "Authentication failed. Please check your credentials and try again."
+                print(error)
+            case .firestoreDataWasNotReceived(let firestoreError):
+                // warning - "Failed to receive data from server. Please try again later."
+                print(firestoreError.localizedDescription)
+            default:
+                // warning - "An unknown error occurred. Please try again later."
+                print(error)
+            }
+        } else {
+            // warning - "An unknown error occurred. Please try again later."
         }
     }
     

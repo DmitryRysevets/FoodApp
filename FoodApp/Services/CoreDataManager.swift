@@ -1,6 +1,6 @@
 //
 //  DataManager.swift
-//  FoodAppц
+//  FoodApp
 //
 
 import Foundation

@@ -77,7 +77,7 @@ final class NetworkManager {
     
     // MARK: - User authentication methods
 
-    func loginUser(email: String, password: String) async throws -> User {
+    func authenticateUser(email: String, password: String) async throws -> User {
         return try await withCheckedThrowingContinuation { continuation in
             auth.signIn(withEmail: email, password: password) { authResult, error in
                 if let error = error {
