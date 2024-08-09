@@ -30,15 +30,16 @@ final class MenuTabVC: UIViewController {
         view.backgroundColor = ColorManager.shared.background
         return view
     }()
-    
-    private lazy var profilePhotoView: UIImageView = {
-        let image = UIImage(named: "Profile2")
+
+    private lazy var avatarImageView: UIImageView = {
+        let image = UIImage(named: "Guest")
         let imageView = UIImageView(image: image)
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .center
-        imageView.tintColor = ColorManager.shared.label
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = ColorManager.shared.label.withAlphaComponent(0.5)
         imageView.backgroundColor = ColorManager.shared.headerElementsColor
         imageView.layer.cornerRadius = Constants.headerButtonSize / 2
+        imageView.clipsToBounds = true
         return imageView
     }()
     
@@ -285,7 +286,7 @@ final class MenuTabVC: UIViewController {
         view.addSubview(headerView)
         view.addSubview(preloaderView)
         
-        headerView.addSubview(profilePhotoView)
+        headerView.addSubview(avatarImageView)
         headerView.addSubview(pinImageView)
         headerView.addSubview(deliveryAdressLabel)
         headerView.addSubview(notificationButton)
@@ -300,12 +301,13 @@ final class MenuTabVC: UIViewController {
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             headerView.heightAnchor.constraint(equalToConstant: Constants.headerHeight),
             
-            profilePhotoView.topAnchor.constraint(equalTo: headerView.topAnchor),
-            profilePhotoView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            profilePhotoView.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
-            profilePhotoView.widthAnchor.constraint(equalTo: profilePhotoView.heightAnchor),
+            avatarImageView.topAnchor.constraint(equalTo: headerView.topAnchor),
+            avatarImageView.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
+            avatarImageView.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
+            avatarImageView.widthAnchor.constraint(equalTo: avatarImageView.heightAnchor),
+            
             pinImageView.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -headerBottomPadding / 2),
-            pinImageView.leadingAnchor.constraint(equalTo: profilePhotoView.trailingAnchor, constant: 16),
+            pinImageView.leadingAnchor.constraint(equalTo: avatarImageView.trailingAnchor, constant: 16),
             pinImageView.heightAnchor.constraint(equalToConstant: 20),
             pinImageView.widthAnchor.constraint(equalToConstant: 20),
             layoutButton.topAnchor.constraint(equalTo: headerView.topAnchor),

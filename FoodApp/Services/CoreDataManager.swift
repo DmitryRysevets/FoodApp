@@ -530,6 +530,7 @@ final class CoreDataManager {
         userEntity.id = user.uid
         userEntity.email = user.email
         userEntity.displayName = user.displayName
+        userEntity.avatarURL = user.photoURL?.absoluteString
         saveContext()
     }
 
@@ -542,6 +543,12 @@ final class CoreDataManager {
             print("Failed to fetch user: \(error)")
             return nil
         }
+    }
+    
+    func updateUserAvatar(_ user: UserEntity, avatarData: Data?, avatarURL: String?) {
+        user.avatar = avatarData
+        user.avatarURL = avatarURL
+        saveContext()
     }
 
     func deleteUser(_ user: UserEntity) {

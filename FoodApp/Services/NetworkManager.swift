@@ -11,6 +11,7 @@ import FirebaseAuth
 enum NetworkLayerError: Error {
     case parseDataFailed
     case downloadImageFailed(Error)
+    case uploadImageFailed(Error)
     case firestoreDataWasNotReceived(Error)
     case invalidData
     case networkError(Error)
@@ -27,6 +28,23 @@ final class NetworkManager {
     private let firestore = Firestore.firestore()
     private let storage = Storage.storage()
     private let auth = Auth.auth()
+    
+    func downloadImage(from storageURL: String) async throws -> Data {
+        let imageStorageReference = storage.reference(forURL: storageURL)
+        let maxImageSize: Int64 = 2 * 1024 * 1024 // 2MB
+
+        return try await withCheckedThrowingContinuation { continuation in
+            imageStorageReference.getData(maxSize: maxImageSize) { data, error in
+                if let error = error {
+                    continuation.resume(throwing: NetworkLayerError.downloadImageFailed(error))
+                } else if let data = data {
+                    continuation.resume(returning: data)
+                } else {
+                    fatalError("\(#function) Unexpected: Both data and error are nil")
+                }
+            }
+        }
+    }
     
     // MARK: - Menu methods
 
@@ -119,6 +137,40 @@ final class NetworkManager {
         }
     }
     
+    func uploadUserAvatar(_ imageData: Data, userId: String) async throws -> String {
+        let avatarRef = storage.reference().child("userAvatars/\(userId)/avatar.jpg")
+        
+        return try await withCheckedThrowingContinuation { continuation in
+            avatarRef.putData(imageData, metadata: nil) { metadata, error in
+                if let error = error {
+                    continuation.resume(throwing: NetworkLayerError.uploadImageFailed(error))
+                } else {
+                    avatarRef.downloadURL { url, error in
+                        if let error = error {
+                            continuation.resume(throwing: NetworkLayerError.uploadImageFailed(error))
+                        } else if let url = url {
+                            continuation.resume(returning: url.absoluteString)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    func deleteUserAvatar(userId: String) async throws {
+        let avatarRef = storage.reference().child("userAvatars/\(userId)/avatar.jpg")
+        
+        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+            avatarRef.delete { error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume(returning: ())
+                }
+            }
+        }
+    }
+    
     // MARK: - Private methods
     
     private func getFirestoreData(_ collectionName: String) async throws -> [DocumentSnapshot] {
@@ -165,23 +217,6 @@ final class NetworkManager {
                     price: dishData.price,
                     recentPrice: dishData.recentPrice,
                     imageData: imageData)
-    }
-
-    private func downloadImage(from storageURL: String) async throws -> Data {
-        let imageStorageReference = storage.reference(forURL: storageURL)
-        let maxImageSize: Int64 = 2 * 1024 * 1024 // 2MB
-
-        return try await withCheckedThrowingContinuation { continuation in
-            imageStorageReference.getData(maxSize: maxImageSize) { data, error in
-                if let error = error {
-                    continuation.resume(throwing: NetworkLayerError.downloadImageFailed(error))
-                } else if let data = data {
-                    continuation.resume(returning: data)
-                } else {
-                    fatalError("\(#function) Unexpected: Both data and error are nil")
-                }
-            }
-        }
     }
     
 }

@@ -3,7 +3,7 @@
 //  FoodApp
 //
 
-import Foundation
+import UIKit
 import FirebaseAuth
 
 final class DataManager {
@@ -48,11 +48,26 @@ final class DataManager {
     
     // MARK: - User data methods
     
+    func isUserLoggedIn() -> Bool {
+        return UserDefaults.standard.bool(forKey: "isUserLoggedIn")
+    }
+    
+    func getUser() -> UserEntity? {
+        return coreDataManager.fetchUser()
+    }
+    
     func authenticateUser(email: String, password: String) async throws {
         do {
             let user = try await networkManager.authenticateUser(email: email, password: password)
             coreDataManager.saveUser(user)
             UserDefaults.standard.set(true, forKey: "isUserLoggedIn")
+            
+            if let avatarURL = user.photoURL?.absoluteString {
+                let avatarData = try await networkManager.downloadImage(from: avatarURL)
+                if let userEntity = coreDataManager.fetchUser() {
+                    coreDataManager.updateUserAvatar(userEntity, avatarData: avatarData, avatarURL: avatarURL)
+                }
+            }
         } catch {
             throw error
         }
@@ -67,19 +82,38 @@ final class DataManager {
             throw error
         }
     }
-
+    
     func logoutUser() {
         if let userEntity = coreDataManager.fetchUser() {
             coreDataManager.deleteUser(userEntity)
         }
         UserDefaults.standard.set(false, forKey: "isUserLoggedIn")
     }
+    
+    func getUserAvatar() -> UIImage? {
+        if let userEntity = coreDataManager.fetchUser(),
+           let avatarData = userEntity.avatar {
+            return UIImage(data: avatarData)
+        } else {
+            return UIImage(named: "Guest")
+        }
+    }
+    
+    func uploadUserAvatar(_ image: UIImage) async throws {
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+        guard let userEntity = coreDataManager.fetchUser() else { return }
+        guard let userId = userEntity.id else { return }
 
-    func isUserLoggedIn() -> Bool {
-        return UserDefaults.standard.bool(forKey: "isUserLoggedIn")
+        let avatarURL = try await networkManager.uploadUserAvatar(imageData, userId: userId)
+        coreDataManager.updateUserAvatar(userEntity, avatarData: imageData, avatarURL: avatarURL)
     }
 
-    func getUser() -> UserEntity? {
-        return coreDataManager.fetchUser()
+    func deleteUserAvatar() async throws {
+        guard let userEntity = coreDataManager.fetchUser() else { return }
+        guard let userId = userEntity.id else { return }
+
+        try await networkManager.deleteUserAvatar(userId: userId)
+        coreDataManager.updateUserAvatar(userEntity, avatarData: nil, avatarURL: nil)
     }
+
 }
