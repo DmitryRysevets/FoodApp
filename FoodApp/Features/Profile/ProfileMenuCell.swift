@@ -11,25 +11,45 @@ class ProfileMenuCell: UITableViewCell {
     
     var menuItemName: String! {
         didSet {
-            menuItemLabel.text = menuItemName
+            menuItemNameLabel.text = menuItemName
             setupUI()
         }
     }
     
-    private lazy var menuItemLabel: UILabel = {
+    var extraParameter: String? {
+        didSet {
+            extraParameterLabel.text = extraParameter
+        }
+    }
+    
+    private lazy var menuItemNameLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 600])
         return label
     }()
+    
+    private lazy var extraParameterLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 450])
+        label.textAlignment = .right
+        return label
+    }()
 
     private func setupUI() {
         backgroundColor = ColorManager.shared.background
-        addSubview(menuItemLabel)
+        addSubview(menuItemNameLabel)
+        addSubview(extraParameterLabel)
         NSLayoutConstraint.activate([
-            menuItemLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            menuItemLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16)
+            menuItemNameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            menuItemNameLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            menuItemNameLabel.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 0.5, constant: -24),
+            extraParameterLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
+            extraParameterLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            extraParameterLabel.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 0.5, constant: -40)
         ])
     }
     

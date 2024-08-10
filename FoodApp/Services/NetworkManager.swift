@@ -80,7 +80,7 @@ final class NetworkManager {
         return Menu(offers: offers, dishes: dishes)
     }
     
-    func getLatestMenuVersion() async throws -> String {
+    func getLatestMenuVersionNumber() async throws -> String {
         let documents = try await getFirestoreData("versions")
                 
         guard let document = documents.first(where: { $0.documentID == "latest" }),

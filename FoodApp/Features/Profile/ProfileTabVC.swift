@@ -8,8 +8,23 @@ import FirebaseAuth
 
 class ProfileTabVC: UIViewController {
     
+    private var user: UserEntity? {
+        didSet {
+            if let user = user {
+                userName = user.email!
+            } else {
+                userName = "Guest"
+            }
+            tableView.reloadData()
+        }
+    }
+    
+    private var userName = "Guest"
+    private var addressName: String?
+    private var cardName: String?
+    
     private let menuItems: [String] = [
-        "Account", // Name, Mail, Phone Number, Profile Photo
+        "Account",
         "Delivery Addresses",
         "Payment Methods",
         "Order History",
@@ -35,7 +50,7 @@ class ProfileTabVC: UIViewController {
     }()
     
     private lazy var avatarImageView: UIImageView = {
-        let image = UIImage(named: "Guest")
+        let image = DataManager.shared.getUserAvatar()
         let imageView = UIImageView(image: image)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
@@ -61,11 +76,24 @@ class ProfileTabVC: UIViewController {
         return table
     }()
     
+    // MARK: - Lifecycle methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        DispatchQueue.main.async {
+            self.addressName = CoreDataManager.shared.getDefaultAddressName()
+            self.cardName = CoreDataManager.shared.getPreferredCardName()
+            self.user = DataManager.shared.getUser()
+        }
+    }
+    
+    // MARK: - Private methods
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
@@ -75,13 +103,6 @@ class ProfileTabVC: UIViewController {
         view.addSubview(tableView)
         
         headerView.addSubview(profileTitle)
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        DispatchQueue.main.async {
-            self.avatarImageView.image = DataManager.shared.getUserAvatar()
-        }
     }
     
     private func setupConstraints() {
@@ -129,6 +150,8 @@ class ProfileTabVC: UIViewController {
         self.present(vc, animated: true)
     }
     
+    // MARK: - Objc methods
+    
     @objc
     private func avatarImageViewTapped() {
         if DataManager.shared.isUserLoggedIn() {
@@ -143,6 +166,8 @@ class ProfileTabVC: UIViewController {
     
 }
 
+// MARK: - UITableViewDelegate
+
 extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         menuItems.count
@@ -150,6 +175,26 @@ extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ProfileMenuCell.id, for: indexPath) as! ProfileMenuCell
+        
+        switch menuItems[indexPath.row] {
+        case "Account":
+            cell.extraParameter = userName
+        case "Delivery Addresses":
+            if let address = addressName {
+                cell.extraParameter = address
+            } else {
+                cell.extraParameter = ">"
+            }
+        case "Payment Methods":
+            if let card = cardName {
+                cell.extraParameter = card
+            } else {
+                cell.extraParameter = ">"
+            }
+        default:
+            cell.extraParameter = ""
+        }
+        
         cell.menuItemName = menuItems[indexPath.row]
         cell.selectionStyle = .none
         return cell
@@ -163,6 +208,8 @@ extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
         let targetVC: UIViewController
         
         switch menuItems[indexPath.row] {
+        case "Account":
+            targetVC = AccountVC()
         case "Delivery Addresses":
             targetVC = DeliveryAddressesVC()
         case "Payment Methods":
@@ -177,6 +224,8 @@ extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
     }
     
 }
+
+// MARK: - Picker delegate
 
 extension ProfileTabVC: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     

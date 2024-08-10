@@ -19,8 +19,8 @@ final class DataManager {
     
     func isLatestMenuInStorage() async -> Bool {
         do {
-            let localVersion = coreDataManager.getMenuVersion()
-            let latestVersion = try await networkManager.getLatestMenuVersion()
+            let localVersion = coreDataManager.getCurrentMenuVersionNumber()
+            let latestVersion = try await networkManager.getLatestMenuVersionNumber()
             return localVersion == latestVersion
         } catch {
             print("Error fetching menu version from firestore: \(error)")
@@ -35,7 +35,7 @@ final class DataManager {
                 return menu
             } else {
                 let newMenu = try await networkManager.getMenu()
-                let latestVersion = try await networkManager.getLatestMenuVersion()
+                let latestVersion = try await networkManager.getLatestMenuVersionNumber()
                 coreDataManager.saveMenu(newMenu)
                 coreDataManager.setMenuVersion(latestVersion)
                 return newMenu
@@ -64,15 +64,13 @@ final class DataManager {
             
             if let avatarURL = user.photoURL?.absoluteString {
                 let avatarData = try await networkManager.downloadImage(from: avatarURL)
-                if let userEntity = coreDataManager.fetchUser() {
-                    coreDataManager.updateUserAvatar(userEntity, avatarData: avatarData, avatarURL: avatarURL)
-                }
+                coreDataManager.updateUserAvatar(with: avatarData)
             }
         } catch {
             throw error
         }
     }
-
+    
     func registerUser(email: String, password: String) async throws {
         do {
             let user = try await networkManager.registerUser(email: email, password: password)
@@ -83,10 +81,16 @@ final class DataManager {
         }
     }
     
-    func logoutUser() {
-        if let userEntity = coreDataManager.fetchUser() {
-            coreDataManager.deleteUser(userEntity)
+    func logoutUser() throws {
+        do {
+            try Auth.auth().signOut()
+        } catch let signOutError as NSError {
+            print("Error signing out: \(signOutError)")
+            throw signOutError
         }
+        
+        coreDataManager.deleteUser()
+        
         UserDefaults.standard.set(false, forKey: "isUserLoggedIn")
     }
     

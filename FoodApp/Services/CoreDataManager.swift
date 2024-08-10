@@ -118,7 +118,7 @@ final class CoreDataManager {
         return existingDishIDs != newDishIDs || existingOfferIDs != newOfferIDs
     }
     
-    func getMenuVersion() -> String? {
+    func getCurrentMenuVersionNumber() -> String? {
         let fetchRequest: NSFetchRequest<MenuVersion> = MenuVersion.fetchRequest()
         
         do {
@@ -348,25 +348,24 @@ final class CoreDataManager {
             throw NSError(domain: "", code: 1, userInfo: [NSLocalizedDescriptionKey: "Card with this name already exists."])
         }
         
-        if isPreferred {
-            let fetchRequest: NSFetchRequest<CardEntity> = CardEntity.fetchRequest()
-            do {
-                let cards = try context.fetch(fetchRequest)
-                for card in cards {
-                    card.isPreferred = false
-                }
-            } catch {
-                print("Failed to fetch cards: \(error)")
+        let fetchRequest: NSFetchRequest<CardEntity> = CardEntity.fetchRequest()
+        let cards = try context.fetch(fetchRequest)
+        
+        let shouldBePreferred = cards.isEmpty || isPreferred
+        
+        if shouldBePreferred {
+            for card in cards {
+                card.isPreferred = false
             }
         }
         
         let cardEntity = CardEntity(context: context)
-        cardEntity.isPreferred = isPreferred
         cardEntity.cardNumber = cardNumber
         cardEntity.cardName = cardName
         cardEntity.cardholderName = cardholderName
         cardEntity.cardExpirationDate = cardExpirationDate
         cardEntity.cardCVC = cardCVC
+        cardEntity.isPreferred = shouldBePreferred
         
         saveContext()
     }
@@ -400,6 +399,22 @@ final class CoreDataManager {
         }
     }
     
+    func getPreferredCardName() -> String? {
+        let fetchRequest: NSFetchRequest<CardEntity> = CardEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "isPreferred == true")
+        fetchRequest.fetchLimit = 1
+        
+        do {
+            if let preferredCard = try context.fetch(fetchRequest).first {
+                return preferredCard.cardName
+            }
+        } catch {
+            print("Failed to fetch preferred card: \(error)")
+        }
+        
+        return nil
+    }
+    
     func cardNameExists(_ cardName: String) -> Bool {
         let fetchRequest: NSFetchRequest<CardEntity> = CardEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "cardName == %@", cardName)
@@ -431,16 +446,14 @@ final class CoreDataManager {
             throw NSError(domain: "", code: 1, userInfo: [NSLocalizedDescriptionKey: "Address with this place name already exists."])
         }
         
-        // If the new address is default, set all other addresses to not default
-        if isDefaultAddress {
-            let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
-            do {
-                let addresses = try context.fetch(fetchRequest)
-                for address in addresses {
-                    address.isDefaultAddress = false
-                }
-            } catch {
-                print("Failed to fetch addresses: \(error)")
+        let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
+        let addresses = try context.fetch(fetchRequest)
+        
+        let shouldBeDefault = addresses.isEmpty || isDefaultAddress
+        
+        if shouldBeDefault {
+            for address in addresses {
+                address.isDefaultAddress = false
             }
         }
         
@@ -449,7 +462,7 @@ final class CoreDataManager {
         addressEntity.address = address
         addressEntity.latitude = latitude
         addressEntity.longitude = longitude
-        addressEntity.isDefaultAddress = isDefaultAddress
+        addressEntity.isDefaultAddress = shouldBeDefault
         
         saveContext()
     }
@@ -510,6 +523,22 @@ final class CoreDataManager {
         }
     }
     
+    func getDefaultAddressName() -> String? {
+        let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "isDefaultAddress == true")
+        fetchRequest.fetchLimit = 1
+        
+        do {
+            if let defaultAddress = try context.fetch(fetchRequest).first {
+                return defaultAddress.placeName
+            }
+        } catch {
+            print("Failed to fetch default address: \(error)")
+        }
+        
+        return nil
+    }
+    
     func placeNameExists(_ placeName: String) -> Bool {
         let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "placeName == %@", placeName)
@@ -550,8 +579,15 @@ final class CoreDataManager {
         user.avatarURL = avatarURL
         saveContext()
     }
+    
+    func updateUserAvatar(with avatarData: Data) {
+        let user = fetchUser()
+        user?.avatar = avatarData
+        saveContext()
+    }
 
-    func deleteUser(_ user: UserEntity) {
+    func deleteUser() {
+        guard let user = fetchUser() else { return }
         context.delete(user)
         saveContext()
     }

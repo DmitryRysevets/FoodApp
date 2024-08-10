@@ -20,7 +20,7 @@ final class MenuTabVC: UIViewController {
     
     private lazy var preloaderView = PreloaderView(frame: CGRect(x: 32, y: Int(view.center.y - 100), width: Int(view.frame.width - 64), height: 180))
     
-    // MARK: - header props.
+    // MARK: - Header props.
     
     private var headerBottomPadding: Double = Constants.headerHeight - Constants.headerButtonSize
     
@@ -85,7 +85,7 @@ final class MenuTabVC: UIViewController {
         return button
     }()
     
-    // MARK: - search bar props.
+    // MARK: - Search bar props.
     
     private lazy var searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -106,7 +106,7 @@ final class MenuTabVC: UIViewController {
     private var isFilteredByTag = false
     private var isSearching = false
     
-    // MARK: - collection view props.
+    // MARK: - Collection view props.
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -125,7 +125,7 @@ final class MenuTabVC: UIViewController {
     private var nestedOffersSnapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
     private var nestedCategoriesSnapshot = NSDiffableDataSourceSnapshot<Int, String>()
     
-    //MARK: - Lifecycle methods
+    // MARK: - Lifecycle methods
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -149,7 +149,7 @@ final class MenuTabVC: UIViewController {
         setupSearchBar()
     }
     
-    // MARK: - collection view methods
+    // MARK: - Collection view methods
     
     private func configureDataSource() {
         dataSource = UICollectionViewDiffableDataSource<Int, AnyHashable>(collectionView: collectionView) { collectionView, indexPath, item in
@@ -277,7 +277,7 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    // MARK: - private methods
+    // MARK: - Private methods
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
@@ -389,7 +389,7 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    // MARK: - internal methods
+    // MARK: - Internal methods
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let translation = scrollView.panGestureRecognizer.translation(in: scrollView.superview)
@@ -403,7 +403,7 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    // MARK: - objc methods
+    // MARK: - Objc methods
     
     @objc
     private func notificationButtonTaped() {
@@ -420,8 +420,8 @@ final class MenuTabVC: UIViewController {
     }
 }
 
-
 // MARK: - UICollectionViewDelegate
+
 extension MenuTabVC: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -456,8 +456,8 @@ extension MenuTabVC: UICollectionViewDelegate {
     }
 }
 
-
 // MARK: - UICollectionViewDelegateFlowLayout
+
 extension MenuTabVC: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -495,8 +495,8 @@ extension MenuTabVC: UICollectionViewDelegateFlowLayout {
     
 }
 
-
 // MARK: - UISearchBarDelegate
+
 extension MenuTabVC: UISearchBarDelegate {
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
