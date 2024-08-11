@@ -574,9 +574,16 @@ final class CoreDataManager {
         }
     }
     
-    func updateUserAvatar(_ user: UserEntity, avatarData: Data?, avatarURL: String?) {
-        user.avatar = avatarData
-        user.avatarURL = avatarURL
+    func setDisplayName(_ name: String) {
+        let user = fetchUser()
+        user?.displayName = name
+        saveContext()
+    }
+    
+    func updateUserAvatar(avatarData: Data?, avatarURL: String?) {
+        let user = fetchUser()
+        user?.avatar = avatarData
+        user?.avatarURL = avatarURL
         saveContext()
     }
     

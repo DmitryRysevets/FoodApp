@@ -6,15 +6,21 @@
 import UIKit
 import FirebaseAuth
 
-class ProfileTabVC: UIViewController {
+final class ProfileTabVC: UIViewController {
     
     private var user: UserEntity? {
         didSet {
             if let user = user {
-                userName = user.email!
+                if let name = user.displayName, !name.isEmpty {
+                    userName = name
+                } else {
+                    userName = "User"
+                }
             } else {
                 userName = "Guest"
             }
+            
+            avatarImageView.image = DataManager.shared.getUserAvatar()
             tableView.reloadData()
         }
     }
@@ -143,6 +149,15 @@ class ProfileTabVC: UIViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    private func presentImagePicker() {
+        let imagePicker = UIImagePickerController()
+        imagePicker.delegate = self
+        imagePicker.sourceType = .photoLibrary
+        imagePicker.allowsEditing = true
+        imagePicker.modalPresentationStyle = .fullScreen
+        present(imagePicker, animated: true, completion: nil)
+    }
+    
     private func navigateToLogin() {
         let vc = LoginVC()
         vc.modalTransitionStyle = .coverVertical
@@ -155,10 +170,7 @@ class ProfileTabVC: UIViewController {
     @objc
     private func avatarImageViewTapped() {
         if DataManager.shared.isUserLoggedIn() {
-            let imagePicker = UIImagePickerController()
-            imagePicker.delegate = self
-            imagePicker.sourceType = .photoLibrary
-            present(imagePicker, animated: true, completion: nil)
+            presentImagePicker()
         } else {
             presentLoginAlert()
         }
@@ -231,16 +243,22 @@ extension ProfileTabVC: UIImagePickerControllerDelegate, UINavigationControllerD
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         picker.dismiss(animated: true, completion: nil)
-        if let selectedImage = info[.originalImage] as? UIImage {
-            avatarImageView.image = selectedImage
-            Task {
-                do {
-                    try await DataManager.shared.uploadUserAvatar(selectedImage)
-                } catch {
-                    print("Failed to upload avatar: \(error)")
-                }
+        guard let editedImage = info[.editedImage] as? UIImage else {
+            return
+        }
+        
+        Task {
+            do {
+                try await DataManager.shared.uploadUserAvatar(editedImage)
+                avatarImageView.image = editedImage
+            } catch {
+                print("Failed to upload avatar: \(error)")
             }
         }
+    }
+
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
     }
 }
 

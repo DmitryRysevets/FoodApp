@@ -5,7 +5,7 @@
 
 import UIKit
 
-class ProfileMenuCell: UITableViewCell {
+final class ProfileMenuCell: UITableViewCell {
 
     static let id = "ProfileMenuCell"
     

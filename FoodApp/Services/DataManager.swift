@@ -57,41 +57,35 @@ final class DataManager {
     }
     
     func authenticateUser(email: String, password: String) async throws {
-        do {
-            let user = try await networkManager.authenticateUser(email: email, password: password)
-            coreDataManager.saveUser(user)
-            UserDefaults.standard.set(true, forKey: "isUserLoggedIn")
-            
-            if let avatarURL = user.photoURL?.absoluteString {
-                let avatarData = try await networkManager.downloadImage(from: avatarURL)
-                coreDataManager.updateUserAvatar(with: avatarData)
-            }
-        } catch {
-            throw error
+        let user = try await networkManager.authenticateUser(email: email, password: password)
+        coreDataManager.saveUser(user)
+        UserDefaults.standard.set(true, forKey: "isUserLoggedIn")
+        
+        if let avatarURL = user.photoURL?.absoluteString {
+            let avatarData = try await networkManager.downloadImage(from: avatarURL)
+            coreDataManager.updateUserAvatar(with: avatarData)
         }
     }
     
-    func registerUser(email: String, password: String) async throws {
-        do {
-            let user = try await networkManager.registerUser(email: email, password: password)
-            coreDataManager.saveUser(user)
-            UserDefaults.standard.set(true, forKey: "isUserLoggedIn")
-        } catch {
-            throw error
+    func registerUser(name: String, email: String, password: String) async throws {
+        let user = try await networkManager.registerUser(email: email, password: password)
+        coreDataManager.saveUser(user)
+        UserDefaults.standard.set(true, forKey: "isUserLoggedIn")
+        
+        if !name.isEmpty {
+            try await setUserName(name)
         }
     }
     
     func logoutUser() throws {
-        do {
-            try Auth.auth().signOut()
-        } catch let signOutError as NSError {
-            print("Error signing out: \(signOutError)")
-            throw signOutError
-        }
-        
+        try Auth.auth().signOut()
         coreDataManager.deleteUser()
-        
         UserDefaults.standard.set(false, forKey: "isUserLoggedIn")
+    }
+    
+    func setUserName(_ name: String) async throws {
+        try await NetworkManager.shared.setDisplayName(name)
+        CoreDataManager.shared.setDisplayName(name)
     }
     
     func getUserAvatar() -> UIImage? {
@@ -105,19 +99,14 @@ final class DataManager {
     
     func uploadUserAvatar(_ image: UIImage) async throws {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
-        guard let userEntity = coreDataManager.fetchUser() else { return }
-        guard let userId = userEntity.id else { return }
 
-        let avatarURL = try await networkManager.uploadUserAvatar(imageData, userId: userId)
-        coreDataManager.updateUserAvatar(userEntity, avatarData: imageData, avatarURL: avatarURL)
+        let avatarURL = try await networkManager.uploadUserAvatar(imageData)
+        coreDataManager.updateUserAvatar(avatarData: imageData, avatarURL: avatarURL.absoluteString)
     }
 
     func deleteUserAvatar() async throws {
-        guard let userEntity = coreDataManager.fetchUser() else { return }
-        guard let userId = userEntity.id else { return }
-
-        try await networkManager.deleteUserAvatar(userId: userId)
-        coreDataManager.updateUserAvatar(userEntity, avatarData: nil, avatarURL: nil)
+        try await networkManager.deleteUserAvatar()
+        coreDataManager.updateUserAvatar(avatarData: nil, avatarURL: nil)
     }
 
 }

@@ -17,6 +17,8 @@ enum NetworkLayerError: Error {
     case networkError(Error)
     case authenticationFailed
     case userAlreadyExists
+    case userNotFound
+    case updateDisplayNameFailed(Error)
 }
 
 final class NetworkManager {
@@ -31,7 +33,7 @@ final class NetworkManager {
     
     func downloadImage(from storageURL: String) async throws -> Data {
         let imageStorageReference = storage.reference(forURL: storageURL)
-        let maxImageSize: Int64 = 2 * 1024 * 1024 // 2MB
+        let maxImageSize: Int64 = 3 * 1024 * 1024 // 3MB
 
         return try await withCheckedThrowingContinuation { continuation in
             imageStorageReference.getData(maxSize: maxImageSize) { data, error in
@@ -137,28 +139,53 @@ final class NetworkManager {
         }
     }
     
-    func uploadUserAvatar(_ imageData: Data, userId: String) async throws -> String {
-        let avatarRef = storage.reference().child("userAvatars/\(userId)/avatar.jpg")
+    func setDisplayName(_ name: String) async throws {
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NetworkLayerError.userNotFound
+        }
         
-        return try await withCheckedThrowingContinuation { continuation in
-            avatarRef.putData(imageData, metadata: nil) { metadata, error in
-                if let error = error {
-                    continuation.resume(throwing: NetworkLayerError.uploadImageFailed(error))
-                } else {
-                    avatarRef.downloadURL { url, error in
-                        if let error = error {
-                            continuation.resume(throwing: NetworkLayerError.uploadImageFailed(error))
-                        } else if let url = url {
-                            continuation.resume(returning: url.absoluteString)
-                        }
-                    }
-                }
-            }
+        let changeRequest = currentUser.createProfileChangeRequest()
+        changeRequest.displayName = name
+        
+        do {
+            try await changeRequest.commitChanges()
+        } catch {
+            throw NetworkLayerError.updateDisplayNameFailed(error)
         }
     }
     
-    func deleteUserAvatar(userId: String) async throws {
-        let avatarRef = storage.reference().child("userAvatars/\(userId)/avatar.jpg")
+    func uploadUserAvatar(_ avatarData: Data) async throws -> URL {
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NetworkLayerError.userNotFound
+        }
+
+        let storageRef = storage.reference().child("userAvatars/\(currentUser.uid)/avatar.jpg")
+        
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        
+        do {
+            let _ = try await storageRef.putDataAsync(avatarData, metadata: metadata)
+            let downloadURL = try await storageRef.downloadURL()
+            
+            let changeRequest = currentUser.createProfileChangeRequest()
+            changeRequest.photoURL = downloadURL
+            
+            try await changeRequest.commitChanges()
+            
+            return downloadURL
+        } catch {
+            throw NetworkLayerError.uploadImageFailed(error)
+        }
+    }
+
+    
+    func deleteUserAvatar() async throws {
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NetworkLayerError.userNotFound
+        }
+        
+        let avatarRef = storage.reference().child("userAvatars/\(currentUser.uid)/avatar.jpg")
         
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
             avatarRef.delete { error in

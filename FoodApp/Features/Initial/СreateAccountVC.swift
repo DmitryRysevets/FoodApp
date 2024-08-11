@@ -7,12 +7,31 @@ import UIKit
 
 final class CreateAccountVC: UIViewController {
     
+    private lazy var nameLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
+        label.text = "Name"
+        return label
+    }()
+    
+    private lazy var nameField: TextField = {
+        let field = TextField()
+        field.translatesAutoresizingMaskIntoConstraints = false
+        field.associatedLabel = nameLabel
+        field.autocapitalizationType = .words
+        field.returnKeyType = .next
+        field.delegate = self
+        return field
+    }()
+    
     private lazy var emailLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.labelGray
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
-        label.text = "Email"
+        label.text = "Email *"
         return label
     }()
     
@@ -32,7 +51,7 @@ final class CreateAccountVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.labelGray
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
-        label.text = "Password"
+        label.text = "Password *"
         return label
     }()
     
@@ -52,7 +71,7 @@ final class CreateAccountVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.labelGray
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
-        label.text = "Confirm Password"
+        label.text = "Confirm Password *"
         return label
     }()
     
@@ -150,6 +169,8 @@ final class CreateAccountVC: UIViewController {
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         
+        view.addSubview(nameLabel)
+        view.addSubview(nameField)
         view.addSubview(passwordLabel)
         view.addSubview(passwordField)
         view.addSubview(confirmPasswordLabel)
@@ -169,7 +190,14 @@ final class CreateAccountVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            emailLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 40),
+            nameLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 40),
+            nameLabel.leadingAnchor.constraint(equalTo: nameField.leadingAnchor, constant: 16),
+            nameField.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
+            nameField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            nameField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            nameField.heightAnchor.constraint(equalToConstant: Constants.regularFieldHeight),
+            
+            emailLabel.topAnchor.constraint(equalTo: nameField.bottomAnchor, constant: 12),
             emailLabel.leadingAnchor.constraint(equalTo: emailField.leadingAnchor, constant: 16),
             emailField.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 8),
             emailField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
@@ -217,11 +245,13 @@ final class CreateAccountVC: UIViewController {
     
     private func createAccount() {
         if isFormValid() {
-            guard let email = emailField.text, let password = passwordField.text else { return }
+            guard let name = nameField.text,
+                  let email = emailField.text,
+                  let password = passwordField.text else { return }
             
             Task {
                 do {
-                    try await DataManager.shared.registerUser(email: email, password: password)
+                    try await DataManager.shared.registerUser(name: name, email: email, password: password)
                     // -> navigate to menu
                 } catch {
                     handleRegistrationError(error)
@@ -333,7 +363,9 @@ final class CreateAccountVC: UIViewController {
 extension CreateAccountVC: UITextFieldDelegate {
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        if textField == emailField {
+        if textField == nameField {
+            emailField.becomeFirstResponder()
+        } else if textField == emailField {
             passwordField.becomeFirstResponder()
         } else if textField == passwordField {
             confirmPasswordField.becomeFirstResponder()

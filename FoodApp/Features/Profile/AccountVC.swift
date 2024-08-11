@@ -5,7 +5,7 @@
 
 import UIKit
 
-class AccountVC: UIViewController {
+final class AccountVC: UIViewController {
     
     private let accountItems: [String] = [
         "Name",
@@ -107,6 +107,7 @@ class AccountVC: UIViewController {
         alert.addAction(UIAlertAction(title: "Log Out", style: .destructive, handler: { _ in
             do {
                 try DataManager.shared.logoutUser()
+                self.dismiss(animated: true)
             } catch {
                 print(error)
             }
