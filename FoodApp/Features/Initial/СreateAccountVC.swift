@@ -7,6 +7,14 @@ import UIKit
 
 final class CreateAccountVC: UIViewController {
     
+    private lazy var backButtonView: NavigationBarButtonView = {
+        let view = NavigationBarButtonView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backButtonTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.configureAsBackButton()
+        return view
+    }()
+    
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -156,6 +164,7 @@ final class CreateAccountVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavBar()
         setupUI()
         setupConstraints()
         
@@ -165,6 +174,18 @@ final class CreateAccountVC: UIViewController {
     }
     
     // MARK: - Private methods
+    
+    private func setupNavBar() {
+        title = "Create Account"
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: ColorManager.shared.label,
+            .font: UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
+        ]
+        navigationController?.navigationBar.titleTextAttributes = titleAttributes
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        let backBarButtonItem = UIBarButtonItem(customView: backButtonView)
+        navigationItem.leftBarButtonItem = backBarButtonItem
+    }
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
@@ -252,7 +273,7 @@ final class CreateAccountVC: UIViewController {
             Task {
                 do {
                     try await DataManager.shared.registerUser(name: name, email: email, password: password)
-                    // -> navigate to menu
+                    navigationController?.popViewController(animated: true)
                 } catch {
                     handleRegistrationError(error)
                 }
@@ -344,12 +365,17 @@ final class CreateAccountVC: UIViewController {
     
     @objc
     private func loginButtonTapped() {
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
     }
     
     @objc
     private func guestButtonTapped() {
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
+    }
+    
+    @objc
+    private func backButtonTapped() {
+        navigationController?.popViewController(animated: true)
     }
     
     @objc
@@ -382,4 +408,12 @@ extension CreateAccountVC: UITextFieldDelegate {
         }
     }
     
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension CreateAccountVC: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return navigationController?.viewControllers.count ?? 0 > 1
+    }
 }

@@ -40,21 +40,6 @@ final class ProfileTabVC: UIViewController {
         // Log Out
     ]
     
-    private lazy var headerView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private lazy var profileTitle: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
-        label.text = "Profile"
-        return label
-    }()
-    
     private lazy var avatarImageView: UIImageView = {
         let image = DataManager.shared.getUserAvatar()
         let imageView = UIImageView(image: image)
@@ -75,8 +60,9 @@ final class ProfileTabVC: UIViewController {
         let table = UITableView()
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = ColorManager.shared.background
-        table.isScrollEnabled = false
         table.register(ProfileMenuCell.self, forCellReuseIdentifier: ProfileMenuCell.id)
+        table.separatorStyle = .none
+        table.isScrollEnabled = false
         table.dataSource = self
         table.delegate = self
         return table
@@ -86,6 +72,7 @@ final class ProfileTabVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavBar()
         setupUI()
         setupConstraints()
     }
@@ -101,27 +88,26 @@ final class ProfileTabVC: UIViewController {
     
     // MARK: - Private methods
     
+    private func setupNavBar() {
+        title = "Profile"
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: ColorManager.shared.label,
+            .font: UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
+        ]
+        navigationController?.navigationBar.titleTextAttributes = titleAttributes
+    }
+    
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         
-        view.addSubview(headerView)
         view.addSubview(avatarImageView)
         view.addSubview(tableView)
-        
-        headerView.addSubview(profileTitle)
     }
     
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: Constants.headerHeight),
-            profileTitle.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
-            profileTitle.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            
-            avatarImageView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 24),
+            avatarImageView.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 24),
             avatarImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             avatarImageView.heightAnchor.constraint(equalToConstant: 120),
             avatarImageView.widthAnchor.constraint(equalTo: avatarImageView.heightAnchor),
@@ -217,24 +203,32 @@ extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let targetVC: UIViewController
-        
         switch menuItems[indexPath.row] {
         case "Account":
-            targetVC = AccountVC()
+            let vc = AccountVC()
+            vc.isUserLoggedIn = DataManager.shared.isUserLoggedIn()
+            navigationController?.pushViewController(vc, animated: true)
         case "Delivery Addresses":
-            targetVC = DeliveryAddressesVC()
+            navigationController?.pushViewController(DeliveryAddressesVC(), animated: true)
         case "Payment Methods":
-            targetVC = PaymentMethodsVC()
+            navigationController?.pushViewController(PaymentMethodsVC(), animated: true)
         default: return
         }
-        
-        targetVC.modalTransitionStyle = .coverVertical
-        targetVC.modalPresentationStyle = .fullScreen
-        
-        present(targetVC, animated: true)
     }
     
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.contentView.subviews.forEach { subview in
+            if subview is SeparatorView {
+                subview.removeFromSuperview()
+            }
+        }
+
+        if indexPath.row != tableView.numberOfRows(inSection: indexPath.section) - 1 {
+            let separatorHeight: CGFloat = 1.0
+            let separator = SeparatorView(frame: CGRect(x: 16, y: cell.contentView.frame.size.height - separatorHeight, width: cell.contentView.frame.size.width - 32, height: separatorHeight))
+            cell.contentView.addSubview(separator)
+        }
+    }
 }
 
 // MARK: - Picker delegate

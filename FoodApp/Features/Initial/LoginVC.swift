@@ -8,6 +8,14 @@ import FirebaseAuth
 
 final class LoginVC: UIViewController {
     
+    private lazy var backButtonView: NavigationBarButtonView = {
+        let view = NavigationBarButtonView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backButtonTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.configureAsBackButton()
+        return view
+    }()
+    
     private lazy var emailLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -118,6 +126,7 @@ final class LoginVC: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavBar()
         setupUI()
         setupConstraints()
         
@@ -127,6 +136,18 @@ final class LoginVC: UIViewController {
     }
     
     // MARK: - Private methods
+    
+    private func setupNavBar() {
+        title = "Log In"
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: ColorManager.shared.label,
+            .font: UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
+        ]
+        navigationController?.navigationBar.titleTextAttributes = titleAttributes
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        let backBarButtonItem = UIBarButtonItem(customView: backButtonView)
+        navigationItem.leftBarButtonItem = backBarButtonItem
+    }
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
@@ -194,7 +215,7 @@ final class LoginVC: UIViewController {
             Task {
                 do {
                     try await DataManager.shared.authenticateUser(email: email, password: password)
-                    // -> navigate to menu
+                    navigationController?.popViewController(animated: true)
                 } catch {
                     handleAuthenticationError(error)
                 }
@@ -264,12 +285,17 @@ final class LoginVC: UIViewController {
     
     @objc
     private func createAccountButtonTapped() {
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
     }
     
     @objc
     private func guestButtonTapped() {
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
+    }
+    
+    @objc
+    private func backButtonTapped() {
+        navigationController?.popViewController(animated: true)
     }
     
     @objc
@@ -299,4 +325,12 @@ extension LoginVC: UITextFieldDelegate {
         }
     }
     
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension LoginVC: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return navigationController?.viewControllers.count ?? 0 > 1
+    }
 }

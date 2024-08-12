@@ -19,59 +19,32 @@ final class DeliveryAddressesVC: UIViewController {
         }
     }
     
+    private lazy var backButtonView: NavigationBarButtonView = {
+        let view = NavigationBarButtonView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backButtonTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.configureAsBackButton()
+        return view
+    }()
+    
+    private lazy var plusButtonView: NavigationBarButtonView = {
+        let view = NavigationBarButtonView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(plusButtonTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.configureAsPlusButton()
+        return view
+    }()
+    
     private lazy var tableView: UITableView = {
         let table = UITableView()
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = ColorManager.shared.background
-        table.isScrollEnabled = false
         table.register(DeliveryAddressCell.self, forCellReuseIdentifier: DeliveryAddressCell.id)
+        table.separatorStyle = .none
+        table.isScrollEnabled = false
         table.dataSource = self
         table.delegate = self
         return table
-    }()
-    
-    // MARK: - Header props.
-    
-    private lazy var headerView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private lazy var backButton: UIButton = {
-        let button = UIButton()
-        let configuration = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
-        let image = UIImage(systemName: "chevron.backward", withConfiguration: configuration)?.resized(to: CGSize(width: 12, height: 16)).withTintColor(ColorManager.shared.label)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
-        button.tintColor = ColorManager.shared.label
-        button.backgroundColor = ColorManager.shared.headerElementsColor
-        button.layer.cornerRadius = Constants.headerButtonSize / 2
-        button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var deliveryAddressesTitleLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
-        label.text = "Delivery Addresses"
-        label.textAlignment = .center
-        return label
-    }()
-    
-    private lazy var plusButton: UIButton = {
-        let button = UIButton()
-        let configuration = UIImage.SymbolConfiguration(pointSize: 20, weight: .regular)
-        let image = UIImage(systemName: "plus", withConfiguration: configuration)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
-        button.tintColor = ColorManager.shared.label
-        button.backgroundColor = ColorManager.shared.headerElementsColor
-        button.layer.cornerRadius = Constants.headerButtonSize / 2
-        button.addTarget(self, action: #selector(plusButtonTapped), for: .touchUpInside)
-        return button
     }()
     
     // MARK: - Empty page view props.
@@ -116,6 +89,7 @@ final class DeliveryAddressesVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavBar()
         setupUI()
         setupConstraints()
     }
@@ -128,17 +102,29 @@ final class DeliveryAddressesVC: UIViewController {
     
     // MARK: - Private methods
     
+    private func setupNavBar() {
+        title = "Delivery Addresses"
+        
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: ColorManager.shared.label,
+            .font: UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
+        ]
+        
+        navigationController?.navigationBar.titleTextAttributes = titleAttributes
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+
+        let backBarButtonItem = UIBarButtonItem(customView: backButtonView)
+        let plusBarButtonItem = UIBarButtonItem(customView: plusButtonView)
+        navigationItem.leftBarButtonItem = backBarButtonItem
+        navigationItem.rightBarButtonItem = plusBarButtonItem
+    }
+    
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         
-        view.addSubview(headerView)
         view.addSubview(tableView)
         view.addSubview(emptyPageView)
         
-        headerView.addSubview(backButton)
-        headerView.addSubview(deliveryAddressesTitleLabel)
-        headerView.addSubview(plusButton)
-
         emptyPageView.addSubview(emptyPageLabel)
         emptyPageView.addSubview(addNewAddressButton)
     }
@@ -146,23 +132,7 @@ final class DeliveryAddressesVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: 52),
-            backButton.topAnchor.constraint(equalTo: headerView.topAnchor),
-            backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            backButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
-            backButton.widthAnchor.constraint(equalTo: backButton.heightAnchor),
-            plusButton.topAnchor.constraint(equalTo: headerView.topAnchor),
-            plusButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
-            plusButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
-            plusButton.widthAnchor.constraint(equalTo: plusButton.heightAnchor),
-            deliveryAddressesTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
-            deliveryAddressesTitleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
-            deliveryAddressesTitleLabel.trailingAnchor.constraint(equalTo: plusButton.leadingAnchor, constant: -8),
-            
-            tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
+            tableView.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 32),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -199,7 +169,7 @@ final class DeliveryAddressesVC: UIViewController {
     
     @objc
     private func backButtonTapped() {
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
     }
     
     @objc
@@ -289,4 +259,25 @@ extension DeliveryAddressesVC: UITableViewDelegate, UITableViewDataSource {
         return configuration
     }
     
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.contentView.subviews.forEach { subview in
+            if subview is SeparatorView {
+                subview.removeFromSuperview()
+            }
+        }
+
+        if indexPath.row != tableView.numberOfRows(inSection: indexPath.section) - 1 {
+            let separatorHeight: CGFloat = 1.0
+            let separator = SeparatorView(frame: CGRect(x: 16, y: cell.contentView.frame.size.height - separatorHeight, width: cell.contentView.frame.size.width - 32, height: separatorHeight))
+            cell.contentView.addSubview(separator)
+        }
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension DeliveryAddressesVC: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return navigationController?.viewControllers.count ?? 0 > 1
+    }
 }

@@ -45,10 +45,10 @@ final class ProfileMenuCell: UITableViewCell {
         addSubview(extraParameterLabel)
         NSLayoutConstraint.activate([
             menuItemNameLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            menuItemNameLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            menuItemNameLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 32),
             menuItemNameLabel.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 0.5, constant: -24),
             extraParameterLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
-            extraParameterLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            extraParameterLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -32),
             extraParameterLabel.widthAnchor.constraint(equalTo: widthAnchor, multiplier: 0.5, constant: -40)
         ])
     }

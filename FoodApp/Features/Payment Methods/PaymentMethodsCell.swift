@@ -74,7 +74,7 @@ class PaymentMethodsCell: UITableViewCell {
             cardNameLabel.trailingAnchor.constraint(equalTo: goToCardInfoButton.leadingAnchor, constant: -32),
             
             goToCardInfoButton.centerYAnchor.constraint(equalTo: centerYAnchor),
-            goToCardInfoButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            goToCardInfoButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -32),
             goToCardInfoButton.heightAnchor.constraint(equalToConstant: 40),
             goToCardInfoButton.widthAnchor.constraint(equalToConstant: 80)
         ])

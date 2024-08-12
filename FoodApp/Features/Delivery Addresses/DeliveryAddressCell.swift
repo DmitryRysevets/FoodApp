@@ -74,7 +74,7 @@ class DeliveryAddressCell: UITableViewCell {
             placeNameLabel.trailingAnchor.constraint(equalTo: goToAddressButton.leadingAnchor, constant: -32),
             
             goToAddressButton.centerYAnchor.constraint(equalTo: centerYAnchor),
-            goToAddressButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            goToAddressButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -32),
             goToAddressButton.heightAnchor.constraint(equalToConstant: 40),
             goToAddressButton.widthAnchor.constraint(equalToConstant: 100)
         ])

@@ -93,14 +93,19 @@ class TabBarVC: UIViewController {
     static let menuVC = MenuTabVC()
     static let favoriteVC = FavoriteTabVC()
     static let cartVC = CartTabVC()
-    static let profileVC = ProfileTabVC()
+    
+    static let profileNavVC: UINavigationController = {
+        let navigationController = UINavigationController(rootViewController: ProfileTabVC())
+        navigationController.navigationBar.tintColor = ColorManager.shared.label
+        return navigationController
+    }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         viewControllers.append(TabBarVC.menuVC)
         viewControllers.append(TabBarVC.favoriteVC)
         viewControllers.append(TabBarVC.cartVC)
-        viewControllers.append(TabBarVC.profileVC)
+        viewControllers.append(TabBarVC.profileNavVC)
         
         tabs[selectedIndex].isSelected = true
         

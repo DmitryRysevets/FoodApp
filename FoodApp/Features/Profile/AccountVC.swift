@@ -7,7 +7,13 @@ import UIKit
 
 final class AccountVC: UIViewController {
     
-    private let accountItems: [String] = [
+    var isUserLoggedIn = DataManager.shared.isUserLoggedIn() {
+        didSet {
+            tableView.reloadData()
+        }
+    }
+    
+    private let loggedUserMenuItems: [String] = [
         "Name",
         "eMail",
         "Phone Number",
@@ -15,40 +21,26 @@ final class AccountVC: UIViewController {
         "Log Out"
     ]
     
-    private lazy var headerView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
+    private let guestMenuItems: [String] = [
+        "Log In",
+        "Create Account"
+    ]
+    
+    private lazy var backButtonView: NavigationBarButtonView = {
+        let view = NavigationBarButtonView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backButtonTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.configureAsBackButton()
         return view
-    }()
-    
-    private lazy var backButton: UIButton = {
-        let button = UIButton()
-        let configuration = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
-        let image = UIImage(systemName: "chevron.backward", withConfiguration: configuration)?.resized(to: CGSize(width: 12, height: 16)).withTintColor(ColorManager.shared.label)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
-//        button.tintColor = ColorManager.shared.label
-        button.backgroundColor = ColorManager.shared.headerElementsColor
-        button.layer.cornerRadius = Constants.headerButtonSize / 2
-        button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var accountTitle: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
-        label.text = "Account"
-        return label
     }()
     
     private lazy var tableView: UITableView = {
         let table = UITableView()
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = ColorManager.shared.background
-        table.isScrollEnabled = false
         table.register(ProfileMenuCell.self, forCellReuseIdentifier: ProfileMenuCell.id)
+        table.separatorStyle = .none
+        table.isScrollEnabled = false
         table.dataSource = self
         table.delegate = self
         return table
@@ -58,39 +50,39 @@ final class AccountVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavBar()
         setupUI()
         setupConstraints()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        isUserLoggedIn = DataManager.shared.isUserLoggedIn()
+    }
+    
     // MARK: - Private methods
+    
+    private func setupNavBar() {
+        title = "Account"
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: ColorManager.shared.label,
+            .font: UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
+        ]
+        navigationController?.navigationBar.titleTextAttributes = titleAttributes
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+        let backBarButtonItem = UIBarButtonItem(customView: backButtonView)
+        navigationItem.leftBarButtonItem = backBarButtonItem
+    }
     
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
-        
-        view.addSubview(headerView)
         view.addSubview(tableView)
-        
-        headerView.addSubview(backButton)
-        headerView.addSubview(accountTitle)
     }
     
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: Constants.headerHeight),
-            
-            backButton.topAnchor.constraint(equalTo: headerView.topAnchor),
-            backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            backButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
-            backButton.widthAnchor.constraint(equalTo: backButton.heightAnchor),
-            
-            accountTitle.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
-            accountTitle.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            
-            tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
+            tableView.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 32),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -99,7 +91,7 @@ final class AccountVC: UIViewController {
     
     private func presentLogOutAlert() {
         let alert = UIAlertController(
-            title: "Log Out",
+            title: nil,
             message: "Do you really want to log out of your account?",
             preferredStyle: .actionSheet
         )
@@ -107,7 +99,7 @@ final class AccountVC: UIViewController {
         alert.addAction(UIAlertAction(title: "Log Out", style: .destructive, handler: { _ in
             do {
                 try DataManager.shared.logoutUser()
-                self.dismiss(animated: true)
+                self.isUserLoggedIn = false
             } catch {
                 print(error)
             }
@@ -120,7 +112,7 @@ final class AccountVC: UIViewController {
     
     @objc
     private func backButtonTapped() {
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
     }
 
 }
@@ -129,13 +121,22 @@ final class AccountVC: UIViewController {
 
 extension AccountVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        accountItems.count
+        if isUserLoggedIn {
+            loggedUserMenuItems.count
+        } else {
+            guestMenuItems.count
+        }
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: ProfileMenuCell.id, for: indexPath) as! ProfileMenuCell
-        cell.menuItemName = accountItems[indexPath.row]
         cell.selectionStyle = .none
+        
+        if isUserLoggedIn {
+            cell.menuItemName = loggedUserMenuItems[indexPath.row]
+        } else {
+            cell.menuItemName = guestMenuItems[indexPath.row]
+        }
         return cell
     }
     
@@ -144,11 +145,44 @@ extension AccountVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        switch accountItems[indexPath.row] {
-        case "Log Out":
-            presentLogOutAlert()
-        default: return
+        if isUserLoggedIn {
+            switch loggedUserMenuItems[indexPath.row] {
+            case "Name":
+                navigationController?.pushViewController(UserNameVC(), animated: true)
+            case "Log Out":
+                presentLogOutAlert()
+            default: return
+            }
+        } else {
+            switch guestMenuItems[indexPath.row] {
+            case "Log In":
+                navigationController?.pushViewController(LoginVC(), animated: true)
+            case "Create Account":
+                navigationController?.pushViewController(CreateAccountVC(), animated: true)
+            default: return
+            }
         }
     }
     
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.contentView.subviews.forEach { subview in
+            if subview is SeparatorView {
+                subview.removeFromSuperview()
+            }
+        }
+
+        if indexPath.row != tableView.numberOfRows(inSection: indexPath.section) - 1 {
+            let separatorHeight: CGFloat = 1.0
+            let separator = SeparatorView(frame: CGRect(x: 16, y: cell.contentView.frame.size.height - separatorHeight, width: cell.contentView.frame.size.width - 32, height: separatorHeight))
+            cell.contentView.addSubview(separator)
+        }
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension AccountVC: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return navigationController?.viewControllers.count ?? 0 > 1
+    }
 }
