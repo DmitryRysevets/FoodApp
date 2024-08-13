@@ -14,8 +14,8 @@ final class AccountVC: UIViewController {
     }
     
     private let loggedUserMenuItems: [String] = [
-        "Name",
-        "eMail",
+        "Username",
+        "Email",
         "Phone Number",
         "Change Password",
         "Log Out"
@@ -110,6 +110,8 @@ final class AccountVC: UIViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    // MARK: - Objc methods
+    
     @objc
     private func backButtonTapped() {
         navigationController?.popViewController(animated: true)
@@ -147,8 +149,16 @@ extension AccountVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if isUserLoggedIn {
             switch loggedUserMenuItems[indexPath.row] {
-            case "Name":
-                navigationController?.pushViewController(UserNameVC(), animated: true)
+            case "Username":
+                navigationController?.pushViewController(SetUsernameVC(), animated: true)
+            case "Email":
+                navigationController?.pushViewController(SetEmailVC(), animated: true)
+            case "Phone Number":
+                print("Phone Number")
+//                navigationController?.pushViewController(SetPhoneNumberVC(), animated: true)
+            case "Change Password":
+                print("Change Password")
+//                navigationController?.pushViewController(ChangePasswordVC(), animated: true)
             case "Log Out":
                 presentLogOutAlert()
             default: return

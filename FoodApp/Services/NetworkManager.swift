@@ -18,7 +18,7 @@ enum NetworkLayerError: Error {
     case authenticationFailed
     case userAlreadyExists
     case userNotFound
-    case updateDisplayNameFailed(Error)
+    case updateFailed(Error)
 }
 
 final class NetworkManager {
@@ -150,7 +150,23 @@ final class NetworkManager {
         do {
             try await changeRequest.commitChanges()
         } catch {
-            throw NetworkLayerError.updateDisplayNameFailed(error)
+            throw NetworkLayerError.updateFailed(error)
+        }
+    }
+    
+    func updateEmail(to newEmail: String, withPassword password: String) async throws {
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NetworkLayerError.userNotFound
+        }
+        
+        let credential = EmailAuthProvider.credential(withEmail: currentUser.email ?? "", password: password)
+        
+        do {
+            try await currentUser.reauthenticate(with: credential)
+            try await currentUser.sendEmailVerification(beforeUpdatingEmail: newEmail)
+            
+        } catch {
+            throw NetworkLayerError.updateFailed(error)
         }
     }
     

@@ -168,7 +168,7 @@ final class CreateAccountVC: UIViewController {
         setupUI()
         setupConstraints()
         
-//        loginField.becomeFirstResponder()
+        nameField.becomeFirstResponder()
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
     }

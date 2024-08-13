@@ -10,16 +10,7 @@ final class ProfileTabVC: UIViewController {
     
     private var user: UserEntity? {
         didSet {
-            if let user = user {
-                if let name = user.displayName, !name.isEmpty {
-                    userName = name
-                } else {
-                    userName = "User"
-                }
-            } else {
-                userName = "Guest"
-            }
-            
+            setUserNameInCell()
             avatarImageView.image = DataManager.shared.getUserAvatar()
             tableView.reloadData()
         }
@@ -149,6 +140,18 @@ final class ProfileTabVC: UIViewController {
         vc.modalTransitionStyle = .coverVertical
         vc.modalPresentationStyle = .fullScreen
         self.present(vc, animated: true)
+    }
+    
+    private func setUserNameInCell() {
+        if let user = user {
+            if let name = user.displayName, !name.isEmpty {
+                userName = name
+            } else {
+                userName = "User"
+            }
+        } else {
+            userName = "Guest"
+        }
     }
     
     // MARK: - Objc methods
