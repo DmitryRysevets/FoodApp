@@ -580,6 +580,12 @@ final class CoreDataManager {
         saveContext()
     }
     
+    func savePhoneNumber(_ phoneNumber: String) {
+        let user = fetchUser()
+        user?.phoneNumber = phoneNumber
+        saveContext()
+    }
+    
     func updateUserAvatar(avatarData: Data?, avatarURL: String?) {
         let user = fetchUser()
         user?.avatar = avatarData

@@ -154,8 +154,7 @@ extension AccountVC: UITableViewDelegate, UITableViewDataSource {
             case "Email":
                 navigationController?.pushViewController(SetEmailVC(), animated: true)
             case "Phone Number":
-                print("Phone Number")
-//                navigationController?.pushViewController(SetPhoneNumberVC(), animated: true)
+                navigationController?.pushViewController(SetPhoneNumberVC(), animated: true)
             case "Change Password":
                 print("Change Password")
 //                navigationController?.pushViewController(ChangePasswordVC(), animated: true)
