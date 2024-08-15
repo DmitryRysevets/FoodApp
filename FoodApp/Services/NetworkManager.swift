@@ -170,6 +170,21 @@ final class NetworkManager {
         }
     }
     
+    func updatePassword(currentPassword: String, to newPassword: String) async throws {
+        guard let currentUser = Auth.auth().currentUser else {
+            throw NetworkLayerError.userNotFound
+        }
+
+        let credential = EmailAuthProvider.credential(withEmail: currentUser.email ?? "", password: currentPassword)
+
+        do {
+            try await currentUser.reauthenticate(with: credential)
+            try await currentUser.updatePassword(to: newPassword)
+        } catch {
+            throw NetworkLayerError.updateFailed(error)
+        }
+    }
+    
     func uploadUserAvatar(_ avatarData: Data) async throws -> URL {
         guard let currentUser = Auth.auth().currentUser else {
             throw NetworkLayerError.userNotFound
