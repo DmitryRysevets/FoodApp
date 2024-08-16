@@ -156,8 +156,7 @@ extension AccountVC: UITableViewDelegate, UITableViewDataSource {
             case "Phone Number":
                 navigationController?.pushViewController(SetPhoneNumberVC(), animated: true)
             case "Change Password":
-                print("Change Password")
-//                navigationController?.pushViewController(ChangePasswordVC(), animated: true)
+                navigationController?.pushViewController(ChangePasswordVC(), animated: true)
             case "Log Out":
                 presentLogOutAlert()
             default: return

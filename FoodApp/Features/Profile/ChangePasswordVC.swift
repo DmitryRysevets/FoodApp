@@ -3,6 +3,8 @@
 //  FoodApp
 //
 
+import UIKit
+
 final class ChangePasswordVC: UIViewController {
         
     private lazy var backButtonView: NavigationBarButtonView = {
@@ -169,6 +171,8 @@ final class ChangePasswordVC: UIViewController {
             saveButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
     }
+    
+    // MARK: - Objc methods
     
     @objc
     private func backButtonTapped() {

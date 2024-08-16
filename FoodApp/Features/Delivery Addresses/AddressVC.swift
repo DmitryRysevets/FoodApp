@@ -106,7 +106,7 @@ final class AddressVC: UIViewController {
     private lazy var mapSectionView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.payment_mapViewColor
+        view.backgroundColor = ColorManager.shared.lightGraySectionColor
         view.layer.cornerRadius = 24
         return view
     }()

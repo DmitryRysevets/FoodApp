@@ -215,6 +215,8 @@ extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
             navigationController?.pushViewController(DeliveryAddressesVC(), animated: true)
         case "Payment Methods":
             navigationController?.pushViewController(PaymentMethodsVC(), animated: true)
+        case "Contact Us":
+            navigationController?.pushViewController(ContactUsVC(), animated: true)
         default: return
         }
     }

@@ -55,6 +55,12 @@ final class ColorManager {
             : .white
     }
     
+    let lightGraySectionColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 0.105, green: 0.105, blue: 0.105, alpha: 1)
+            : UIColor(red: 0.985, green: 0.985, blue: 0.985, alpha: 1)
+    }
+    
     let regularFieldBorderColor = UIColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 0.3).cgColor
     
     let warningRed = UIColor(red: 0.92, green: 0.23, blue: 0.35, alpha: 1.00)
@@ -151,12 +157,6 @@ final class ColorManager {
         return traitCollection.userInterfaceStyle == .dark
             ? .white
             : UIColor(red: 0.063, green: 0.063, blue: 0.063, alpha: 1)
-    }
-    
-    let payment_mapViewColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
-        return traitCollection.userInterfaceStyle == .dark
-            ? UIColor(red: 0.105, green: 0.105, blue: 0.105, alpha: 1)
-            : UIColor(red: 0.985, green: 0.985, blue: 0.985, alpha: 1)
     }
     
     let payment_orderViewColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
