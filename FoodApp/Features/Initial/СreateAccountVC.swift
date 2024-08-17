@@ -371,6 +371,7 @@ final class CreateAccountVC: UIViewController {
     @objc
     private func guestButtonTapped() {
         navigationController?.popViewController(animated: true)
+        dismiss(animated: true)
     }
     
     @objc

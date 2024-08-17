@@ -7,25 +7,38 @@ import UIKit
 
 final class InitialVC: UIViewController {
     
-    private lazy var weDeliverLabel: UILabel = {
+    private lazy var weLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 55, axis: [Constants.fontWeightAxis : 650])
-        label.numberOfLines = 3
-        label.text = """
-            We
-            Deliver
-            Fresh Food
-            """
+        label.text = "We"
+        return label
+    }()
+    
+    private lazy var deliverLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 55, axis: [Constants.fontWeightAxis : 650])
+        label.text = "Deliver"
+        return label
+    }()
+    
+    private lazy var freshFoodLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 55, axis: [Constants.fontWeightAxis : 650])
+        label.text = "Fresh Food"
         return label
     }()
     
     private lazy var imageBackingView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
+        let view = UIView(frame: CGRect(x: -100, y: 180, width: 270, height: 270))
         view.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.1)
-        view.layer.cornerRadius = 80
+        view.layer.maskedCorners = [.layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+        view.layer.cornerRadius = 100
         return view
     }()
     
@@ -83,6 +96,12 @@ final class InitialVC: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
+        prepareForAnimations()
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        startAnimations()
     }
     
     // MARK: - Private methods
@@ -90,7 +109,9 @@ final class InitialVC: UIViewController {
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.initialVC_background
         
-        view.addSubview(weDeliverLabel)
+        view.addSubview(weLabel)
+        view.addSubview(deliverLabel)
+        view.addSubview(freshFoodLabel)
         view.addSubview(imageBackingView)
         view.addSubview(handWithBurgerImageView)
         view.addSubview(loginButton)
@@ -101,35 +122,136 @@ final class InitialVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            weDeliverLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 48),
-            weDeliverLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
-            weDeliverLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
+            weLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 48),
+            weLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
+            weLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
             
-            imageBackingView.topAnchor.constraint(equalTo: handWithBurgerImageView.topAnchor, constant: 65),
-            imageBackingView.leadingAnchor.constraint(equalTo: handWithBurgerImageView.leadingAnchor, constant: 12),
-            imageBackingView.heightAnchor.constraint(equalToConstant: 270),
-            imageBackingView.widthAnchor.constraint(equalTo: imageBackingView.heightAnchor),
+            deliverLabel.topAnchor.constraint(equalTo: weLabel.bottomAnchor),
+            deliverLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
+            deliverLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
+            
+            freshFoodLabel.topAnchor.constraint(equalTo: deliverLabel.bottomAnchor),
+            freshFoodLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
+            freshFoodLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
             
             handWithBurgerImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -150),
             handWithBurgerImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 80),
             handWithBurgerImageView.heightAnchor.constraint(equalToConstant: 450),
             handWithBurgerImageView.widthAnchor.constraint(equalTo: handWithBurgerImageView.heightAnchor),
             
-            continueAsGuestButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
-            continueAsGuestButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
-            continueAsGuestButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
-            continueAsGuestButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
-            
-            createAccountButton.bottomAnchor.constraint(equalTo: continueAsGuestButton.topAnchor, constant: -16),
-            createAccountButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
-            createAccountButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
-            createAccountButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
-            
-            loginButton.bottomAnchor.constraint(equalTo: createAccountButton.topAnchor, constant: -16),
+            loginButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -128),
             loginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
             loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
             loginButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
+            
+            createAccountButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -60),
+            createAccountButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
+            createAccountButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
+            createAccountButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
+
+            continueAsGuestButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
+            continueAsGuestButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
+            continueAsGuestButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
+            continueAsGuestButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight)
         ])
+    }
+    
+    private func prepareForAnimations() {
+        let labels = [weLabel, deliverLabel, freshFoodLabel]
+        for label in labels {
+            label.transform = CGAffineTransform(translationX: -view.bounds.width, y: 0)
+            label.alpha = 0.0
+        }
+        
+        imageBackingView.layer.anchorPoint = CGPoint(x: 0, y: 0)
+        imageBackingView.transform = CGAffineTransform(scaleX: 0.0, y: 0.0)
+        
+        handWithBurgerImageView.transform = CGAffineTransform(scaleX: 0.0, y: 0.0)
+            .concatenating(CGAffineTransform(translationX: 200, y: 300))
+
+        let buttons = [loginButton, createAccountButton, continueAsGuestButton]
+        for button in buttons {
+            button.transform = CGAffineTransform(translationX: 0, y: 100)
+            button.alpha = 0.0
+        }
+    }
+    
+    private func startAnimations() {
+        let labels = [weLabel, deliverLabel, freshFoodLabel]
+        for (index, label) in labels.enumerated() {
+            UIView.animate(
+                withDuration: 0.7,
+                delay: 0.2 * Double(index),
+                usingSpringWithDamping: 0.8,
+                initialSpringVelocity: 0.5,
+                options: [],
+                animations: {
+                    label.transform = .identity
+                    label.alpha = 1.0
+                },
+                completion: nil
+            )
+        }
+        
+        UIView.animate(
+            withDuration: 0.9,
+            delay: 0.7,
+            usingSpringWithDamping: 0.9,
+            initialSpringVelocity: 0.4,
+            options: [.curveEaseInOut],
+            animations: {
+                self.imageBackingView.transform = .identity
+            }
+        )
+
+        UIView.animate(
+            withDuration: 0.9,
+            delay: 0.7,
+            usingSpringWithDamping: 0.8,
+            initialSpringVelocity: 0.4,
+            options: [],
+            animations: {
+                self.handWithBurgerImageView.transform = .identity
+            },
+            completion: nil
+        )
+
+        UIView.animate(
+            withDuration: 0.7,
+            delay: 0.7,
+            usingSpringWithDamping: 0.7,
+            initialSpringVelocity: 0.5,
+            options: [],
+            animations: {
+                self.loginButton.transform = .identity
+                self.loginButton.alpha = 1.0
+            }
+        )
+        
+        UIView.animate(
+            withDuration: 0.7,
+            delay: 0.9,
+            usingSpringWithDamping: 0.7,
+            initialSpringVelocity: 0.5,
+            options: [],
+            animations: {
+                self.createAccountButton.transform = .identity
+                self.createAccountButton.alpha = 1.0
+            }
+        )
+        
+        UIView.animate(
+            withDuration: 0.5,
+            delay: 1.1,
+            usingSpringWithDamping: 0.7,
+            initialSpringVelocity: 0.5,
+            options: [],
+            animations: {
+                self.continueAsGuestButton.transform = .identity
+                self.continueAsGuestButton.alpha = 1.0
+            },
+            completion: nil
+        )
     }
     
     // MARK: - Objc methods
