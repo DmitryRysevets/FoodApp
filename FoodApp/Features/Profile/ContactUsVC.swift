@@ -65,6 +65,11 @@ final class ContactUsVC: UIViewController {
         view.addGestureRecognizer(tapGesture)
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        messageTextView.becomeFirstResponder()
+    }
+    
     // MARK: - Private methods
     
     private func setupNavBar() {

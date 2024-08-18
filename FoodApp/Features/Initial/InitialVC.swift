@@ -158,9 +158,9 @@ final class InitialVC: UIViewController {
     
     private func prepareForAnimations() {
         let labels = [weLabel, deliverLabel, freshFoodLabel]
-        for label in labels {
-            label.transform = CGAffineTransform(translationX: -view.bounds.width, y: 0)
-            label.alpha = 0.0
+        labels.forEach {
+            $0.transform = CGAffineTransform(translationX: -view.bounds.width, y: 0)
+            $0.alpha = 0.0
         }
         
         imageBackingView.layer.anchorPoint = CGPoint(x: 0, y: 0)
@@ -170,9 +170,9 @@ final class InitialVC: UIViewController {
             .concatenating(CGAffineTransform(translationX: 200, y: 300))
 
         let buttons = [loginButton, createAccountButton, continueAsGuestButton]
-        for button in buttons {
-            button.transform = CGAffineTransform(translationX: 0, y: 100)
-            button.alpha = 0.0
+            buttons.forEach {
+            $0.transform = CGAffineTransform(translationX: 0, y: 100)
+            $0.alpha = 0.0
         }
     }
     
@@ -241,7 +241,7 @@ final class InitialVC: UIViewController {
         )
         
         UIView.animate(
-            withDuration: 0.5,
+            withDuration: 0.7,
             delay: 1.1,
             usingSpringWithDamping: 0.7,
             initialSpringVelocity: 0.5,

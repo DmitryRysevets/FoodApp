@@ -7,6 +7,8 @@ import UIKit
 
 final class CreateAccountVC: UIViewController {
     
+    private lazy var isModal = navigationController?.presentingViewController?.presentedViewController == navigationController
+    
     private lazy var backButtonView: NavigationBarButtonView = {
         let view = NavigationBarButtonView()
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backButtonTapped))
@@ -168,9 +170,20 @@ final class CreateAccountVC: UIViewController {
         setupUI()
         setupConstraints()
         
-        nameField.becomeFirstResponder()
+        if isModal {
+            prepareForAnimations()
+        }
+        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        if isModal {
+            startAnimations()
+        }
     }
     
     // MARK: - Private methods
@@ -211,7 +224,7 @@ final class CreateAccountVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            nameLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 40),
+            nameLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 80),
             nameLabel.leadingAnchor.constraint(equalTo: nameField.leadingAnchor, constant: 16),
             nameField.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
             nameField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
@@ -262,6 +275,49 @@ final class CreateAccountVC: UIViewController {
             guestButton.leadingAnchor.constraint(equalTo: orContinueAsLabel.trailingAnchor, constant: 4),
             orContinueAsLabel.centerYAnchor.constraint(equalTo: guestButton.centerYAnchor)
         ])
+    }
+    
+    private func prepareForAnimations() {        
+        [nameLabel, nameField, emailLabel, emailField, passwordLabel, passwordField, confirmPasswordLabel, confirmPasswordField, createAccountButton, alreadyHaveAccountView, continueAsGuestView].forEach {
+            $0.transform = CGAffineTransform(translationX: 0, y: 300)
+            $0.alpha = 0.0
+        }
+    }
+    
+    private func startAnimations() {
+        let labels = [nameLabel, emailLabel, passwordLabel, confirmPasswordLabel]
+        for (index, label) in labels.enumerated() {
+            UIView.animate(
+                withDuration: 0.7,
+                delay: 0.1 * Double(index),
+                usingSpringWithDamping: 0.85,
+                initialSpringVelocity: 0.5,
+                options: [],
+                animations: {
+                    label.transform = .identity
+                    label.alpha = 1.0
+                },
+                completion: nil
+            )
+        }
+        
+        let elements = [nameField, emailField, passwordField, confirmPasswordField, createAccountButton, alreadyHaveAccountView, continueAsGuestView]
+        for (index, element) in elements.enumerated() {
+            UIView.animate(
+                withDuration: 0.7,
+                delay: 0.1 * Double(index),
+                usingSpringWithDamping: 0.85,
+                initialSpringVelocity: 0.5,
+                options: [],
+                animations: {
+                    element.transform = .identity
+                    element.alpha = 1.0
+                },
+                completion: { _ in
+                    self.nameField.becomeFirstResponder()
+                }
+            )
+        }
     }
     
     private func createAccount() {

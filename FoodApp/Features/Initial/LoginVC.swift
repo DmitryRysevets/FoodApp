@@ -8,6 +8,8 @@ import FirebaseAuth
 
 final class LoginVC: UIViewController {
     
+    private lazy var isModal = navigationController?.presentingViewController?.presentedViewController == navigationController
+    
     private lazy var backButtonView: NavigationBarButtonView = {
         let view = NavigationBarButtonView()
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backButtonTapped))
@@ -130,9 +132,20 @@ final class LoginVC: UIViewController {
         setupUI()
         setupConstraints()
         
-        emailField.becomeFirstResponder()
+        if isModal {
+            prepareForAnimations()
+        }
+        
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        if isModal {
+            startAnimations()
+        }
     }
     
     // MARK: - Private methods
@@ -169,7 +182,7 @@ final class LoginVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            emailLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 40),
+            emailLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 80),
             emailLabel.leadingAnchor.constraint(equalTo: emailField.leadingAnchor, constant: 16),
             emailField.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 8),
             emailField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
@@ -206,6 +219,49 @@ final class LoginVC: UIViewController {
             guestButton.leadingAnchor.constraint(equalTo: orContinueAsLabel.trailingAnchor, constant: 4),
             orContinueAsLabel.centerYAnchor.constraint(equalTo: guestButton.centerYAnchor)
         ])
+    }
+    
+    private func prepareForAnimations() {
+        [emailLabel, emailField, passwordLabel, passwordField, loginButton, createAccountView, continueAsGuestView].forEach {
+            $0.transform = CGAffineTransform(translationX: 0, y: 300)
+            $0.alpha = 0.0
+        }
+    }
+    
+    private func startAnimations() {
+        let labels = [emailLabel, passwordLabel]
+        for (index, label) in labels.enumerated() {
+            UIView.animate(
+                withDuration: 0.7,
+                delay: 0.1 * Double(index),
+                usingSpringWithDamping: 0.85,
+                initialSpringVelocity: 0.5,
+                options: [],
+                animations: {
+                    label.transform = .identity
+                    label.alpha = 1.0
+                },
+                completion: nil
+            )
+        }
+        
+        let elements = [emailField, passwordField, loginButton, createAccountView, continueAsGuestView]
+        for (index, element) in elements.enumerated() {
+            UIView.animate(
+                withDuration: 0.7,
+                delay: 0.1 * Double(index),
+                usingSpringWithDamping: 0.85,
+                initialSpringVelocity: 0.5,
+                options: [],
+                animations: {
+                    element.transform = .identity
+                    element.alpha = 1.0
+                },
+                completion: { _ in
+                    self.emailField.becomeFirstResponder()
+                }
+            )
+        }
     }
     
     private func authenticateUser() {
