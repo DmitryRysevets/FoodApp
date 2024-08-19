@@ -78,6 +78,8 @@ class TabBarVC: UIViewController {
         return button
     }()
     
+    private var navBarIsVisible = true
+    
     private lazy var tabs = [menuTabButton, favoriteTabButton, cartTabButton, profileTabButton]
     
     private var selectedIndex: Int = 0
@@ -111,6 +113,8 @@ class TabBarVC: UIViewController {
         
         setupUI()
         setupConstraints()
+        
+        TabBarVC.profileNavVC.delegate = self
     }
     
     func initialSetup(with frame: CGRect) {
@@ -188,23 +192,54 @@ extension TabBarVC {
     }
     
     func hideTabBar() {
-        tabBarView.layer.removeAllAnimations()
-        UIView.animate(withDuration: 0.2, delay: 0, options: .curveLinear, animations: { [self] in
-            tabBarView.center.y += tabBarHeight + tabBarMargin
-        })
+        UIView.animate(
+            withDuration: 0.5,
+            delay: 0,
+            usingSpringWithDamping: 0.8,
+            initialSpringVelocity: 0.5,
+            options: [],
+            animations: {
+                self.tabBarView.transform = CGAffineTransform(translationX: 0, y: 115)
+                self.tabBarView.alpha = 0.0
+            },
+            completion: nil
+        )
     }
     
     func showTabBar() {
-        let showTabBarAnimation = CASpringAnimation(keyPath: "position.y")
-        showTabBarAnimation.damping = 13
-        showTabBarAnimation.fromValue = tabBarView.center.y
-        showTabBarAnimation.toValue = tabBarView.center.y - (tabBarHeight + tabBarMargin)
-        showTabBarAnimation.duration = showTabBarAnimation.settlingDuration
-        
-        CATransaction.begin()
-        tabBarView.layer.position.y -= tabBarHeight + tabBarMargin
-        tabBarView.layer.add(showTabBarAnimation, forKey: "positionAnimation")
-        CATransaction.commit()
+        UIView.animate(
+            withDuration: 0.5,
+            delay: 0,
+            usingSpringWithDamping: 0.75,
+            initialSpringVelocity: 0.5,
+            options: [],
+            animations: {
+                self.tabBarView.transform = .identity
+                self.tabBarView.alpha = 1
+            },
+            completion: nil
+        )
     }
 
+}
+
+// MARK: - UINavigationControllerDelegate
+extension TabBarVC: UINavigationControllerDelegate {
+    
+    func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
+        let isRootVC = viewController === navigationController.viewControllers.first
+        if navigationController === TabBarVC.profileNavVC {
+            if isRootVC {
+                if !navBarIsVisible {
+                    showTabBar()
+                    navBarIsVisible = true
+                }
+            } else {
+                if navBarIsVisible {
+                    hideTabBar()
+                    navBarIsVisible = false
+                }
+            }
+        }
+    }
 }

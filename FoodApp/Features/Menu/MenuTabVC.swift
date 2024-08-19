@@ -364,15 +364,33 @@ final class MenuTabVC: UIViewController {
     }
     
     private func hideSearchBar() {
-        UIView.animate(withDuration: 0.2) {
-            self.searchBar.transform = CGAffineTransform(translationX: 0, y: -self.searchBar.frame.height)
-        }
+        UIView.animate(
+            withDuration: 0.5,
+            delay: 0,
+            usingSpringWithDamping: 0.8,
+            initialSpringVelocity: 0.5,
+            options: [],
+            animations: {
+                self.searchBar.transform = CGAffineTransform(translationX: 0, y: -40)
+                self.searchBar.alpha = 0.0
+            },
+            completion: nil
+        )
     }
     
     private func showSearchBar() {
-        UIView.animate(withDuration: 0.2) {
-            self.searchBar.transform = .identity
-        }
+        UIView.animate(
+            withDuration: 0.5,
+            delay: 0,
+            usingSpringWithDamping: 0.75,
+            initialSpringVelocity: 0.5,
+            options: [],
+            animations: {
+                self.searchBar.transform = .identity
+                self.searchBar.alpha = 1
+            },
+            completion: nil
+        )
     }
     
     private func getMenu() {
