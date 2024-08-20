@@ -235,6 +235,7 @@ extension DeliveryAddressesVC: UITableViewDelegate, UITableViewDataSource {
             CoreDataManager.shared.setAddressAsDefault(by: placeName)
             setAddressAsDefaultInLocal(at: indexPath)
             tableView.reloadData()
+            navigationController?.popViewController(animated: true)
         }
     }
     

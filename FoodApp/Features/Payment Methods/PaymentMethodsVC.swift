@@ -173,7 +173,7 @@ final class PaymentMethodsVC: UIViewController {
         tableView.deleteRows(at: [indexPath], with: .automatic)
     }
     
-    private func setPrefferedInLocal(at indexPath: IndexPath) {
+    private func setPrefferedCardInLocal(at indexPath: IndexPath) {
         for i in 0...cards.count-1 {
             cards[i].isPreferred = (i == indexPath.row)
         }
@@ -276,8 +276,9 @@ extension PaymentMethodsVC: UITableViewDelegate, UITableViewDataSource {
         if !cards[indexPath.row].isPreferred {
             guard let cardName = cards[indexPath.row].cardName else { return }
             CoreDataManager.shared.setPreferredCard(by: cardName)
-            setPrefferedInLocal(at: indexPath)
+            setPrefferedCardInLocal(at: indexPath)
             tableView.reloadData()
+            navigationController?.popViewController(animated: true)
         }
     }
     

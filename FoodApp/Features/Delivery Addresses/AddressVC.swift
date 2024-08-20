@@ -117,6 +117,8 @@ final class AddressVC: UIViewController {
         mapView.camera = camera
         mapView.translatesAutoresizingMaskIntoConstraints = false
         mapView.layer.cornerRadius = 14
+        mapView.layer.borderWidth = 1
+        mapView.layer.borderColor = ColorManager.shared.labelGray.withAlphaComponent(0.1).cgColor
         return mapView
     }()
     

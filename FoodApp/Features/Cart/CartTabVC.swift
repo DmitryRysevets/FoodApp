@@ -33,21 +33,6 @@ final class CartTabVC: UIViewController {
     private var deliveryPrice: Double = 2.0
     private var totalAmount: Double = 0
     
-    private lazy var headerView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
-    private lazy var cartTitle: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
-        label.text = "Cart"
-        return label
-    }()
-    
     private lazy var scrollView: UIScrollView = {
         let view = UIScrollView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -240,6 +225,7 @@ final class CartTabVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavBar()
         setupUI()
         setupConstraints()
     }
@@ -265,13 +251,22 @@ final class CartTabVC: UIViewController {
         }
     }
     
+    private func setupNavBar() {
+        title = "Cart"
+        
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: ColorManager.shared.label,
+            .font: UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
+        ]
+        
+        navigationController?.navigationBar.titleTextAttributes = titleAttributes
+    }
+    
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
-        view.addSubview(headerView)
+        
         view.addSubview(emptyCartView)
         view.addSubview(scrollView)
-        
-        headerView.addSubview(cartTitle)
         
         scrollView.addSubview(tableView)
         scrollView.addSubview(promoCodeView)
@@ -297,14 +292,7 @@ final class CartTabVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: Constants.headerHeight),
-            cartTitle.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
-            cartTitle.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            
-            scrollView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            scrollView.topAnchor.constraint(equalTo: safeArea.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -362,7 +350,7 @@ final class CartTabVC: UIViewController {
             spacerView.heightAnchor.constraint(equalToConstant: 92),
             spacerView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             
-            emptyCartView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
+            emptyCartView.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 32),
             emptyCartView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             emptyCartView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             emptyCartView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100),
@@ -435,14 +423,16 @@ final class CartTabVC: UIViewController {
     
     @objc
     private func continueOrderButtonTouchUp() {
-        let paymentPage = PaymentVC(amountDue: totalAmount)
-        paymentPage.modalTransitionStyle = .coverVertical
-        paymentPage.modalPresentationStyle = .overFullScreen
-        present(paymentPage, animated: true)
+//        let paymentPage = PaymentVC(amountDue: totalAmount)
+//        paymentPage.modalTransitionStyle = .coverVertical
+//        paymentPage.modalPresentationStyle = .overFullScreen
+//        present(paymentPage, animated: true)
         
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.continueOrderButton.transform = CGAffineTransform.identity
         }, completion: nil)
+        
+        navigationController?.pushViewController(PaymentVC(amountDue: totalAmount), animated: true)
     }
 }
 

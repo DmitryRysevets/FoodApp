@@ -94,7 +94,12 @@ class TabBarVC: UIViewController {
     
     static let menuVC = MenuTabVC()
     static let favoriteVC = FavoriteTabVC()
-    static let cartVC = CartTabVC()
+    
+    static let cartNavVC: UINavigationController = {
+        let navigationController = UINavigationController(rootViewController: CartTabVC())
+        navigationController.navigationBar.tintColor = ColorManager.shared.label
+        return navigationController
+    }()
     
     static let profileNavVC: UINavigationController = {
         let navigationController = UINavigationController(rootViewController: ProfileTabVC())
@@ -106,7 +111,7 @@ class TabBarVC: UIViewController {
         super.viewDidLoad()
         viewControllers.append(TabBarVC.menuVC)
         viewControllers.append(TabBarVC.favoriteVC)
-        viewControllers.append(TabBarVC.cartVC)
+        viewControllers.append(TabBarVC.cartNavVC)
         viewControllers.append(TabBarVC.profileNavVC)
         
         tabs[selectedIndex].isSelected = true
@@ -114,6 +119,7 @@ class TabBarVC: UIViewController {
         setupUI()
         setupConstraints()
         
+        TabBarVC.cartNavVC.delegate = self
         TabBarVC.profileNavVC.delegate = self
     }
     
@@ -228,7 +234,7 @@ extension TabBarVC: UINavigationControllerDelegate {
     
     func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
         let isRootVC = viewController === navigationController.viewControllers.first
-        if navigationController === TabBarVC.profileNavVC {
+        if navigationController === TabBarVC.profileNavVC || navigationController === TabBarVC.cartNavVC {
             if isRootVC {
                 if !navBarIsVisible {
                     showTabBar()

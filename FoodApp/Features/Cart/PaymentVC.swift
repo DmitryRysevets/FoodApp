@@ -4,37 +4,27 @@
 //
 
 import UIKit
+import GoogleMaps
 
 final class PaymentVC: UIViewController {
     
     private let amountDue: Double
     
-    private lazy var headerView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
+    private var paymentMethodIsSelected = false
+    private var deliveryAddressIsSelected = false
+    
+    private lazy var locationManager: CLLocationManager = {
+        let manager = CLLocationManager()
+        manager.delegate = self
+        return manager
+    }()
+    
+    private lazy var backButtonView: NavigationBarButtonView = {
+        let view = NavigationBarButtonView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backButtonTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.configureAsBackButton()
         return view
-    }()
-    
-    private lazy var backButton: UIButton = {
-        let button = UIButton()
-        let configuration = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
-        let image = UIImage(systemName: "chevron.backward", withConfiguration: configuration)?.resized(to: CGSize(width: 12, height: 16)).withTintColor(ColorManager.shared.label)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
-        button.tintColor = ColorManager.shared.label
-        button.backgroundColor = ColorManager.shared.headerElementsColor
-        button.layer.cornerRadius = Constants.headerButtonSize / 2
-        button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var paymentTitleLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
-        label.text = "Payment"
-        return label
     }()
     
     private lazy var scrollView: UIScrollView = {
@@ -43,127 +33,162 @@ final class PaymentVC: UIViewController {
         return view
     }()
     
+    //MARK: - Payment method section
+    
     private lazy var paymentOptionsView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.payment_sectionColor
+        view.layer.cornerRadius = 36
         return view
     }()
     
-    //MARK: - Payment by PayPal props.
-    
-    private lazy var radioButtonPaymentByPayPal: RadioButton = {
+    private lazy var payCashRadioButton: RadioButton = {
         let button = RadioButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 10
-        button.addTarget(self, action: #selector(byPayPalButtonDidTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(payCashRadioButtonTapped), for: .touchUpInside)
         button.isSelected = false
         return button
     }()
     
-    private lazy var paymentByPayPalLabel: UILabel = {
+    private lazy var payCashLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.labelGray
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 550])
-        label.text = "Pay With"
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(byPayPalButtonDidTapped))
+        label.text = "Pay cash to the courier"
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(payCashRadioButtonTapped))
         label.addGestureRecognizer(tapGesture)
         label.isUserInteractionEnabled = true
         return label
     }()
     
-    private lazy var payPalImageView: UIImageView = {
-        let image = UIImage(named: "PayPal")
-        let imageView = UIImageView(image: image)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.contentMode = .scaleAspectFit
-        return imageView
-    }()
-    
-    //MARK: - Payment by card props.
-    
-    private lazy var radioButtonPaymentByCard: RadioButton = {
+    private lazy var payByCardRadioButton: RadioButton = {
         let button = RadioButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 10
-        button.addTarget(self, action: #selector(byCardButtonDidTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(payByCardRadioButtonTapped), for: .touchUpInside)
         button.isSelected = true
         return button
     }()
     
-    private lazy var paymentByCardLabel: UILabel = {
+    private lazy var payByCardLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 600])
-        label.text = "Credit & Debit Card"
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(byCardButtonDidTapped))
+        label.text = "Pay by card"
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(payByCardRadioButtonTapped))
         label.addGestureRecognizer(tapGesture)
         label.isUserInteractionEnabled = true
         return label
     }()
     
-    private lazy var typeCardsImageView: UIImageView = {
-        let image = UIImage(named: "Cards")
+    private lazy var selectCardView: UIView = {
+        let view = UIView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(goToPaymentMethodsTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.isUserInteractionEnabled = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.payment_secondaryButtonColor
+        view.layer.cornerRadius = 22
+        return view
+    }()
+
+    private lazy var selectCardLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 550])
+        label.text = "Add payment card"
+        label.numberOfLines = 1
+        return label
+    }()
+    
+    private lazy var goToPaymentMethodsImageView: UIImageView = {
+        let image = UIImage(systemName: "chevron.right")
         let imageView = UIImageView(image: image)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = ColorManager.shared.label
         return imageView
     }()
     
-    //MARK: - Card details props.
+    //MARK: - Map section
     
-    private lazy var cardDetailsView: UIView = {
+    private lazy var mapSectionView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.payment_sectionColor
+        view.layer.cornerRadius = 36
         return view
     }()
     
-    private lazy var cardholderNameLabel: UILabel = {
+    private lazy var geolocationButton: UIButton = {
+        let image = UIImage(named: "Pin")
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.layer.cornerRadius = 22
+        button.backgroundColor = ColorManager.shared.payment_secondaryButtonColor
+        button.tintColor = ColorManager.shared.label
+        button.setImage(image, for: .normal)
+        button.addTarget(self, action: #selector(geolocationButtonTouchDown), for: .touchDown)
+        button.addTarget(self, action: #selector(geolocationButtonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+        return button
+    }()
+    
+    private lazy var selectAddressView: UIView = {
+        let view = UIView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(goToDeliveryAddressesTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.isUserInteractionEnabled = true
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.payment_secondaryButtonColor
+        view.layer.cornerRadius = 22
+        return view
+    }()
+    
+    private lazy var selectedAddressLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.labelGray
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
-        label.text = "Cardholder Name"
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 550])
+        label.text = "Add delivery address"
+        label.numberOfLines = 1
         return label
     }()
     
-    private lazy var cardholderNameField: TextField = {
-        let field = TextField()
-        field.translatesAutoresizingMaskIntoConstraints = false
-        return field
+    private lazy var goToDeliveryAddressesImageView: UIImageView = {
+        let image = UIImage(systemName: "chevron.right")
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = ColorManager.shared.label
+        return imageView
     }()
     
-    private lazy var mmyyLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.labelGray
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
-        label.text = "MM/YY"
-        return label
+    private lazy var mapView: GMSMapView = {
+        let camera = GMSCameraPosition.camera(withLatitude: 41.6903308028158, longitude: 44.807368755121445, zoom: 17.0)
+        let mapView = GMSMapView()
+        mapView.camera = camera
+        mapView.translatesAutoresizingMaskIntoConstraints = false
+        mapView.layer.cornerRadius = 20
+        mapView.layer.borderWidth = 1
+        mapView.layer.borderColor = ColorManager.shared.labelGray.withAlphaComponent(0.1).cgColor
+        return mapView
     }()
     
-    private lazy var mmyyField: TextField = {
-        let field = TextField()
-        field.translatesAutoresizingMaskIntoConstraints = false
-        return field
+    private lazy var marker: GMSMarker = {
+        let marker = GMSMarker()
+        if let customIcon = UIImage(named: "GooglePin") {
+            marker.icon = customIcon
+        }
+        return marker
     }()
     
-    private lazy var cvcLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.labelGray
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
-        label.text = "CVC"
-        return label
-    }()
-    
-    private lazy var cvcField: TextField = {
-        let field = TextField()
-        field.translatesAutoresizingMaskIntoConstraints = false
-        return field
-    }()
-    
+    //MARK: - User agreement section
+
     private lazy var userAgreementCheckBox: CheckBox = {
         let checkbox = CheckBox()
         checkbox.translatesAutoresizingMaskIntoConstraints = false
@@ -190,43 +215,13 @@ final class PaymentVC: UIViewController {
         return label
     }()
     
-    //MARK: - Map props.
-    
-    private lazy var mapView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.lightGraySectionColor
-        view.layer.cornerRadius = 24
-        return view
-    }()
-    
-    private lazy var mapPinImageView: UIImageView = {
-        let image = UIImage(named: "Pin")
-        let imageView = UIImageView(image: image)
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.tintColor = ColorManager.shared.label
-        imageView.contentMode = .scaleAspectFit
-        return imageView
-    }()
-    
-    private lazy var deliveryAddressLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 600])
-        label.text = "Delivery Address"
-        return label
-    }()
-    
-    // insert map frame
-    
-    //MARK: - Place order props.
+    //MARK: - Place order section
     
     private lazy var placeOrderView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.payment_orderViewColor
-        view.layer.cornerRadius = 24
+        view.backgroundColor = ColorManager.shared.payment_totalAmountSection
+        view.layer.cornerRadius = 36
         return view
     }()
     
@@ -284,47 +279,57 @@ final class PaymentVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavBar()
         setupUI()
         setupConstraints()
         
-        radioButtonPaymentByPayPal.alternateButton = [radioButtonPaymentByCard]
-        radioButtonPaymentByCard.alternateButton = [radioButtonPaymentByPayPal]
+        payCashRadioButton.alternateButton = [payByCardRadioButton]
+        payByCardRadioButton.alternateButton = [payCashRadioButton]
     }
     
     //MARK: - Private methods
     
+    private func setupNavBar() {
+        title = "Payment"
+        
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: ColorManager.shared.label,
+            .font: UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
+        ]
+        
+        navigationController?.navigationBar.titleTextAttributes = titleAttributes
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+
+        let backBarButtonItem = UIBarButtonItem(customView: backButtonView)
+        navigationItem.leftBarButtonItem = backBarButtonItem
+    }
+    
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
 
-        view.addSubview(headerView)
         view.addSubview(scrollView)
-
-        headerView.addSubview(backButton)
-        headerView.addSubview(paymentTitleLabel)
         
         scrollView.addSubview(paymentOptionsView)
-        scrollView.addSubview(cardDetailsView)
-        scrollView.addSubview(mapView)
+        scrollView.addSubview(mapSectionView)
+        scrollView.addSubview(userAgreementCheckBox)
+        scrollView.addSubview(userAgreementLabel)
         scrollView.addSubview(placeOrderView)
         
-        paymentOptionsView.addSubview(radioButtonPaymentByPayPal)
-        paymentOptionsView.addSubview(paymentByPayPalLabel)
-        paymentOptionsView.addSubview(payPalImageView)
-        paymentOptionsView.addSubview(radioButtonPaymentByCard)
-        paymentOptionsView.addSubview(paymentByCardLabel)
-        paymentOptionsView.addSubview(typeCardsImageView)
-
-        cardDetailsView.addSubview(cardholderNameLabel)
-        cardDetailsView.addSubview(cardholderNameField)
-        cardDetailsView.addSubview(mmyyLabel)
-        cardDetailsView.addSubview(mmyyField)
-        cardDetailsView.addSubview(cvcLabel)
-        cardDetailsView.addSubview(cvcField)
-        cardDetailsView.addSubview(userAgreementCheckBox)
-        cardDetailsView.addSubview(userAgreementLabel)
+        paymentOptionsView.addSubview(payCashRadioButton)
+        paymentOptionsView.addSubview(payCashLabel)
+        paymentOptionsView.addSubview(payByCardRadioButton)
+        paymentOptionsView.addSubview(payByCardLabel)
+        paymentOptionsView.addSubview(selectCardView)
         
-        mapView.addSubview(mapPinImageView)
-        mapView.addSubview(deliveryAddressLabel)
+        selectCardView.addSubview(selectCardLabel)
+        selectCardView.addSubview(goToPaymentMethodsImageView)
+        
+        mapSectionView.addSubview(geolocationButton)
+        mapSectionView.addSubview(selectAddressView)
+        mapSectionView.addSubview(mapView)
+        
+        selectAddressView.addSubview(selectedAddressLabel)
+        selectAddressView.addSubview(goToDeliveryAddressesImageView)
         
         placeOrderView.addSubview(totalAmountLabel)
         placeOrderView.addSubview(seePriceDetailsLabel)
@@ -335,104 +340,87 @@ final class PaymentVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: Constants.headerHeight),
-            backButton.topAnchor.constraint(equalTo: headerView.topAnchor),
-            backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            backButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
-            backButton.widthAnchor.constraint(equalTo: backButton.heightAnchor),
-            paymentTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
-            paymentTitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            paymentTitleLabel.heightAnchor.constraint(equalToConstant: 30),
-            
-            scrollView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            scrollView.topAnchor.constraint(equalTo: safeArea.topAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            paymentOptionsView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            paymentOptionsView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            paymentOptionsView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            paymentOptionsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
-            radioButtonPaymentByPayPal.topAnchor.constraint(equalTo: paymentOptionsView.topAnchor, constant: 24),
-            radioButtonPaymentByPayPal.leadingAnchor.constraint(equalTo: paymentOptionsView.leadingAnchor, constant: 16),
-            radioButtonPaymentByPayPal.heightAnchor.constraint(equalToConstant: 20),
-            radioButtonPaymentByPayPal.widthAnchor.constraint(equalToConstant: 20),
-            paymentByPayPalLabel.centerYAnchor.constraint(equalTo: radioButtonPaymentByPayPal.centerYAnchor),
-            paymentByPayPalLabel.leadingAnchor.constraint(equalTo: radioButtonPaymentByPayPal.trailingAnchor, constant: 8),
-            payPalImageView.centerYAnchor.constraint(equalTo: radioButtonPaymentByPayPal.centerYAnchor),
-            payPalImageView.leadingAnchor.constraint(equalTo: paymentByPayPalLabel.trailingAnchor, constant: 8),
-            payPalImageView.heightAnchor.constraint(equalToConstant: 28),
-            payPalImageView.widthAnchor.constraint(equalTo: payPalImageView.heightAnchor, multiplier: 3.8),
-            radioButtonPaymentByCard.topAnchor.constraint(equalTo: radioButtonPaymentByPayPal.bottomAnchor, constant: 24),
-            radioButtonPaymentByCard.leadingAnchor.constraint(equalTo: radioButtonPaymentByPayPal.leadingAnchor),
-            radioButtonPaymentByCard.heightAnchor.constraint(equalToConstant: 20),
-            radioButtonPaymentByCard.widthAnchor.constraint(equalToConstant: 20),
-            radioButtonPaymentByCard.bottomAnchor.constraint(equalTo: paymentOptionsView.bottomAnchor, constant: -8),
-            paymentByCardLabel.centerYAnchor.constraint(equalTo: radioButtonPaymentByCard.centerYAnchor),
-            paymentByCardLabel.leadingAnchor.constraint(equalTo: radioButtonPaymentByCard.trailingAnchor, constant: 8),
-            typeCardsImageView.centerYAnchor.constraint(equalTo: radioButtonPaymentByCard.centerYAnchor),
-            typeCardsImageView.leadingAnchor.constraint(equalTo: paymentByCardLabel.trailingAnchor, constant: 24),
-            typeCardsImageView.heightAnchor.constraint(equalToConstant: 28),
-            typeCardsImageView.widthAnchor.constraint(equalTo: typeCardsImageView.heightAnchor, multiplier: 4.72),
+            paymentOptionsView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 32),
+            paymentOptionsView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
+            paymentOptionsView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
+            paymentOptionsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
+            paymentOptionsView.heightAnchor.constraint(equalToConstant: 172),
+            payCashRadioButton.topAnchor.constraint(equalTo: paymentOptionsView.topAnchor, constant: 24),
+            payCashRadioButton.leadingAnchor.constraint(equalTo: paymentOptionsView.leadingAnchor, constant: 24),
+            payCashRadioButton.heightAnchor.constraint(equalToConstant: 20),
+            payCashRadioButton.widthAnchor.constraint(equalToConstant: 20),
+            payCashLabel.centerYAnchor.constraint(equalTo: payCashRadioButton.centerYAnchor),
+            payCashLabel.leadingAnchor.constraint(equalTo: payCashRadioButton.trailingAnchor, constant: 8),
+            payByCardRadioButton.topAnchor.constraint(equalTo: payCashRadioButton.bottomAnchor, constant: 24),
+            payByCardRadioButton.leadingAnchor.constraint(equalTo: payCashRadioButton.leadingAnchor),
+            payByCardRadioButton.heightAnchor.constraint(equalToConstant: 20),
+            payByCardRadioButton.widthAnchor.constraint(equalToConstant: 20),
+            payByCardLabel.centerYAnchor.constraint(equalTo: payByCardRadioButton.centerYAnchor),
+            payByCardLabel.leadingAnchor.constraint(equalTo: payByCardRadioButton.trailingAnchor, constant: 8),
+            selectCardView.leadingAnchor.constraint(equalTo: paymentOptionsView.leadingAnchor, constant: 16),
+            selectCardView.trailingAnchor.constraint(equalTo: paymentOptionsView.trailingAnchor, constant: -16),
+            selectCardView.bottomAnchor.constraint(equalTo: paymentOptionsView.bottomAnchor, constant: -16),
+            selectCardView.heightAnchor.constraint(equalToConstant: 44),
             
-            cardDetailsView.topAnchor.constraint(equalTo: paymentOptionsView.bottomAnchor),
-            cardDetailsView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            cardDetailsView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            cardDetailsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
-            cardholderNameLabel.topAnchor.constraint(equalTo: cardDetailsView.topAnchor, constant: 8),
-            cardholderNameLabel.leadingAnchor.constraint(equalTo: cardDetailsView.leadingAnchor, constant: 16),
-            cardholderNameField.topAnchor.constraint(equalTo: cardholderNameLabel.bottomAnchor, constant: 8),
-            cardholderNameField.leadingAnchor.constraint(equalTo: cardDetailsView.leadingAnchor, constant: 16),
-            cardholderNameField.trailingAnchor.constraint(equalTo: cardDetailsView.trailingAnchor, constant: -16),
-            cardholderNameField.heightAnchor.constraint(equalToConstant: Constants.regularFieldHeight),
-            mmyyLabel.topAnchor.constraint(equalTo: cardholderNameField.bottomAnchor, constant: 12),
-            mmyyLabel.leadingAnchor.constraint(equalTo: cardDetailsView.leadingAnchor, constant: 16),
-            mmyyField.topAnchor.constraint(equalTo: mmyyLabel.bottomAnchor, constant: 8),
-            mmyyField.leadingAnchor.constraint(equalTo: cardDetailsView.leadingAnchor, constant: 16),
-            mmyyField.heightAnchor.constraint(equalToConstant: Constants.regularFieldHeight),
-            mmyyField.widthAnchor.constraint(equalTo: cardDetailsView.widthAnchor, multiplier: 0.5, constant: -20),
-            cvcField.topAnchor.constraint(equalTo: mmyyField.topAnchor),
-            cvcField.leadingAnchor.constraint(equalTo: mmyyField.trailingAnchor, constant: 8),
-            cvcField.trailingAnchor.constraint(equalTo: cardDetailsView.trailingAnchor, constant: -16),
-            cvcField.heightAnchor.constraint(equalToConstant: Constants.regularFieldHeight),
-            cvcLabel.topAnchor.constraint(equalTo: mmyyLabel.topAnchor),
-            cvcLabel.leadingAnchor.constraint(equalTo: cvcField.leadingAnchor),
-            userAgreementCheckBox.topAnchor.constraint(equalTo: mmyyField.bottomAnchor, constant: 16),
-            userAgreementCheckBox.leadingAnchor.constraint(equalTo: cardDetailsView.leadingAnchor, constant: 16),
+            selectCardLabel.centerYAnchor.constraint(equalTo: selectCardView.centerYAnchor),
+            selectCardLabel.leadingAnchor.constraint(equalTo: selectCardView.leadingAnchor, constant: 16),
+            selectCardLabel.trailingAnchor.constraint(equalTo: goToPaymentMethodsImageView.leadingAnchor, constant: -16),
+            goToPaymentMethodsImageView.centerYAnchor.constraint(equalTo: selectCardView.centerYAnchor),
+            goToPaymentMethodsImageView.trailingAnchor.constraint(equalTo: selectCardView.trailingAnchor, constant: -12),
+            goToPaymentMethodsImageView.heightAnchor.constraint(equalToConstant: 20),
+            goToPaymentMethodsImageView.widthAnchor.constraint(equalTo: goToPaymentMethodsImageView.heightAnchor),
+            
+            mapSectionView.topAnchor.constraint(equalTo: paymentOptionsView.bottomAnchor, constant: 32),
+            mapSectionView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
+            mapSectionView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
+            mapSectionView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
+            mapSectionView.heightAnchor.constraint(equalToConstant: 280),
+            geolocationButton.topAnchor.constraint(equalTo: mapSectionView.topAnchor, constant: 16),
+            geolocationButton.leadingAnchor.constraint(equalTo: mapSectionView.leadingAnchor, constant: 16),
+            geolocationButton.heightAnchor.constraint(equalToConstant: 44),
+            geolocationButton.widthAnchor.constraint(equalTo: geolocationButton.heightAnchor),
+            selectAddressView.topAnchor.constraint(equalTo: mapSectionView.topAnchor, constant: 16),
+            selectAddressView.leadingAnchor.constraint(equalTo: geolocationButton.trailingAnchor, constant: 12),
+            selectAddressView.trailingAnchor.constraint(equalTo: mapSectionView.trailingAnchor, constant: -16),
+            selectAddressView.heightAnchor.constraint(equalToConstant: 44),
+            mapView.topAnchor.constraint(equalTo: geolocationButton.bottomAnchor, constant: 16),
+            mapView.leadingAnchor.constraint(equalTo: mapSectionView.leadingAnchor, constant: 16),
+            mapView.trailingAnchor.constraint(equalTo: mapSectionView.trailingAnchor, constant: -16),
+            mapView.bottomAnchor.constraint(equalTo: mapSectionView.bottomAnchor, constant: -16),
+            
+            selectedAddressLabel.centerYAnchor.constraint(equalTo: selectAddressView.centerYAnchor),
+            selectedAddressLabel.leadingAnchor.constraint(equalTo: selectAddressView.leadingAnchor, constant: 16),
+            selectedAddressLabel.trailingAnchor.constraint(equalTo: goToDeliveryAddressesImageView.leadingAnchor, constant: -16),
+            goToDeliveryAddressesImageView.centerYAnchor.constraint(equalTo: selectAddressView.centerYAnchor),
+            goToDeliveryAddressesImageView.trailingAnchor.constraint(equalTo: selectAddressView.trailingAnchor, constant: -12),
+            goToDeliveryAddressesImageView.heightAnchor.constraint(equalToConstant: 20),
+            goToDeliveryAddressesImageView.widthAnchor.constraint(equalTo: goToDeliveryAddressesImageView.heightAnchor),
+            
+            userAgreementCheckBox.topAnchor.constraint(equalTo: mapSectionView.bottomAnchor, constant: 32),
+            userAgreementCheckBox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             userAgreementCheckBox.widthAnchor.constraint(equalToConstant: Constants.checkboxSize),
             userAgreementCheckBox.heightAnchor.constraint(equalToConstant: Constants.checkboxSize),
             userAgreementLabel.topAnchor.constraint(equalTo: userAgreementCheckBox.topAnchor, constant: -4),
             userAgreementLabel.leadingAnchor.constraint(equalTo: userAgreementCheckBox.trailingAnchor, constant: 8),
-            userAgreementLabel.trailingAnchor.constraint(equalTo: cardDetailsView.trailingAnchor, constant: -16),
-            userAgreementLabel.bottomAnchor.constraint(equalTo: cardDetailsView.bottomAnchor, constant: -8),
+            userAgreementLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
             
-            mapView.topAnchor.constraint(equalTo: cardDetailsView.bottomAnchor, constant: 16),
-            mapView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
-            mapView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
-            mapView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
-            mapView.heightAnchor.constraint(equalToConstant: 168), // for test
-            mapPinImageView.topAnchor.constraint(equalTo: mapView.topAnchor, constant: 16),
-            mapPinImageView.leadingAnchor.constraint(equalTo: mapView.leadingAnchor, constant: 16),
-            mapPinImageView.heightAnchor.constraint(equalToConstant: 20),
-            mapPinImageView.widthAnchor.constraint(equalToConstant: 20),
-            deliveryAddressLabel.centerYAnchor.constraint(equalTo: mapPinImageView.centerYAnchor),
-            deliveryAddressLabel.leadingAnchor.constraint(equalTo: mapPinImageView.trailingAnchor, constant: 8),
-            
-            placeOrderView.topAnchor.constraint(equalTo: mapView.bottomAnchor, constant: 60),
+            placeOrderView.topAnchor.constraint(equalTo: userAgreementCheckBox.bottomAnchor, constant: 52),
             placeOrderView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
             placeOrderView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
             placeOrderView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
             placeOrderView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -32),
             totalAmountLabel.topAnchor.constraint(equalTo: placeOrderView.topAnchor, constant: 24),
-            totalAmountLabel.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 16),
+            totalAmountLabel.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 24),
             seePriceDetailsLabel.topAnchor.constraint(equalTo: totalAmountLabel.bottomAnchor, constant: 3),
-            seePriceDetailsLabel.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 16),
+            seePriceDetailsLabel.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 24),
             priceLabel.topAnchor.constraint(equalTo: placeOrderView.topAnchor, constant: 30),
-            priceLabel.trailingAnchor.constraint(equalTo: placeOrderView.trailingAnchor, constant: -16),
-            placeOrderButton.topAnchor.constraint(equalTo: seePriceDetailsLabel.bottomAnchor, constant: 14),
+            priceLabel.trailingAnchor.constraint(equalTo: placeOrderView.trailingAnchor, constant: -24),
+            placeOrderButton.topAnchor.constraint(equalTo: seePriceDetailsLabel.bottomAnchor, constant: 28),
             placeOrderButton.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 16),
             placeOrderButton.trailingAnchor.constraint(equalTo: placeOrderView.trailingAnchor, constant: -16),
             placeOrderButton.bottomAnchor.constraint(equalTo: placeOrderView.bottomAnchor, constant: -16),
@@ -444,19 +432,46 @@ final class PaymentVC: UIViewController {
     
     @objc
     private func backButtonTapped() {
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
     }
     
     @objc
-    private func byPayPalButtonDidTapped() {
-        radioButtonPaymentByPayPal.isSelected = true
-        radioButtonPaymentByPayPal.unselectAlternateButtons()
+    private func payCashRadioButtonTapped() {
+        payCashRadioButton.isSelected = true
+        payCashRadioButton.unselectAlternateButtons()
     }
     
     @objc
-    private func byCardButtonDidTapped() {
-        radioButtonPaymentByCard.isSelected = true
-        radioButtonPaymentByCard.unselectAlternateButtons()
+    private func payByCardRadioButtonTapped() {
+        payByCardRadioButton.isSelected = true
+        payByCardRadioButton.unselectAlternateButtons()
+    }
+    
+    @objc
+    private func geolocationButtonTouchDown() {
+        UIView.animate(withDuration: 0.1) {
+            self.geolocationButton.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
+        }
+    }
+    
+    @objc
+    private func geolocationButtonTouchUp() {
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.startUpdatingLocation()
+        
+        UIView.animate(withDuration: 0.1, delay: 0.1, options: [], animations: {
+            self.geolocationButton.transform = CGAffineTransform.identity
+        }, completion: nil)
+    }
+    
+    @objc
+    private func goToPaymentMethodsTapped() {
+        navigationController?.pushViewController(PaymentMethodsVC(), animated: true)
+    }
+    
+    @objc
+    private func goToDeliveryAddressesTapped() {
+        navigationController?.pushViewController(DeliveryAddressesVC(), animated: true)
     }
     
     @objc
@@ -476,5 +491,32 @@ final class PaymentVC: UIViewController {
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.placeOrderButton.transform = CGAffineTransform.identity
         }, completion: nil)
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension PaymentVC: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return navigationController?.viewControllers.count ?? 0 > 1
+    }
+}
+
+// MARK: - CLLocationManagerDelegate
+
+extension PaymentVC: CLLocationManagerDelegate {
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let location = locations.first {
+//            self.location = location
+//            getAddressFrom(location)
+            locationManager.stopUpdatingLocation()
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        if status == .denied || status == .restricted {
+            // Need a handler for a that case
+        }
     }
 }

@@ -159,7 +159,19 @@ final class ColorManager {
             : UIColor(red: 0.063, green: 0.063, blue: 0.063, alpha: 1)
     }
     
-    let payment_orderViewColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+    let payment_secondaryButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 1)
+            : UIColor(red: 0.91, green: 0.91, blue: 0.91, alpha: 1)
+    }
+    
+    let payment_sectionColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+        return traitCollection.userInterfaceStyle == .dark
+            ? UIColor(red: 0.105, green: 0.105, blue: 0.105, alpha: 1)
+            : UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1)
+    }
+    
+    let payment_totalAmountSection = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
             ? UIColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 1)
             : UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1)
