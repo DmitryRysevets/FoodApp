@@ -7,32 +7,12 @@ import UIKit
 
 final class AddNewCardVC: UIViewController {
     
-    private lazy var headerView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
+    private lazy var backButtonView: NavigationBarButtonView = {
+        let view = NavigationBarButtonView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backButtonTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.configureAsBackButton()
         return view
-    }()
-    
-    private lazy var backButton: UIButton = {
-        let button = UIButton()
-        let configuration = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
-        let image = UIImage(systemName: "chevron.backward", withConfiguration: configuration)?.resized(to: CGSize(width: 12, height: 16)).withTintColor(ColorManager.shared.label)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
-        button.tintColor = ColorManager.shared.label
-        button.backgroundColor = ColorManager.shared.headerElementsColor
-        button.layer.cornerRadius = Constants.headerButtonSize / 2
-        button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var newCardTitleLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
-        label.text = "New Card"
-        return label
     }()
     
     private lazy var cardSectionView: UIView = {
@@ -195,6 +175,7 @@ final class AddNewCardVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavBar()
         setupUI()
         setupConstraints()
         
@@ -204,10 +185,24 @@ final class AddNewCardVC: UIViewController {
     
     // MARK: - Private methods
     
+    private func setupNavBar() {
+        title = "New Card"
+        
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: ColorManager.shared.label,
+            .font: UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
+        ]
+        
+        navigationController?.navigationBar.titleTextAttributes = titleAttributes
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+
+        let backBarButtonItem = UIBarButtonItem(customView: backButtonView)
+        navigationItem.leftBarButtonItem = backBarButtonItem
+    }
+    
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         
-        view.addSubview(headerView)
         view.addSubview(cardNameLabel)
         view.addSubview(cardNameField)
         view.addSubview(cardSectionView)
@@ -216,9 +211,6 @@ final class AddNewCardVC: UIViewController {
         view.addSubview(userAgreementCheckBox)
         view.addSubview(userAgreementLabel)
         view.addSubview(addCardButton)
-
-        headerView.addSubview(backButton)
-        headerView.addSubview(newCardTitleLabel)
         
         cardSectionView.addSubview(cardNumberLabel)
         cardSectionView.addSubview(cardNumberField)
@@ -233,19 +225,7 @@ final class AddNewCardVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: 52),
-            backButton.topAnchor.constraint(equalTo: headerView.topAnchor),
-            backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            backButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
-            backButton.widthAnchor.constraint(equalTo: backButton.heightAnchor),
-            newCardTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
-            newCardTitleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            newCardTitleLabel.heightAnchor.constraint(equalToConstant: 30),
-            
-            cardNameLabel.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
+            cardNameLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 32),
             cardNameLabel.leadingAnchor.constraint(equalTo: cardNameField.leadingAnchor, constant: 16),
             cardNameField.topAnchor.constraint(equalTo: cardNameLabel.bottomAnchor, constant: 8),
             cardNameField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
@@ -368,7 +348,7 @@ final class AddNewCardVC: UIViewController {
     
     @objc
     private func backButtonTapped() {
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
     }
     
     @objc
@@ -411,7 +391,7 @@ final class AddNewCardVC: UIViewController {
                 }
             }
             
-            dismiss(animated: true)
+            navigationController?.popViewController(animated: true)
         }
     }
     
@@ -550,5 +530,13 @@ extension AddNewCardVC: UITextFieldDelegate {
             return false
         }
         return true
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension AddNewCardVC: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return navigationController?.viewControllers.count ?? 0 > 1
     }
 }

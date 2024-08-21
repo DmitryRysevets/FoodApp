@@ -14,6 +14,7 @@ final class AddressVC: UIViewController {
         }
     }
     
+    private var isNewAddress = true
     private var needToUpdateCoreData = false
     private var oldPlaceName = ""
     
@@ -25,46 +26,20 @@ final class AddressVC: UIViewController {
     
     // MARK: - UI props.
     
-    private lazy var headerView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
+    private lazy var backButtonView: NavigationBarButtonView = {
+        let view = NavigationBarButtonView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backButtonTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.configureAsBackButton()
         return view
     }()
     
-    private lazy var backButton: UIButton = {
-        let button = UIButton()
-        let configuration = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
-        let image = UIImage(systemName: "chevron.backward", withConfiguration: configuration)?.resized(to: CGSize(width: 12, height: 16)).withTintColor(ColorManager.shared.label)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
-        button.tintColor = ColorManager.shared.label
-        button.backgroundColor = ColorManager.shared.headerElementsColor
-        button.layer.cornerRadius = Constants.headerButtonSize / 2
-        button.addTarget(self, action: #selector(backButtonTapped), for: .touchUpInside)
-        return button
-    }()
-    
-    private lazy var pageTitleLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
-        label.textAlignment = .center
-        label.text = "New Address"
-        return label
-    }()
-    
-    private lazy var geolocationButton: UIButton = {
-        let image = UIImage(named: "Pin")
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.layer.cornerRadius = 22
-        button.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.1)
-        button.tintColor = ColorManager.shared.label
-        button.setImage(image, for: .normal)
-        button.addTarget(self, action: #selector(geolocationButtonTouchDown), for: .touchDown)
-        button.addTarget(self, action: #selector(geolocationButtonTouchUp), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        return button
+    private lazy var geolocationButtonView: NavigationBarButtonView = {
+        let view = NavigationBarButtonView()
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(geolocationButtonTapped))
+        view.addGestureRecognizer(tapGesture)
+        view.configureAsGeolocationButton()
+        return view
     }()
     
     private lazy var placeNameLabel: UILabel = {
@@ -97,7 +72,7 @@ final class AddressVC: UIViewController {
     private lazy var addressField: TextField = {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
-        field.returnKeyType = .next
+        field.returnKeyType = .done
         field.associatedLabel = addressLabel
         field.delegate = self
         return field
@@ -169,16 +144,20 @@ final class AddressVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupNavBar()
         setupUI()
         setupConstraints()
-        applyMapStyle(for: mapView)
+        applyMapStyle()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
     }
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
 
         if previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle {
-            applyMapStyle(for: mapView)
+            applyMapStyle()
         }
     }
     
@@ -189,30 +168,45 @@ final class AddressVC: UIViewController {
         defaultAddressCheckBox.isHidden = true
         defaultAddressLabel.isHidden = true
         oldPlaceName = adress.placeName!
-        pageTitleLabel.text = "Address"
         placeNameField.text = adress.placeName
         addressField.text = adress.address
         location = CLLocation(latitude: adress.latitude, longitude: adress.longitude)
+        isNewAddress = false
+        title = "Address"
     }
     
     // MARK: - Private methods
     
+    private func setupNavBar() {
+        if isNewAddress {
+            title = "New Address"
+        }
+        
+        let titleAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: ColorManager.shared.label,
+            .font: UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])
+        ]
+        
+        navigationController?.navigationBar.titleTextAttributes = titleAttributes
+        navigationController?.interactivePopGestureRecognizer?.delegate = self
+
+        let backBarButtonItem = UIBarButtonItem(customView: backButtonView)
+        let geolocationBarButtonItem = UIBarButtonItem(customView: geolocationButtonView)
+        navigationItem.leftBarButtonItem = backBarButtonItem
+        navigationItem.rightBarButtonItem = geolocationBarButtonItem
+    }
+    
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         
-        view.addSubview(headerView)
         view.addSubview(placeNameLabel)
         view.addSubview(placeNameField)
         view.addSubview(addressLabel)
         view.addSubview(addressField)
         view.addSubview(mapSectionView)
-        view.addSubview(geolocationButton)
         view.addSubview(defaultAddressCheckBox)
         view.addSubview(defaultAddressLabel)
         view.addSubview(saveButton)
-        
-        headerView.addSubview(backButton)
-        headerView.addSubview(pageTitleLabel)
         
         mapSectionView.addSubview(mapView)
     }
@@ -220,23 +214,7 @@ final class AddressVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: 52),
-            backButton.topAnchor.constraint(equalTo: headerView.topAnchor),
-            backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            backButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
-            backButton.widthAnchor.constraint(equalTo: backButton.heightAnchor),
-            pageTitleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
-            pageTitleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 16),
-            pageTitleLabel.trailingAnchor.constraint(equalTo: geolocationButton.leadingAnchor, constant: -16),
-            geolocationButton.topAnchor.constraint(equalTo: headerView.topAnchor),
-            geolocationButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
-            geolocationButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -8),
-            geolocationButton.widthAnchor.constraint(equalTo: geolocationButton.heightAnchor),
-            
-            placeNameLabel.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
+            placeNameLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 32),
             placeNameLabel.leadingAnchor.constraint(equalTo: placeNameField.leadingAnchor, constant: 16),
             placeNameField.topAnchor.constraint(equalTo: placeNameLabel.bottomAnchor, constant: 8),
             placeNameField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
@@ -319,14 +297,14 @@ final class AddressVC: UIViewController {
         } else {
             placeNameField.isInWarning = false
         }
-
+        
         if addressField.text?.isEmpty ?? true {
             addressField.isInWarning = true
             isValid = false
         } else {
             addressField.isInWarning = false
         }
-        
+
         if location == nil {
             // need warning
             isValid = false
@@ -335,7 +313,7 @@ final class AddressVC: UIViewController {
         return isValid
     }
     
-    private func applyMapStyle(for mapView: GMSMapView) {
+    private func applyMapStyle() {
         let userInterfaceStyle = UITraitCollection.current.userInterfaceStyle
         let styleFileName: String
 
@@ -355,28 +333,37 @@ final class AddressVC: UIViewController {
         }
     }
     
+    private func animatePress(for view: UIView) {
+        UIView.animate(
+            withDuration: 0.2,
+            delay: 0,
+            animations: {
+                view.alpha = 0.3
+            },
+            completion: { _ in
+                UIView.animate(
+                    withDuration: 0.2,
+                    delay: 0,
+                    animations: {
+                        view.alpha = 1
+                    }
+                )
+            }
+        )
+    }
+    
     // MARK: - ObjC methods
     
     @objc
     private func backButtonTapped() {
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
     }
     
     @objc
-    private func geolocationButtonTouchDown() {
-        UIView.animate(withDuration: 0.1) {
-            self.geolocationButton.transform = CGAffineTransform(scaleX: 0.9, y: 0.9)
-        }
-    }
-    
-    @objc
-    private func geolocationButtonTouchUp() {
+    private func geolocationButtonTapped() {
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
-        
-        UIView.animate(withDuration: 0.1, delay: 0.1, options: [], animations: {
-            self.geolocationButton.transform = CGAffineTransform.identity
-        }, completion: nil)
+        animatePress(for: geolocationButtonView)
     }
     
     @objc
@@ -407,7 +394,7 @@ final class AddressVC: UIViewController {
                                                              address: addressField.text!,
                                                              latitude: location.coordinate.latitude,
                                                              longitude: location.coordinate.longitude)
-                    dismiss(animated: true)
+                    navigationController?.popViewController(animated: true)
                 } catch {
                     // need warning
                 }
@@ -418,12 +405,17 @@ final class AddressVC: UIViewController {
                                                            latitude: location.coordinate.latitude,
                                                            longitude: location.coordinate.longitude,
                                                            isDefaultAddress: defaultAddressCheckBox.isChecked)
-                    dismiss(animated: true)
+                    navigationController?.popViewController(animated: true)
                 } catch {
                     // need warning
                 }
             }
         }
+    }
+    
+    @objc
+    private func dismissKeyboard() {
+        view.endEditing(true)
     }
 }
 
@@ -441,6 +433,7 @@ extension AddressVC: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if status == .denied || status == .restricted {
+            print("trouble with geolocation - \(status)")
             // Need a handler for a that case
         }
     }
@@ -466,5 +459,12 @@ extension AddressVC: UITextFieldDelegate {
             field.isInWarning = false
         }
     }
-    
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension AddressVC: UIGestureRecognizerDelegate {
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return navigationController?.viewControllers.count ?? 0 > 1
+    }
 }

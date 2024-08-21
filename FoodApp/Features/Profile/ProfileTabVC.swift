@@ -71,7 +71,8 @@ final class ProfileTabVC: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         DispatchQueue.main.async {
-            self.addressName = CoreDataManager.shared.getDefaultAddressName()
+            let defaultAddress = CoreDataManager.shared.getDefaultAddress()
+            self.addressName = defaultAddress?.placeName
             self.cardName = CoreDataManager.shared.getPreferredCardName()
             self.user = DataManager.shared.getUser()
         }

@@ -174,10 +174,7 @@ final class DeliveryAddressesVC: UIViewController {
     
     @objc
     private func plusButtonTapped() {
-        let vc = AddressVC()
-        vc.modalTransitionStyle = .coverVertical
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: true)
+        navigationController?.pushViewController(AddressVC(), animated: true)
     }
     
     @objc
@@ -215,9 +212,7 @@ extension DeliveryAddressesVC: UITableViewDelegate, UITableViewDataSource {
             guard let addressEntity = self?.addresses[indexPath.row] else { return }
             let vc = AddressVC()
             vc.configureWithExisting(addressEntity)
-            vc.modalTransitionStyle = .coverVertical
-            vc.modalPresentationStyle = .fullScreen
-            self?.present(vc, animated: true)
+            self?.navigationController?.pushViewController(vc, animated: true)
         }
         
         cell.selectionStyle = .none

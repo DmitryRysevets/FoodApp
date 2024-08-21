@@ -70,18 +70,8 @@ final class CoreDataManager {
         let favoriteDishIDs = Set(favoriteDishes.map { $0.id })
         
         // Clear existing data
-        let fetchRequestDishes: NSFetchRequest<NSFetchRequestResult> = DishEntity.fetchRequest()
-        let fetchRequestOffers: NSFetchRequest<NSFetchRequestResult> = OfferEntity.fetchRequest()
-        let fetchRequestCategories: NSFetchRequest<NSFetchRequestResult> = CategoriesContainerEntity.fetchRequest()
-        
-        let batchDeleteRequestDishes = NSBatchDeleteRequest(fetchRequest: fetchRequestDishes)
-        let batchDeleteRequestOffers = NSBatchDeleteRequest(fetchRequest: fetchRequestOffers)
-        let batchDeleteRequestCategories = NSBatchDeleteRequest(fetchRequest: fetchRequestCategories)
-        
         do {
-            try context.execute(batchDeleteRequestDishes)
-            try context.execute(batchDeleteRequestOffers)
-            try context.execute(batchDeleteRequestCategories)
+            try deleteMenu()
         } catch {
             print("Failed to clear existing data: \(error)")
         }
@@ -104,6 +94,20 @@ final class CoreDataManager {
         categoriesContainerEntity.categories = menu.categoriesContainer.categories as NSObject
         
         saveContext()
+    }
+    
+    func deleteMenu() throws {
+        let fetchRequestDishes: NSFetchRequest<NSFetchRequestResult> = DishEntity.fetchRequest()
+        let fetchRequestOffers: NSFetchRequest<NSFetchRequestResult> = OfferEntity.fetchRequest()
+        let fetchRequestCategories: NSFetchRequest<NSFetchRequestResult> = CategoriesContainerEntity.fetchRequest()
+        
+        let batchDeleteRequestDishes = NSBatchDeleteRequest(fetchRequest: fetchRequestDishes)
+        let batchDeleteRequestOffers = NSBatchDeleteRequest(fetchRequest: fetchRequestOffers)
+        let batchDeleteRequestCategories = NSBatchDeleteRequest(fetchRequest: fetchRequestCategories)
+        
+        try context.execute(batchDeleteRequestDishes)
+        try context.execute(batchDeleteRequestOffers)
+        try context.execute(batchDeleteRequestCategories)
     }
     
     func isMenuDifferentFrom(_ newMenu: Menu) -> Bool {
@@ -523,14 +527,14 @@ final class CoreDataManager {
         }
     }
     
-    func getDefaultAddressName() -> String? {
+    func getDefaultAddress() -> AddressEntity? {
         let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "isDefaultAddress == true")
         fetchRequest.fetchLimit = 1
         
         do {
             if let defaultAddress = try context.fetch(fetchRequest).first {
-                return defaultAddress.placeName
+                return defaultAddress
             }
         } catch {
             print("Failed to fetch default address: \(error)")

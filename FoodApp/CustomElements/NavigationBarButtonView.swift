@@ -43,4 +43,14 @@ final class NavigationBarButtonView: UIView {
     func configureAsPlusButton() {
         configureButton(withSystemName: "plus", imageSize: CGSize(width: 20, height: 20), pointSize: 20, weight: .regular)
     }
+    
+    func configureAsGeolocationButton() {
+        let image = UIImage(named: "Pin")?.withTintColor(ColorManager.shared.label, renderingMode: .alwaysOriginal)
+        let buttonImageView = UIImageView(frame: CGRect(origin: .zero, size: CGSize(width: 17, height: 20)))
+        buttonImageView.image = image
+        buttonImageView.center = center
+
+        addSubview(buttonImageView)
+    }
 }
+

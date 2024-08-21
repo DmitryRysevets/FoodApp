@@ -13,6 +13,12 @@ final class PaymentVC: UIViewController {
     private var paymentMethodIsSelected = false
     private var deliveryAddressIsSelected = false
     
+    private var location: CLLocation? {
+        didSet {
+            updateMapView()
+        }
+    }
+    
     private lazy var locationManager: CLLocationManager = {
         let manager = CLLocationManager()
         manager.delegate = self
@@ -266,7 +272,7 @@ final class PaymentVC: UIViewController {
         return button
     }()
     
-    //MARK: - Lifecycle methods
+    // MARK: - Controller methods
     
     init(amountDue: Double) {
         self.amountDue = amountDue
@@ -282,9 +288,18 @@ final class PaymentVC: UIViewController {
         setupNavBar()
         setupUI()
         setupConstraints()
+        applyMapStyle()
         
         payCashRadioButton.alternateButton = [payByCardRadioButton]
         payByCardRadioButton.alternateButton = [payCashRadioButton]
+    }
+    
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+
+        if previousTraitCollection?.userInterfaceStyle != traitCollection.userInterfaceStyle {
+            applyMapStyle()
+        }
     }
     
     //MARK: - Private methods
@@ -428,6 +443,50 @@ final class PaymentVC: UIViewController {
         ])
     }
     
+    private func updateMapView() {
+        if let location = location {
+            let latitude = location.coordinate.latitude
+            let longitude = location.coordinate.longitude
+            let camera = GMSCameraPosition.camera(withLatitude: latitude, longitude: longitude, zoom: 15.0)
+            mapView.moveCamera(GMSCameraUpdate.setCamera(camera))
+            marker.map = mapView
+            marker.position = location.coordinate
+        }
+    }
+    
+    private func getAddressFrom(_ location: CLLocation) {
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(location) { (placemarks, error) in
+            if let error = error {
+                self.selectedAddressLabel.text = "Your geolocation"
+            } else if let placemark = placemarks?.first {
+                if let address = placemark.name {
+                    self.selectedAddressLabel.text = address
+                }
+            }
+        }
+    }
+    
+    private func applyMapStyle() {
+        let userInterfaceStyle = UITraitCollection.current.userInterfaceStyle
+        let styleFileName: String
+
+        switch userInterfaceStyle {
+        case .dark:
+            styleFileName = "map_dark_style"
+        default:
+            styleFileName = "map_light_style"
+        }
+
+        if let styleURL = Bundle.main.url(forResource: styleFileName, withExtension: "json") {
+            do {
+                mapView.mapStyle = try GMSMapStyle(contentsOfFileURL: styleURL)
+            } catch {
+                print("Failed to load map style. \(error)")
+            }
+        }
+    }
+    
     //MARK: - Objc methods
     
     @objc
@@ -508,14 +567,15 @@ extension PaymentVC: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         if let location = locations.first {
-//            self.location = location
-//            getAddressFrom(location)
+            self.location = location
+            getAddressFrom(location)
             locationManager.stopUpdatingLocation()
         }
     }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if status == .denied || status == .restricted {
+            print("trouble with geolocation - \(status)")
             // Need a handler for a that case
         }
     }

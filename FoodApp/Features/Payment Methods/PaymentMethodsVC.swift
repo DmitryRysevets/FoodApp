@@ -188,10 +188,7 @@ final class PaymentMethodsVC: UIViewController {
     
     @objc
     private func plusButtonTapped() {
-        let vc = AddNewCardVC()
-        vc.modalTransitionStyle = .coverVertical
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: true)
+        navigationController?.pushViewController(AddNewCardVC(), animated: true)
     }
     
     @objc
