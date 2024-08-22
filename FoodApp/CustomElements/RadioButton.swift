@@ -6,10 +6,13 @@
 import UIKit
 
 class RadioButton: UIButton {
+    
     var alternateButton:Array<RadioButton>?
     
     private let configurationForSelectedImage = UIImage.SymbolConfiguration(pointSize: 17, weight: .heavy)
     private lazy var selectedImage = UIImage(systemName: "circle", withConfiguration: configurationForSelectedImage)
+    
+    weak var associatedLabel: UILabel?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -48,13 +51,15 @@ class RadioButton: UIButton {
     override var isSelected: Bool {
         didSet {
             if isSelected {
-                self.layer.borderWidth = 0
-                self.backgroundColor = ColorManager.shared.payment_selectedRadioButtonBackColor
-                self.setImage(selectedImage, for: .selected)
+                layer.borderWidth = 0
+                backgroundColor = ColorManager.shared.payment_selectedRadioButtonBackColor
+                setImage(selectedImage, for: .selected)
+                associatedLabel?.textColor = ColorManager.shared.label
             } else {
-                self.layer.borderWidth = 1.5
-                self.backgroundColor = .white
-                self.setImage(.none, for: .selected)
+                layer.borderWidth = 1.5
+                backgroundColor = .white
+                setImage(.none, for: .selected)
+                associatedLabel?.textColor = ColorManager.shared.labelGray
             }
         }
     }

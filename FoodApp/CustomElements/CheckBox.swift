@@ -15,6 +15,9 @@ final class CheckBox: UIButton {
     var isChecked: Bool = false {
         didSet {
             setImage(isChecked ? checkedImage : nil, for: .normal)
+            if isChecked {
+                isInWarning = false
+            }
         }
     }
     

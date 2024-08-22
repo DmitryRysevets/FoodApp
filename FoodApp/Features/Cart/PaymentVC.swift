@@ -10,12 +10,14 @@ final class PaymentVC: UIViewController {
     
     private let amountDue: Double
     
-    private var paymentMethodIsSelected = false
-    private var deliveryAddressIsSelected = false
+    private var paymentMethodIsSelected: Bool!
     
     private var location: CLLocation? {
         didSet {
             updateMapView()
+            if let location = location {
+                unsetWarningOnAddressSection()
+            }
         }
     }
     
@@ -54,6 +56,7 @@ final class PaymentVC: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 10
         button.addTarget(self, action: #selector(payCashRadioButtonTapped), for: .touchUpInside)
+        button.associatedLabel = payCashLabel
         button.isSelected = false
         return button
     }()
@@ -75,6 +78,7 @@ final class PaymentVC: UIViewController {
         button.translatesAutoresizingMaskIntoConstraints = false
         button.layer.cornerRadius = 10
         button.addTarget(self, action: #selector(payByCardRadioButtonTapped), for: .touchUpInside)
+        button.associatedLabel = payByCardLabel
         button.isSelected = true
         return button
     }()
@@ -107,7 +111,6 @@ final class PaymentVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 550])
-        label.text = "Add payment card"
         label.numberOfLines = 1
         return label
     }()
@@ -204,6 +207,7 @@ final class PaymentVC: UIViewController {
         checkbox.backgroundColor = ColorManager.shared.background
         checkbox.tintColor = ColorManager.shared.orange
         checkbox.addTarget(self, action: #selector(userAgreementCheckBoxDidTapped), for: .touchUpInside)
+        checkbox.associatedLabel = userAgreementLabel
         checkbox.isChecked = false
         return checkbox
     }()
@@ -292,6 +296,25 @@ final class PaymentVC: UIViewController {
         
         payCashRadioButton.alternateButton = [payByCardRadioButton]
         payByCardRadioButton.alternateButton = [payCashRadioButton]
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        paymentMethodIsSelected = false
+        DispatchQueue.main.async {
+            if let preferredCardName = CoreDataManager.shared.getPreferredCardName() {
+                self.selectCardLabel.text = preferredCardName
+                self.paymentMethodIsSelected = true
+                self.unsetWarningOnPaymentSection()
+            } else {
+                self.selectCardLabel.text = "Add payment card"
+            }
+            
+            if let defaultAddress = CoreDataManager.shared.getDefaultAddress() {
+                self.selectedAddressLabel.text = defaultAddress.placeName ?? "Add delivery address"
+                self.location = CLLocation(latitude: defaultAddress.latitude, longitude: defaultAddress.longitude)
+            }
+        }
     }
     
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -487,6 +510,54 @@ final class PaymentVC: UIViewController {
         }
     }
     
+    private func orderIsValid() -> Bool {
+        var isValid = true
+        
+        if payByCardRadioButton.isSelected == true && !paymentMethodIsSelected {
+            setWarningOnPaymentSection()
+            isValid = false
+        } else {
+            unsetWarningOnPaymentSection()
+        }
+
+        if location == nil {
+            // need warning
+            setWarningOnAddressSection()
+            isValid = false
+        } else {
+            unsetWarningOnAddressSection()
+        }
+        
+        if !userAgreementCheckBox.isChecked {
+            userAgreementCheckBox.isInWarning = true
+            isValid = false
+        } else {
+            userAgreementCheckBox.isInWarning = false
+        }
+        
+        return isValid
+    }
+    
+    private func setWarningOnPaymentSection() {
+        selectCardView.layer.borderWidth = 1
+        selectCardView.layer.borderColor = ColorManager.shared.warningRed.cgColor
+    }
+    
+    private func unsetWarningOnPaymentSection() {
+        selectCardView.layer.borderWidth = 0
+        selectCardView.layer.borderColor = .none
+    }
+    
+    private func setWarningOnAddressSection() {
+        mapSectionView.layer.borderWidth = 1
+        mapSectionView.layer.borderColor = ColorManager.shared.warningRed.cgColor
+    }
+    
+    private func unsetWarningOnAddressSection() {
+        mapSectionView.layer.borderWidth = 0
+        mapSectionView.layer.borderColor = .none
+    }
+    
     //MARK: - Objc methods
     
     @objc
@@ -498,6 +569,7 @@ final class PaymentVC: UIViewController {
     private func payCashRadioButtonTapped() {
         payCashRadioButton.isSelected = true
         payCashRadioButton.unselectAlternateButtons()
+        unsetWarningOnPaymentSection()
     }
     
     @objc
@@ -547,6 +619,10 @@ final class PaymentVC: UIViewController {
     
     @objc
     private func placeOrderButtonTouchUp() {
+        if orderIsValid() {
+            // place order
+        }
+        
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.placeOrderButton.transform = CGAffineTransform.identity
         }, completion: nil)

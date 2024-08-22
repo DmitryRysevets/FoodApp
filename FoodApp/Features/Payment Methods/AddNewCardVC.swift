@@ -290,11 +290,15 @@ final class AddNewCardVC: UIViewController {
         if cardNameField.text?.isEmpty ?? true {
             cardNameField.isInWarning = true
             isValid = false
+        } else {
+            cardNameField.isInWarning = false
         }
         
         if cardNumberField.text?.replacingOccurrences(of: " ", with: "").count != 16 {
             cardNumberField.isInWarning = true
             isValid = false
+        } else {
+            cardNumberField.isInWarning = false
         }
         
         if let mmyyText = mmyyField.text, mmyyText.count == 5 {
@@ -316,16 +320,22 @@ final class AddNewCardVC: UIViewController {
         if cvcField.text?.count != 3 {
             cvcField.isInWarning = true
             isValid = false
+        } else {
+            cvcField.isInWarning = false
         }
         
         if let cardholderName = cardholderNameField.text, cardholderName.count < 2 {
             cardholderNameField.isInWarning = true
             isValid = false
+        } else {
+            cardholderNameField.isInWarning = false
         }
         
         if !userAgreementCheckBox.isChecked {
             userAgreementCheckBox.isInWarning = true
             isValid = false
+        } else {
+            userAgreementCheckBox.isInWarning = false
         }
         
         return isValid
@@ -354,7 +364,6 @@ final class AddNewCardVC: UIViewController {
     @objc
     private func userAgreementCheckBoxDidTapped() {
         userAgreementCheckBox.isChecked.toggle()
-        userAgreementCheckBox.isInWarning = false
     }
     
     @objc
