@@ -34,7 +34,7 @@ final class ContactUsVC: UIViewController {
         textView.tintColor = ColorManager.shared.orange
         textView.layer.cornerRadius = 24
         textView.layer.borderColor = ColorManager.shared.regularFieldBorderColor
-        textView.layer.borderWidth = 0.5
+        textView.layer.borderWidth = 1
         textView.textContainerInset = UIEdgeInsets(top: 16, left: 12, bottom: 16, right: 12)
         return textView
     }()

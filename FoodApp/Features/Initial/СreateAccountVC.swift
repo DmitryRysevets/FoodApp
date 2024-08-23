@@ -292,7 +292,6 @@ final class CreateAccountVC: UIViewController {
                 delay: 0.1 * Double(index),
                 usingSpringWithDamping: 0.85,
                 initialSpringVelocity: 0.5,
-                options: [],
                 animations: {
                     label.transform = .identity
                     label.alpha = 1.0
@@ -308,7 +307,6 @@ final class CreateAccountVC: UIViewController {
                 delay: 0.1 * Double(index),
                 usingSpringWithDamping: 0.85,
                 initialSpringVelocity: 0.5,
-                options: [],
                 animations: {
                     element.transform = .identity
                     element.alpha = 1.0

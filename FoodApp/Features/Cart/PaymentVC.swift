@@ -43,6 +43,8 @@ final class PaymentVC: UIViewController {
     
     //MARK: - Payment method section
     
+    private var paymentOptionsViewHeightConstraint: NSLayoutConstraint?
+    
     private lazy var paymentOptionsView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -196,6 +198,31 @@ final class PaymentVC: UIViewController {
         return marker
     }()
     
+    //MARK: - Order comments section
+    
+    private lazy var orderCommentsLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 550])
+        label.text = "Order comments"
+        return label
+    }()
+    
+    private lazy var orderCommentsTextView: UITextView = {
+        let textView = UITextView()
+        textView.translatesAutoresizingMaskIntoConstraints = false
+        textView.font = UIFont.systemFont(ofSize: 15)
+        textView.textColor = ColorManager.shared.label
+        textView.backgroundColor = ColorManager.shared.regularFieldColor
+        textView.tintColor = ColorManager.shared.orange
+        textView.layer.cornerRadius = 24
+        textView.layer.borderColor = ColorManager.shared.regularFieldBorderColor
+        textView.layer.borderWidth = 1
+        textView.textContainerInset = UIEdgeInsets(top: 16, left: 12, bottom: 16, right: 12)
+        return textView
+    }()
+    
     //MARK: - User agreement section
 
     private lazy var userAgreementCheckBox: CheckBox = {
@@ -296,6 +323,9 @@ final class PaymentVC: UIViewController {
         
         payCashRadioButton.alternateButton = [payByCardRadioButton]
         payByCardRadioButton.alternateButton = [payCashRadioButton]
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -349,6 +379,8 @@ final class PaymentVC: UIViewController {
         
         scrollView.addSubview(paymentOptionsView)
         scrollView.addSubview(mapSectionView)
+        scrollView.addSubview(orderCommentsLabel)
+        scrollView.addSubview(orderCommentsTextView)
         scrollView.addSubview(userAgreementCheckBox)
         scrollView.addSubview(userAgreementLabel)
         scrollView.addSubview(placeOrderView)
@@ -387,7 +419,7 @@ final class PaymentVC: UIViewController {
             paymentOptionsView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
             paymentOptionsView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
             paymentOptionsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
-            paymentOptionsView.heightAnchor.constraint(equalToConstant: 172),
+//            paymentOptionsView.heightAnchor.constraint(equalToConstant: 172),
             payCashRadioButton.topAnchor.constraint(equalTo: paymentOptionsView.topAnchor, constant: 24),
             payCashRadioButton.leadingAnchor.constraint(equalTo: paymentOptionsView.leadingAnchor, constant: 24),
             payCashRadioButton.heightAnchor.constraint(equalToConstant: 20),
@@ -400,11 +432,11 @@ final class PaymentVC: UIViewController {
             payByCardRadioButton.widthAnchor.constraint(equalToConstant: 20),
             payByCardLabel.centerYAnchor.constraint(equalTo: payByCardRadioButton.centerYAnchor),
             payByCardLabel.leadingAnchor.constraint(equalTo: payByCardRadioButton.trailingAnchor, constant: 8),
+            
             selectCardView.leadingAnchor.constraint(equalTo: paymentOptionsView.leadingAnchor, constant: 16),
             selectCardView.trailingAnchor.constraint(equalTo: paymentOptionsView.trailingAnchor, constant: -16),
             selectCardView.bottomAnchor.constraint(equalTo: paymentOptionsView.bottomAnchor, constant: -16),
             selectCardView.heightAnchor.constraint(equalToConstant: 44),
-            
             selectCardLabel.centerYAnchor.constraint(equalTo: selectCardView.centerYAnchor),
             selectCardLabel.leadingAnchor.constraint(equalTo: selectCardView.leadingAnchor, constant: 16),
             selectCardLabel.trailingAnchor.constraint(equalTo: goToPaymentMethodsImageView.leadingAnchor, constant: -16),
@@ -430,7 +462,6 @@ final class PaymentVC: UIViewController {
             mapView.leadingAnchor.constraint(equalTo: mapSectionView.leadingAnchor, constant: 16),
             mapView.trailingAnchor.constraint(equalTo: mapSectionView.trailingAnchor, constant: -16),
             mapView.bottomAnchor.constraint(equalTo: mapSectionView.bottomAnchor, constant: -16),
-            
             selectedAddressLabel.centerYAnchor.constraint(equalTo: selectAddressView.centerYAnchor),
             selectedAddressLabel.leadingAnchor.constraint(equalTo: selectAddressView.leadingAnchor, constant: 16),
             selectedAddressLabel.trailingAnchor.constraint(equalTo: goToDeliveryAddressesImageView.leadingAnchor, constant: -16),
@@ -439,7 +470,15 @@ final class PaymentVC: UIViewController {
             goToDeliveryAddressesImageView.heightAnchor.constraint(equalToConstant: 20),
             goToDeliveryAddressesImageView.widthAnchor.constraint(equalTo: goToDeliveryAddressesImageView.heightAnchor),
             
-            userAgreementCheckBox.topAnchor.constraint(equalTo: mapSectionView.bottomAnchor, constant: 32),
+            orderCommentsTextView.topAnchor.constraint(equalTo: mapSectionView.bottomAnchor, constant: 56),
+            orderCommentsTextView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 32),
+            orderCommentsTextView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -32),
+            orderCommentsTextView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -64),
+            orderCommentsTextView.heightAnchor.constraint(equalToConstant: 96),
+            orderCommentsLabel.bottomAnchor.constraint(equalTo: orderCommentsTextView.topAnchor, constant: -8),
+            orderCommentsLabel.leadingAnchor.constraint(equalTo: orderCommentsTextView.leadingAnchor, constant: 16),
+            
+            userAgreementCheckBox.topAnchor.constraint(equalTo: orderCommentsTextView.bottomAnchor, constant: 32),
             userAgreementCheckBox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             userAgreementCheckBox.widthAnchor.constraint(equalToConstant: Constants.checkboxSize),
             userAgreementCheckBox.heightAnchor.constraint(equalToConstant: Constants.checkboxSize),
@@ -464,6 +503,9 @@ final class PaymentVC: UIViewController {
             placeOrderButton.bottomAnchor.constraint(equalTo: placeOrderView.bottomAnchor, constant: -16),
             placeOrderButton.heightAnchor.constraint(equalToConstant: 52)
         ])
+        
+        paymentOptionsViewHeightConstraint = paymentOptionsView.heightAnchor.constraint(equalToConstant: 172)
+        paymentOptionsViewHeightConstraint?.isActive = true
     }
     
     private func updateMapView() {
@@ -481,6 +523,7 @@ final class PaymentVC: UIViewController {
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { (placemarks, error) in
             if let error = error {
+                print(error)
                 self.selectedAddressLabel.text = "Your geolocation"
             } else if let placemark = placemarks?.first {
                 if let address = placemark.name {
@@ -570,12 +613,30 @@ final class PaymentVC: UIViewController {
         payCashRadioButton.isSelected = true
         payCashRadioButton.unselectAlternateButtons()
         unsetWarningOnPaymentSection()
+        
+        UIView.animate(withDuration: 0.2) {
+            self.selectCardView.alpha = 0
+        }
+        
+        UIView.animate(withDuration: 0.3, delay: 0.1, options: [.curveEaseInOut]) {
+            self.paymentOptionsViewHeightConstraint?.constant = 112
+            self.view.layoutIfNeeded()
+        }
     }
     
     @objc
     private func payByCardRadioButtonTapped() {
         payByCardRadioButton.isSelected = true
         payByCardRadioButton.unselectAlternateButtons()
+        
+        UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut]) {
+            self.paymentOptionsViewHeightConstraint?.constant = 172
+            self.view.layoutIfNeeded()
+        }
+        
+        UIView.animate(withDuration: 0.3, delay: 0.2) {
+            self.selectCardView.alpha = 1
+        }
     }
     
     @objc
@@ -627,6 +688,12 @@ final class PaymentVC: UIViewController {
             self.placeOrderButton.transform = CGAffineTransform.identity
         }, completion: nil)
     }
+    
+    @objc
+    private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+
 }
 
 // MARK: - UIGestureRecognizerDelegate

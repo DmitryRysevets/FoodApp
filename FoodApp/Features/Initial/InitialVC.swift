@@ -184,7 +184,6 @@ final class InitialVC: UIViewController {
                 delay: 0.2 * Double(index),
                 usingSpringWithDamping: 0.8,
                 initialSpringVelocity: 0.5,
-                options: [],
                 animations: {
                     label.transform = .identity
                     label.alpha = 1.0
@@ -209,7 +208,6 @@ final class InitialVC: UIViewController {
             delay: 0.7,
             usingSpringWithDamping: 0.8,
             initialSpringVelocity: 0.4,
-            options: [],
             animations: {
                 self.handWithBurgerImageView.transform = .identity
             },
@@ -221,7 +219,6 @@ final class InitialVC: UIViewController {
             delay: 0.7,
             usingSpringWithDamping: 0.7,
             initialSpringVelocity: 0.5,
-            options: [],
             animations: {
                 self.loginButton.transform = .identity
                 self.loginButton.alpha = 1.0
@@ -233,7 +230,6 @@ final class InitialVC: UIViewController {
             delay: 0.9,
             usingSpringWithDamping: 0.7,
             initialSpringVelocity: 0.5,
-            options: [],
             animations: {
                 self.createAccountButton.transform = .identity
                 self.createAccountButton.alpha = 1.0
@@ -245,7 +241,6 @@ final class InitialVC: UIViewController {
             delay: 1.1,
             usingSpringWithDamping: 0.7,
             initialSpringVelocity: 0.5,
-            options: [],
             animations: {
                 self.continueAsGuestButton.transform = .identity
                 self.continueAsGuestButton.alpha = 1.0
