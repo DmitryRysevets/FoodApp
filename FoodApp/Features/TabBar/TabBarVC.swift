@@ -7,6 +7,8 @@ import UIKit
 
 class TabBarVC: UIViewController {
     
+    private var cartStatusObserver: CartStatusObserver?
+    
     lazy var tabBarView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -44,7 +46,6 @@ class TabBarVC: UIViewController {
         button.setLayout(for: tabSize)
         button.setName("Menu")
         button.initSelection()
-        
         return button
     }()
     
@@ -54,7 +55,6 @@ class TabBarVC: UIViewController {
         button.tag = 1
         button.setLayout(for: tabSize)
         button.setName("Favorite")
-        
         return button
     }()
     
@@ -64,7 +64,6 @@ class TabBarVC: UIViewController {
         button.tag = 2
         button.setLayout(for: tabSize)
         button.setName("Cart")
-        
         return button
     }()
     
@@ -74,7 +73,6 @@ class TabBarVC: UIViewController {
         button.tag = 3
         button.setLayout(for: tabSize)
         button.setName("Profile")
-        
         return button
     }()
     
@@ -118,6 +116,8 @@ class TabBarVC: UIViewController {
         
         setupUI()
         setupConstraints()
+        
+        setupCartStatusObserver()
         
         TabBarVC.cartNavVC.delegate = self
         TabBarVC.profileNavVC.delegate = self
@@ -163,6 +163,21 @@ class TabBarVC: UIViewController {
         
         tabs.forEach { tab in
             tab.widthAnchor.constraint(equalToConstant: tabSize).isActive = true
+        }
+    }
+    
+    private func setupCartStatusObserver() {
+        cartStatusObserver = CartStatusObserver()
+        cartStatusObserver?.didChangeCartStatus = { [weak self] isEmpty in
+            self?.updateCartTabIndicator(isEmpty: isEmpty)
+        }
+    }
+    
+    private func updateCartTabIndicator(isEmpty: Bool) {
+        if isEmpty {
+            print("Cart is empty - \(isEmpty)")
+        } else {
+            print("Cart is empty - \(isEmpty)")
         }
     }
 }

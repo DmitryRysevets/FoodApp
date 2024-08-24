@@ -15,8 +15,9 @@ final class PaymentVC: UIViewController {
     private var location: CLLocation? {
         didSet {
             updateMapView()
-            if let location = location {
+            if location != nil {
                 unsetWarningOnAddressSection()
+                hideMapBlurEffect()
             }
         }
     }
@@ -190,6 +191,30 @@ final class PaymentVC: UIViewController {
         return mapView
     }()
     
+    private lazy var mapBlurEffectView: UIVisualEffectView = {
+        let blurEffect = UIBlurEffect(style: .light)
+        let effectView = UIVisualEffectView(effect: blurEffect)
+        effectView.translatesAutoresizingMaskIntoConstraints = false
+        return effectView
+    }()
+
+    private lazy var mapVibrancyEffectView: UIVisualEffectView = {
+        let vibrancyEffect = UIVibrancyEffect(blurEffect: mapBlurEffectView.effect as! UIBlurEffect)
+        let effectView = UIVisualEffectView(effect: vibrancyEffect)
+        effectView.translatesAutoresizingMaskIntoConstraints = false
+        return effectView
+    }()
+    
+    private lazy var mapVibrancyImageView: UIImageView = {
+        let configuration = UIImage.SymbolConfiguration(weight: .thin)
+        let image = UIImage(systemName: "map", withConfiguration: configuration)?
+            .withRenderingMode(.alwaysTemplate)
+        let imageView = UIImageView(image: image)
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
     private lazy var marker: GMSMarker = {
         let marker = GMSMarker()
         if let customIcon = UIImage(named: "GooglePin") {
@@ -341,6 +366,7 @@ final class PaymentVC: UIViewController {
             }
             
             if let defaultAddress = CoreDataManager.shared.getDefaultAddress() {
+                self.mapBlurEffectView.alpha = 0
                 self.selectedAddressLabel.text = defaultAddress.placeName ?? "Add delivery address"
                 self.location = CLLocation(latitude: defaultAddress.latitude, longitude: defaultAddress.longitude)
             }
@@ -398,6 +424,10 @@ final class PaymentVC: UIViewController {
         mapSectionView.addSubview(selectAddressView)
         mapSectionView.addSubview(mapView)
         
+        mapView.addSubview(mapBlurEffectView)
+        mapBlurEffectView.contentView.addSubview(mapVibrancyEffectView)
+        mapVibrancyEffectView.contentView.addSubview(mapVibrancyImageView)
+        
         selectAddressView.addSubview(selectedAddressLabel)
         selectAddressView.addSubview(goToDeliveryAddressesImageView)
         
@@ -419,7 +449,6 @@ final class PaymentVC: UIViewController {
             paymentOptionsView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
             paymentOptionsView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
             paymentOptionsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
-//            paymentOptionsView.heightAnchor.constraint(equalToConstant: 172),
             payCashRadioButton.topAnchor.constraint(equalTo: paymentOptionsView.topAnchor, constant: 24),
             payCashRadioButton.leadingAnchor.constraint(equalTo: paymentOptionsView.leadingAnchor, constant: 24),
             payCashRadioButton.heightAnchor.constraint(equalToConstant: 20),
@@ -470,6 +499,19 @@ final class PaymentVC: UIViewController {
             goToDeliveryAddressesImageView.heightAnchor.constraint(equalToConstant: 20),
             goToDeliveryAddressesImageView.widthAnchor.constraint(equalTo: goToDeliveryAddressesImageView.heightAnchor),
             
+            mapBlurEffectView.topAnchor.constraint(equalTo: mapView.topAnchor),
+            mapBlurEffectView.leadingAnchor.constraint(equalTo: mapView.leadingAnchor),
+            mapBlurEffectView.trailingAnchor.constraint(equalTo: mapView.trailingAnchor),
+            mapBlurEffectView.bottomAnchor.constraint(equalTo: mapView.bottomAnchor),
+            mapVibrancyEffectView.topAnchor.constraint(equalTo: mapBlurEffectView.topAnchor),
+            mapVibrancyEffectView.leadingAnchor.constraint(equalTo: mapBlurEffectView.leadingAnchor),
+            mapVibrancyEffectView.trailingAnchor.constraint(equalTo: mapBlurEffectView.trailingAnchor),
+            mapVibrancyEffectView.bottomAnchor.constraint(equalTo: mapBlurEffectView.bottomAnchor),
+            mapVibrancyImageView.centerYAnchor.constraint(equalTo: mapVibrancyEffectView.centerYAnchor),
+            mapVibrancyImageView.centerXAnchor.constraint(equalTo: mapVibrancyEffectView.centerXAnchor),
+            mapVibrancyImageView.heightAnchor.constraint(equalToConstant: 80),
+            mapVibrancyImageView.widthAnchor.constraint(equalTo: mapVibrancyImageView.heightAnchor),
+            
             orderCommentsTextView.topAnchor.constraint(equalTo: mapSectionView.bottomAnchor, constant: 56),
             orderCommentsTextView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 32),
             orderCommentsTextView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -32),
@@ -490,7 +532,7 @@ final class PaymentVC: UIViewController {
             placeOrderView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
             placeOrderView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
             placeOrderView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
-            placeOrderView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -32),
+            placeOrderView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             totalAmountLabel.topAnchor.constraint(equalTo: placeOrderView.topAnchor, constant: 24),
             totalAmountLabel.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 24),
             seePriceDetailsLabel.topAnchor.constraint(equalTo: totalAmountLabel.bottomAnchor, constant: 3),
@@ -516,6 +558,12 @@ final class PaymentVC: UIViewController {
             mapView.moveCamera(GMSCameraUpdate.setCamera(camera))
             marker.map = mapView
             marker.position = location.coordinate
+        }
+    }
+    
+    private func hideMapBlurEffect() {
+        UIView.animate(withDuration: 0.2) {
+            self.mapBlurEffectView.alpha = 0
         }
     }
     
