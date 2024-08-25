@@ -205,13 +205,6 @@ final class CoreDataManager {
     
     // MARK: - Cart methods
     
-    func saveCartIte(dish: Dish, quantity: Int) {
-        let cartItemEntity = CartItemEntity(context: context)
-        cartItemEntity.dishID = dish.id
-        cartItemEntity.quantity = Int64(quantity)
-        saveContext()
-    }
-    
     func saveCartItem(dish: Dish, quantity: Int) {
         let fetchRequest: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "dishID == %@", dish.id)
@@ -228,6 +221,9 @@ final class CoreDataManager {
             }
             
             saveContext()
+            
+            CartStatusObserver.shared.observeCartStatus()
+            
         } catch {
             print("Failed to fetch cart item: \(error)")
         }
@@ -243,6 +239,9 @@ final class CoreDataManager {
             if let cartItem = cartItems.first {
                 context.delete(cartItem)
                 saveContext()
+                
+                CartStatusObserver.shared.observeCartStatus()
+                
             } else {
                 print("Cart item with dishID \(dishID) not found.")
             }
@@ -292,6 +291,18 @@ final class CoreDataManager {
             saveContext()
         } catch {
             print("Failed to clear cart: \(error)")
+        }
+    }
+    
+    func cartIsEmpty() -> Bool {
+        let fetchRequest: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
+        
+        do {
+            let itemCount = try context.count(for: fetchRequest)
+            return itemCount == 0
+        } catch {
+            print("Failed to fetch cart items count: \(error)")
+            return true
         }
     }
     
