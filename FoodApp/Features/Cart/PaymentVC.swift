@@ -9,6 +9,7 @@ import GoogleMaps
 final class PaymentVC: UIViewController {
     
     private let amountDue: Double
+    private let orderItems: [OrderItemEntity]
     
     private var paymentMethodIsSelected: Bool!
     
@@ -330,8 +331,9 @@ final class PaymentVC: UIViewController {
     
     // MARK: - Controller methods
     
-    init(amountDue: Double) {
+    init(amountDue: Double, orderItems: [OrderItemEntity]) {
         self.amountDue = amountDue
+        self.orderItems = orderItems
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -729,7 +731,19 @@ final class PaymentVC: UIViewController {
     @objc
     private func placeOrderButtonTouchUp() {
         if orderIsValid() {
-            // place order
+            guard let location = location else { return }
+            CoreDataManager.shared.saveOrder(amountDue: amountDue,
+                                             paidByCard: payByCardRadioButton.isSelected,
+                                             address: selectedAddressLabel.text ?? "",
+                                             latitude: location.coordinate.latitude,
+                                             longitude: location.coordinate.longitude,
+                                             orderComments: orderCommentsTextView.text,
+                                             phone: "",
+                                             orderItems: orderItems)
+            
+            CoreDataManager.shared.clearCart()
+            CartStatusObserver.shared.observeCartStatus() // updating the status of the cart fullness indicator
+            navigationController?.popViewController(animated: true)
         }
         
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {

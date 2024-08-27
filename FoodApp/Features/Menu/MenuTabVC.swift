@@ -40,6 +40,10 @@ final class MenuTabVC: UIViewController {
         imageView.backgroundColor = ColorManager.shared.headerElementsColor
         imageView.layer.cornerRadius = Constants.headerButtonSize / 2
         imageView.clipsToBounds = true
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(avatarImageTapped))
+        imageView.addGestureRecognizer(tapGesture)
+        imageView.isUserInteractionEnabled = true
         return imageView
     }()
     
@@ -424,8 +428,28 @@ final class MenuTabVC: UIViewController {
     // MARK: - Objc methods
     
     @objc
+    private func avatarImageTapped() {
+        // for testing
+        print("")
+        print("clear orders")
+        print("")
+        CoreDataManager.shared.deleteAllOrders()
+    }
+    
+    @objc
     private func notificationButtonTaped() {
-        getMenu() // for testing
+        // for testing
+        let orders = CoreDataManager.shared.fetchOrders()
+        
+        if orders.isEmpty {
+            print("- is empty -")
+        } else {
+            orders.forEach { item in
+                print(item)
+                print("")
+                print("")
+            }
+        }
     }
     
     @objc

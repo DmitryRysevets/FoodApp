@@ -398,6 +398,22 @@ final class CartTabVC: UIViewController {
         }
     }
     
+    private func getOrderItems() -> [OrderItemEntity] {
+        var orderItems: [OrderItemEntity] = []
+                
+        for item in cartContent {
+            let orderItem = OrderItemEntity(context: CoreDataManager.shared.context)
+            orderItem.dishID = item.dish.id
+            orderItem.dishName = item.dish.name
+            orderItem.dishPrice = item.dish.price
+            orderItem.quantity = Int64(item.quantity)
+            
+            orderItems.append(orderItem)
+        }
+        
+        return orderItems
+    }
+    
     // MARK: - ObjC methods
 
     @objc
@@ -423,16 +439,12 @@ final class CartTabVC: UIViewController {
     
     @objc
     private func continueOrderButtonTouchUp() {
-//        let paymentPage = PaymentVC(amountDue: totalAmount)
-//        paymentPage.modalTransitionStyle = .coverVertical
-//        paymentPage.modalPresentationStyle = .overFullScreen
-//        present(paymentPage, animated: true)
-        
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.continueOrderButton.transform = CGAffineTransform.identity
         }, completion: nil)
-        
-        navigationController?.pushViewController(PaymentVC(amountDue: totalAmount), animated: true)
+
+        let orderItems = getOrderItems()
+        navigationController?.pushViewController(PaymentVC(amountDue: totalAmount, orderItems: orderItems), animated: true)
     }
 }
 

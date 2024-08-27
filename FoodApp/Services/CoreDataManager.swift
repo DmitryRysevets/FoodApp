@@ -620,4 +620,48 @@ final class CoreDataManager {
         saveContext()
     }
     
+    // MARK: - Orders methods
+    
+    func saveOrder(orderID: UUID = UUID(), amountDue: Double, orderDate: Date = Date(), paidByCard: Bool, address: String, latitude: Double, longitude: Double, orderComments: String?, phone: String?, status: String = "Pending", orderItems: [OrderItemEntity]) {
+        let order = OrderEntity(context: context)
+        order.orderID = orderID
+        order.amountDue = amountDue
+        order.orderComments = orderComments
+        order.orderDate = orderDate
+        order.paidByCard = paidByCard
+        order.address = address
+        order.latitude = latitude
+        order.longitude = longitude
+        order.phone = phone
+        order.status = status
+        
+        for item in orderItems {
+            order.addToOrderItems(item)
+        }
+        
+        saveContext()
+    }
+    
+    func fetchOrders() -> [OrderEntity] {
+        let request: NSFetchRequest<OrderEntity> = OrderEntity.fetchRequest()
+        
+        do {
+            return try context.fetch(request)
+        } catch {
+            print("Order fetch error: \(error)")
+            return []
+        }
+    }
+    
+    func deleteAllOrders() {
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = OrderEntity.fetchRequest()
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        
+        do {
+            try context.execute(deleteRequest)
+            saveContext()
+        } catch {
+            print("Error deleting orders: \(error)")
+        }
+    }
 }
