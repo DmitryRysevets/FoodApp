@@ -21,7 +21,7 @@ final class OrderHistoryVC: UIViewController {
         let table = UITableView()
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = ColorManager.shared.background
-        table.register(ProfileMenuCell.self, forCellReuseIdentifier: ProfileMenuCell.id)
+        table.register(OrderHistoryTableCell.self, forCellReuseIdentifier: OrderHistoryTableCell.id)
         table.separatorStyle = .none
         table.dataSource = self
         table.delegate = self
@@ -85,16 +85,23 @@ extension OrderHistoryVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: ProfileMenuCell.id, for: indexPath) as! ProfileMenuCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: OrderHistoryTableCell.id, for: indexPath) as! OrderHistoryTableCell
         
-//        cell.menuItemName = orders[indexPath.row]
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd.MM.yyyy - HH:mm"
+        
+        if let date = orders[indexPath.row].orderDate {
+            cell.stringOrderDate = dateFormatter.string(from: date)
+        }
+        
+        cell.stringOrderAmount = "$\(String(format: "%.2f", orders[indexPath.row].amountDue))"
         
         cell.selectionStyle = .none
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        80
+        60
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

@@ -187,8 +187,7 @@ final class InitialVC: UIViewController {
                 animations: {
                     label.transform = .identity
                     label.alpha = 1.0
-                },
-                completion: nil
+                }
             )
         }
         
@@ -210,8 +209,7 @@ final class InitialVC: UIViewController {
             initialSpringVelocity: 0.4,
             animations: {
                 self.handWithBurgerImageView.transform = .identity
-            },
-            completion: nil
+            }
         )
 
         UIView.animate(
@@ -244,8 +242,7 @@ final class InitialVC: UIViewController {
             animations: {
                 self.continueAsGuestButton.transform = .identity
                 self.continueAsGuestButton.alpha = 1.0
-            },
-            completion: nil
+            }
         )
     }
     

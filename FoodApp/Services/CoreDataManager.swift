@@ -5,7 +5,7 @@
 
 import Foundation
 import CoreData
-import Firebase
+import FirebaseAuth
 
 final class CoreDataManager {
     

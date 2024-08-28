@@ -66,7 +66,8 @@ class TabBarButton: UIButton {
         isSelected = true
         label.isHidden = true
         icon.tintColor = .black
-        UIView.animate(withDuration: 0.2) { [self] in
+        
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) { [self] in
             backgroundColor = .white.withAlphaComponent(0.9)
             icon.frame = iconFrame_selected
             icon.center = iconCenterPoint_selected
@@ -77,8 +78,9 @@ class TabBarButton: UIButton {
         isSelected = false
         label.isHidden = false
         icon.tintColor = .white
-        UIView.animate(withDuration: 0.2) { [self] in
-            backgroundColor = nil
+        
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) { [self] in
+            backgroundColor = .clear
             icon.frame = iconFrame_unselected
             icon.center = iconCenterPoint_unselected
         }

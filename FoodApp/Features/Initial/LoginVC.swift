@@ -239,8 +239,7 @@ final class LoginVC: UIViewController {
                 animations: {
                     label.transform = .identity
                     label.alpha = 1.0
-                },
-                completion: nil
+                }
             )
         }
         
