@@ -645,6 +645,9 @@ final class CoreDataManager {
     func fetchOrders() -> [OrderEntity] {
         let request: NSFetchRequest<OrderEntity> = OrderEntity.fetchRequest()
         
+        let sortDescriptor = NSSortDescriptor(key: "orderDate", ascending: false)
+        request.sortDescriptors = [sortDescriptor]
+        
         do {
             return try context.fetch(request)
         } catch {

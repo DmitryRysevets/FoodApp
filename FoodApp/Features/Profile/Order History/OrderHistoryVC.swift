@@ -9,6 +9,12 @@ final class OrderHistoryVC: UIViewController {
     
     private var orders: [OrderEntity]!
     
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd.MM.yyyy - HH:mm"
+        return formatter
+    }()
+    
     private lazy var backButtonView: NavigationBarButtonView = {
         let view = NavigationBarButtonView()
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backButtonTapped))
@@ -28,6 +34,21 @@ final class OrderHistoryVC: UIViewController {
         return table
     }()
     
+    private lazy var orderHistoryIsEmpty: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        label.textColor = ColorManager.shared.label
+        label.text = "Your order history is empty"
+        label.font = UIFont(name: "Raleway", size: 22)
+        label.numberOfLines = 1
+        label.layer.shadowOffset = CGSize(width: 3, height: 3)
+        label.layer.shadowOpacity = 0.2
+        label.layer.shadowColor = UIColor.black.cgColor
+        label.layer.shadowRadius = 2
+        return label
+    }()
+    
     // MARK: - Lifecycle methods
 
     override func viewDidLoad() {
@@ -37,6 +58,8 @@ final class OrderHistoryVC: UIViewController {
         setupConstraints()
         
         orders = CoreDataManager.shared.fetchOrders()
+        
+        orderHistoryIsEmpty.isHidden = !orders.isEmpty
     }
     
     // MARK: - Private methods
@@ -56,6 +79,7 @@ final class OrderHistoryVC: UIViewController {
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         view.addSubview(tableView)
+        view.addSubview(orderHistoryIsEmpty)
     }
     
     private func setupConstraints() {
@@ -64,7 +88,10 @@ final class OrderHistoryVC: UIViewController {
             tableView.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 32),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            orderHistoryIsEmpty.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            orderHistoryIsEmpty.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 56)
         ])
     }
     
@@ -87,21 +114,21 @@ extension OrderHistoryVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: OrderHistoryTableCell.id, for: indexPath) as! OrderHistoryTableCell
         
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.yyyy - HH:mm"
+        let order = orders[indexPath.row]
         
-        if let date = orders[indexPath.row].orderDate {
-            cell.stringOrderDate = dateFormatter.string(from: date)
-        }
+        guard let date = order.orderDate, let status = order.status else { return cell }
         
-        cell.stringOrderAmount = "$\(String(format: "%.2f", orders[indexPath.row].amountDue))"
+        let stringDate = dateFormatter.string(from: date)
+        let stringAmount = "$\(String(format: "%.2f", order.amountDue))"
         
+        cell.configureCell(withStatus: status, date: stringDate, amount: stringAmount)
         cell.selectionStyle = .none
+        
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        60
+        64
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
