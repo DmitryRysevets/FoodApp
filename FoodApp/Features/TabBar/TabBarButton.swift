@@ -55,7 +55,6 @@ class TabBarButton: UIButton {
     }
     
     func initSelection() {
-        backgroundColor = .white.withAlphaComponent(0.9)
         icon.frame = iconFrame_selected
         icon.center = iconCenterPoint_selected
         icon.tintColor = .black
@@ -68,7 +67,6 @@ class TabBarButton: UIButton {
         icon.tintColor = .black
         
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) { [self] in
-            backgroundColor = .white.withAlphaComponent(0.9)
             icon.frame = iconFrame_selected
             icon.center = iconCenterPoint_selected
         }
@@ -80,7 +78,6 @@ class TabBarButton: UIButton {
         icon.tintColor = .white
         
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) { [self] in
-            backgroundColor = .clear
             icon.frame = iconFrame_unselected
             icon.center = iconCenterPoint_unselected
         }

@@ -84,6 +84,17 @@ class TabBarVC: UIViewController {
         return view
     }()
     
+    private lazy var activeTabBackgroundView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.frame.size = CGSize(width: tabSize, height: tabSize)
+        view.layer.cornerRadius = tabSize / 2
+        view.backgroundColor = .white.withAlphaComponent(0.9)
+        return view
+    }()
+    
+    private var activeTabBackgroundViewCenterXConstraint: NSLayoutConstraint?
+    
     private var cartIndacatorSizeConstraint: NSLayoutConstraint?
     private var cartIndacatorCenterYConstraint: NSLayoutConstraint?
     private var cartIndacatorCenterXConstraint: NSLayoutConstraint?
@@ -150,6 +161,7 @@ class TabBarVC: UIViewController {
         view.backgroundColor = ColorManager.shared.background
         view.addSubview(tabBarView)
         tabBarView.addSubview(blurEffect)
+        tabBarView.addSubview(activeTabBackgroundView)
         tabBarView.addSubview(tabStack)
         tabStack.addArrangedSubview(menuTabButton)
         tabStack.addArrangedSubview(favoriteTabButton)
@@ -170,6 +182,10 @@ class TabBarVC: UIViewController {
             blurEffect.trailingAnchor.constraint(equalTo: tabBarView.trailingAnchor),
             blurEffect.bottomAnchor.constraint(equalTo: tabBarView.bottomAnchor),
             
+            activeTabBackgroundView.centerYAnchor.constraint(equalTo: tabBarView.centerYAnchor),
+            activeTabBackgroundView.heightAnchor.constraint(equalToConstant: tabSize),
+            activeTabBackgroundView.widthAnchor.constraint(equalToConstant: tabSize),
+            
             tabStack.topAnchor.constraint(equalTo: tabBarView.topAnchor, constant: tabMargin),
             tabStack.leadingAnchor.constraint(equalTo: tabBarView.leadingAnchor, constant: tabMargin),
             tabStack.trailingAnchor.constraint(equalTo: tabBarView.trailingAnchor, constant: -tabMargin),
@@ -177,6 +193,9 @@ class TabBarVC: UIViewController {
             
             cartIndicatorView.widthAnchor.constraint(equalTo: cartIndicatorView.heightAnchor)
         ])
+        
+        activeTabBackgroundViewCenterXConstraint = activeTabBackgroundView.centerXAnchor.constraint(equalTo: menuTabButton.centerXAnchor)
+        activeTabBackgroundViewCenterXConstraint?.isActive = true
         
         cartIndacatorSizeConstraint = cartIndicatorView.heightAnchor.constraint(equalToConstant: 6)
         cartIndacatorCenterYConstraint = cartIndicatorView.centerYAnchor.constraint(equalTo: cartTabButton.centerYAnchor, constant: -22)
@@ -228,8 +247,17 @@ class TabBarVC: UIViewController {
             }
         }
     }
+    
+    private func updateBackgroundViewConstraint(for activeTab: TabBarButton) {
+        activeTabBackgroundViewCenterXConstraint?.isActive = false
+        activeTabBackgroundViewCenterXConstraint = activeTabBackgroundView.centerXAnchor.constraint(equalTo: activeTab.centerXAnchor)
+        activeTabBackgroundViewCenterXConstraint?.isActive = true
+        
+        UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 0.85, initialSpringVelocity: 0.5) {
+            self.view.layoutIfNeeded()
+        }
+    }
 }
-
 
 // MARK: - actions
 extension TabBarVC {
@@ -251,6 +279,8 @@ extension TabBarVC {
         } else if previousIndex == 2 {
             updateCartIndicatorConstraints(isCurrentTab: false)
         }
+        
+        updateBackgroundViewConstraint(for: sender)
         
         previousVC.willMove(toParent: nil)
         previousVC.view.removeFromSuperview()
