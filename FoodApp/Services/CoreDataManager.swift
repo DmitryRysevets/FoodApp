@@ -622,10 +622,12 @@ final class CoreDataManager {
     
     // MARK: - Orders methods
     
-    func saveOrder(orderID: UUID = UUID(), amountDue: Double, orderDate: Date = Date(), paidByCard: Bool, address: String, latitude: Double, longitude: Double, orderComments: String?, phone: String?, status: String = "Pending", orderItems: [OrderItemEntity]) {
+    func saveOrder(orderID: UUID = UUID(), productCost: Double, deliveryCharge: Double, promoCodeDiscount: Double, orderDate: Date = Date(), paidByCard: Bool, address: String, latitude: Double, longitude: Double, orderComments: String?, phone: String?, status: String = "Pending", orderItems: [OrderItemEntity]) {
         let order = OrderEntity(context: context)
         order.orderID = orderID
-        order.amountDue = amountDue
+        order.productCost = productCost
+        order.deliveryCharge = deliveryCharge
+        order.promoCodeDiscount = promoCodeDiscount
         order.orderComments = orderComments
         order.orderDate = orderDate
         order.paidByCard = paidByCard

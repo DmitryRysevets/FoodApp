@@ -51,7 +51,7 @@
     </entity>
     <entity name="OrderEntity" representedClassName="OrderEntity" syncable="YES" codeGenerationType="class">
         <attribute name="address" attributeType="String"/>
-        <attribute name="amountDue" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="deliveryCharge" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="latitude" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="longitude" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="orderComments" optional="YES" attributeType="String"/>
@@ -59,6 +59,8 @@
         <attribute name="orderID" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="paidByCard" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="phone" optional="YES" attributeType="String"/>
+        <attribute name="productCost" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="promoCodeDiscount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
         <attribute name="status" attributeType="String"/>
         <relationship name="orderItems" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="OrderItemEntity" inverseName="order" inverseEntity="OrderItemEntity"/>
     </entity>

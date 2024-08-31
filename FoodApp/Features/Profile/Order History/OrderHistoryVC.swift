@@ -115,11 +115,12 @@ extension OrderHistoryVC: UITableViewDelegate, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: OrderHistoryTableCell.id, for: indexPath) as! OrderHistoryTableCell
         
         let order = orders[indexPath.row]
+        let totalAmount = order.productCost + order.deliveryCharge - order.promoCodeDiscount
         
         guard let date = order.orderDate, let status = order.status else { return cell }
         
         let stringDate = dateFormatter.string(from: date)
-        let stringAmount = "$\(String(format: "%.2f", order.amountDue))"
+        let stringAmount = "$\(String(format: "%.2f", totalAmount))"
         
         cell.configureCell(withStatus: status, date: stringDate, amount: stringAmount)
         cell.selectionStyle = .none
@@ -132,7 +133,7 @@ extension OrderHistoryVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
+        navigationController?.pushViewController(OrderVC(order: orders[indexPath.row]), animated: true)
     }
     
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {

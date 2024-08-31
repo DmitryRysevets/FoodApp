@@ -26,11 +26,10 @@ final class CartTabVC: UIViewController {
     }
     
     private var cartItemColors: [UIColor] = []
-    
-    private var tableViewHeightConstraint: NSLayoutConstraint?
 
-    private var productPrice: Double = 0
-    private var deliveryPrice: Double = 2.0
+    private var productCost: Double = 0
+    private var deliveryCharge: Double = 2.0
+    private var promoCodeDiscount: Double = 0
     private var totalAmount: Double = 0
     
     private lazy var scrollView: UIScrollView = {
@@ -39,6 +38,8 @@ final class CartTabVC: UIViewController {
         view.isHidden = true
         return view
     }()
+    
+    private var tableViewHeightConstraint: NSLayoutConstraint?
     
     private lazy var tableView: UITableView = {
         let table = UITableView()
@@ -146,7 +147,7 @@ final class CartTabVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = .systemFont(ofSize: 16)
-        label.text = "$\(String(format: "%.2f", deliveryPrice))"
+        label.text = "$\(String(format: "%.2f", deliveryCharge))"
         return label
     }()
     
@@ -171,7 +172,6 @@ final class CartTabVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = .systemFont(ofSize: 16, weight: .bold)
-        label.text = "$0.00"
         return label
     }()
     
@@ -374,12 +374,14 @@ final class CartTabVC: UIViewController {
     }
     
     private func calculateTheBill() {
-        var amount: Double = 0
+        productCost = 0
         for item in cartContent {
-            amount += Double(item.quantity) * item.dish.price
+            productCost += Double(item.quantity) * item.dish.price
         }
-        totalAmount = amount + deliveryPrice
-        productPrice_amountOfMoneyLabel.text = "$\(String(format: "%.2f", amount))"
+        
+        totalAmount = productCost + deliveryCharge - promoCodeDiscount
+        
+        productPrice_amountOfMoneyLabel.text = "$\(String(format: "%.2f", productCost))"
         totalAmount_amountOfMoneyLabel.text = "$\(String(format: "%.2f", totalAmount))"
     }
     
@@ -444,7 +446,7 @@ final class CartTabVC: UIViewController {
         }, completion: nil)
 
         let orderItems = getOrderItems()
-        navigationController?.pushViewController(PaymentVC(amountDue: totalAmount, orderItems: orderItems), animated: true)
+        navigationController?.pushViewController(PaymentVC(productCost: productCost, deliveryCharge: deliveryCharge, promoCodeDiscount: promoCodeDiscount, orderItems: orderItems), animated: true)
     }
 }
 

@@ -17,23 +17,121 @@ final class OrderVC: UIViewController {
         return view
     }()
     
-    // id
-    // name
-    // price
-    // quantity
+    // MARK: - Order info section
     
-    // address
-    // amount
+    private lazy var orderInfoSectionView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.lightGraySectionColor
+        view.layer.cornerRadius = 36
+        return view
+    }()
+    
+    private lazy var statusLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Status"
+        return label
+    }()
+    
+    private lazy var statusValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16)
+        return label
+    }()
+    
+    private lazy var orderDateLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Order date"
+        return label
+    }()
+    
+    private lazy var orderDateValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16)
+        return label
+    }()
+    
+    private lazy var orderTimeLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Order time"
+        return label
+    }()
+    
+    private lazy var orderTimeValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16)
+        return label
+    }()
+    
+    private lazy var addressLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Address"
+        return label
+    }()
+    
+    private lazy var addressValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16)
+        return label
+    }()
+    
+    private lazy var paymentMethodLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Payment Method"
+        return label
+    }()
+    
+    private lazy var paymentMethodValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16)
+        return label
+    }()
+    
     // comments
-    // date
-    // paid by card
-    // status
+    
+    // MARK: - Order items section
+    
+    // name
+    // quantity
+    // price
+    
+    // MARK: - Bill details section
+    
+    // productCost
+    // deliveryCharge
+    // promoCodeDiscount
+    // totalAmount
     
     // MARK: - Lifecycle methods
     
     init(order: OrderEntity) {
         self.order = order
-        super.init()
+        super.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder: NSCoder) {
@@ -50,7 +148,7 @@ final class OrderVC: UIViewController {
     // MARK: - Private methods
     
     private func setupNavBar() {
-        title = "Order History"
+        title = "Order"
         let titleAttributes: [NSAttributedString.Key: Any] = [
             .foregroundColor: ColorManager.shared.label,
             .font: UIFont.getVariableVersion(of: "Raleway", size: 21, axis: [Constants.fontWeightAxis : 650])

@@ -8,7 +8,10 @@ import GoogleMaps
 
 final class PaymentVC: UIViewController {
     
-    private let amountDue: Double
+    private let productCost: Double
+    private let deliveryCharge: Double
+    private let promoCodeDiscount: Double
+    private var totalAmount: Double { productCost + deliveryCharge - promoCodeDiscount }
     private let orderItems: [OrderItemEntity]
     
     private var paymentMethodIsSelected: Bool!
@@ -311,7 +314,7 @@ final class PaymentVC: UIViewController {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = .systemFont(ofSize: 20, weight: .regular)
-        label.text = "$\(String(format: "%.2f", amountDue))"
+        label.text = "$\(String(format: "%.2f", totalAmount))"
         return label
     }()
     
@@ -331,8 +334,10 @@ final class PaymentVC: UIViewController {
     
     // MARK: - Controller methods
     
-    init(amountDue: Double, orderItems: [OrderItemEntity]) {
-        self.amountDue = amountDue
+    init(productCost: Double, deliveryCharge: Double, promoCodeDiscount: Double, orderItems: [OrderItemEntity]) {
+        self.productCost = productCost
+        self.deliveryCharge = deliveryCharge
+        self.promoCodeDiscount = promoCodeDiscount
         self.orderItems = orderItems
         super.init(nibName: nil, bundle: nil)
     }
@@ -732,7 +737,9 @@ final class PaymentVC: UIViewController {
     private func placeOrderButtonTouchUp() {
         if orderIsValid() {
             guard let location = location else { return }
-            CoreDataManager.shared.saveOrder(amountDue: amountDue,
+            CoreDataManager.shared.saveOrder(productCost: productCost,
+                                             deliveryCharge: deliveryCharge,
+                                             promoCodeDiscount: promoCodeDiscount,
                                              paidByCard: payByCardRadioButton.isSelected,
                                              address: selectedAddressLabel.text ?? "",
                                              latitude: location.coordinate.latitude,
