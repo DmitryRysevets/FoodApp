@@ -17,14 +17,29 @@ final class OrderVC: UIViewController {
         return view
     }()
     
+    private lazy var scrollView: UIScrollView = {
+        let view = UIScrollView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
     // MARK: - Order info section
     
     private lazy var orderInfoView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.lightGraySectionColor
+        view.backgroundColor = ColorManager.shared.orderVC_SecrionColor
         view.layer.cornerRadius = 24
         return view
+    }()
+    
+    private lazy var infoLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Info"
+        return label
     }()
     
     private lazy var statusLabel: UILabel = {
@@ -131,7 +146,7 @@ final class OrderVC: UIViewController {
     private lazy var commentsView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.lightGraySectionColor
+        view.backgroundColor = ColorManager.shared.orderVC_SecrionColor
         view.layer.cornerRadius = 24
         view.isHidden = true
         return view
@@ -140,7 +155,7 @@ final class OrderVC: UIViewController {
     private lazy var commentsLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.labelGray
+        label.textColor = ColorManager.shared.label
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
         label.text = "Comments"
         return label
@@ -156,18 +171,106 @@ final class OrderVC: UIViewController {
         return label
     }()
     
-    // MARK: - Order items section
-    
-    // name
-    // quantity
-    // price
-    
     // MARK: - Bill details section
     
-    // productCost
-    // deliveryCharge
-    // promoCodeDiscount
-    // totalAmount
+    private lazy var billDetailsView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.orderVC_SecrionColor
+        view.layer.cornerRadius = 24
+        return view
+    }()
+    
+    private lazy var billDetailsLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Bill Details"
+        return label
+    }()
+    
+    private lazy var orderItemStack: UIStackView = {
+        let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        return stack
+    }()
+    
+    private lazy var orderItemsDividerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.labelGray.withAlphaComponent(0.4)
+        return view
+    }()
+    
+    private lazy var deliveryChargeLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 400])
+        label.text = "Delivery Charge"
+        return label
+    }()
+    
+    private lazy var deliveryChargeValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16, weight: .light)
+        label.textAlignment = .right
+        label.text = "$\(String(format: "%.2f", order.deliveryCharge))"
+        return label
+    }()
+    
+    private lazy var promoCodeDiscountLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 400])
+        label.text = "Promo Code Discount"
+        return label
+    }()
+    
+    private lazy var promoCodeDiscountValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16, weight: .light)
+        label.textAlignment = .right
+        if order.promoCodeDiscount.isZero {
+            label.text = "-"
+        } else {
+            label.text = "$\(String(format: "%.2f", order.promoCodeDiscount))"
+        }
+        return label
+    }()
+        
+    private lazy var totalAmountDividerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.labelGray.withAlphaComponent(0.4)
+        return view
+    }()
+    
+    private lazy var totalAmountLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
+        label.text = "Total Amount"
+        return label
+    }()
+    
+    private lazy var totalAmountValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 17, weight: .semibold)
+        label.textAlignment = .right
+        label.text = "$\(order.productCost + order.deliveryCharge - order.promoCodeDiscount)"
+        return label
+    }()
     
     // MARK: - Lifecycle methods
     
@@ -204,7 +307,13 @@ final class OrderVC: UIViewController {
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         
-        view.addSubview(orderInfoView)
+        view.addSubview(scrollView)
+        
+        scrollView.addSubview(orderInfoView)
+        scrollView.addSubview(commentsView)
+        scrollView.addSubview(billDetailsView)
+        
+        orderInfoView.addSubview(infoLabel)
         orderInfoView.addSubview(statusLabel)
         orderInfoView.addSubview(statusValueLabel)
         orderInfoView.addSubview(orderDateLabel)
@@ -216,7 +325,6 @@ final class OrderVC: UIViewController {
         orderInfoView.addSubview(paymentMethodLabel)
         orderInfoView.addSubview(paymentMethodValueLabel)
         
-        view.addSubview(commentsView)
         commentsView.addSubview(commentsLabel)
         commentsView.addSubview(commentsValueLabel)
         
@@ -224,17 +332,40 @@ final class OrderVC: UIViewController {
             commentsView.isHidden = false
         }
         
+        billDetailsView.addSubview(billDetailsLabel)
+        billDetailsView.addSubview(orderItemStack)
+        billDetailsView.addSubview(orderItemsDividerView)
+        billDetailsView.addSubview(deliveryChargeLabel)
+        billDetailsView.addSubview(deliveryChargeValueLabel)
+        billDetailsView.addSubview(promoCodeDiscountLabel)
+        billDetailsView.addSubview(promoCodeDiscountValueLabel)
+        billDetailsView.addSubview(totalAmountDividerView)
+        billDetailsView.addSubview(totalAmountLabel)
+        billDetailsView.addSubview(totalAmountValueLabel)
+        
+        createOrderItemViews().forEach { subview in
+            orderItemStack.addArrangedSubview(subview)
+        }
     }
     
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            // Order info section
-            orderInfoView.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 32),
-            orderInfoView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            orderInfoView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            scrollView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            statusLabel.topAnchor.constraint(equalTo: orderInfoView.topAnchor, constant: 24),
+            // Order info section
+            orderInfoView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 32),
+            orderInfoView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
+            orderInfoView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
+            orderInfoView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
+            
+            infoLabel.topAnchor.constraint(equalTo: orderInfoView.topAnchor, constant: 24),
+            infoLabel.leadingAnchor.constraint(equalTo: orderInfoView.leadingAnchor, constant: 24),
+            
+            statusLabel.topAnchor.constraint(equalTo: infoLabel.bottomAnchor, constant: 16),
             statusLabel.leadingAnchor.constraint(equalTo: orderInfoView.leadingAnchor, constant: 24),
             statusValueLabel.centerYAnchor.constraint(equalTo: statusLabel.centerYAnchor),
             statusValueLabel.trailingAnchor.constraint(equalTo: orderInfoView.trailingAnchor, constant: -24),
@@ -267,18 +398,126 @@ final class OrderVC: UIViewController {
             
             // Order commetns
             commentsView.topAnchor.constraint(equalTo: orderInfoView.bottomAnchor, constant: 32),
-            commentsView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            commentsView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            commentsView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
+            commentsView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
+            commentsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
+            
             commentsLabel.topAnchor.constraint(equalTo: commentsView.topAnchor, constant: 24),
             commentsLabel.leadingAnchor.constraint(equalTo: commentsView.leadingAnchor, constant: 24),
-            commentsValueLabel.topAnchor.constraint(equalTo: commentsLabel.topAnchor, constant: 24),
+            
+            commentsValueLabel.topAnchor.constraint(equalTo: commentsLabel.bottomAnchor, constant: 16),
             commentsValueLabel.leadingAnchor.constraint(equalTo: commentsView.leadingAnchor, constant: 24),
             commentsValueLabel.trailingAnchor.constraint(equalTo: commentsView.trailingAnchor, constant: -24),
             commentsValueLabel.bottomAnchor.constraint(equalTo: commentsView.bottomAnchor, constant: -24),
             
-            // Order items section
+            // Bill details section
+            billDetailsView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
+            billDetailsView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
+            billDetailsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
+            billDetailsView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             
+            billDetailsLabel.topAnchor.constraint(equalTo: billDetailsView.topAnchor, constant: 24),
+            billDetailsLabel.leadingAnchor.constraint(equalTo: billDetailsView.leadingAnchor, constant: 24),
+            
+            orderItemStack.topAnchor.constraint(equalTo: billDetailsLabel.bottomAnchor, constant: 12),
+            orderItemStack.leadingAnchor.constraint(equalTo: billDetailsView.leadingAnchor, constant: 24),
+            orderItemStack.trailingAnchor.constraint(equalTo: billDetailsView.trailingAnchor, constant: -24),
+            
+            orderItemsDividerView.topAnchor.constraint(equalTo: orderItemStack.bottomAnchor, constant: 6),
+            orderItemsDividerView.leadingAnchor.constraint(equalTo: billDetailsView.leadingAnchor, constant: 24),
+            orderItemsDividerView.trailingAnchor.constraint(equalTo: billDetailsView.trailingAnchor, constant: -24),
+            orderItemsDividerView.heightAnchor.constraint(equalToConstant: 0.5),
+            
+            deliveryChargeLabel.topAnchor.constraint(equalTo: orderItemsDividerView.bottomAnchor, constant: 12),
+            deliveryChargeLabel.leadingAnchor.constraint(equalTo: billDetailsView.leadingAnchor, constant: 24),
+            deliveryChargeValueLabel.centerYAnchor.constraint(equalTo: deliveryChargeLabel.centerYAnchor),
+            deliveryChargeValueLabel.trailingAnchor.constraint(equalTo: billDetailsView.trailingAnchor, constant: -24),
+            
+            promoCodeDiscountLabel.topAnchor.constraint(equalTo: deliveryChargeLabel.bottomAnchor, constant: 12),
+            promoCodeDiscountLabel.leadingAnchor.constraint(equalTo: billDetailsView.leadingAnchor, constant: 24),
+            promoCodeDiscountValueLabel.centerYAnchor.constraint(equalTo: promoCodeDiscountLabel.centerYAnchor),
+            promoCodeDiscountValueLabel.trailingAnchor.constraint(equalTo: billDetailsView.trailingAnchor, constant: -24),
+            
+            totalAmountDividerView.topAnchor.constraint(equalTo: promoCodeDiscountLabel.bottomAnchor, constant: 12),
+            totalAmountDividerView.leadingAnchor.constraint(equalTo: billDetailsView.leadingAnchor, constant: 24),
+            totalAmountDividerView.trailingAnchor.constraint(equalTo: billDetailsView.trailingAnchor, constant: -24),
+            totalAmountDividerView.heightAnchor.constraint(equalToConstant: 0.5),
+            
+            totalAmountLabel.topAnchor.constraint(equalTo: totalAmountDividerView.bottomAnchor, constant: 12),
+            totalAmountLabel.leadingAnchor.constraint(equalTo: billDetailsView.leadingAnchor, constant: 24),
+            totalAmountLabel.bottomAnchor.constraint(equalTo: billDetailsView.bottomAnchor, constant: -24),
+            totalAmountValueLabel.centerYAnchor.constraint(equalTo: totalAmountLabel.centerYAnchor),
+            totalAmountValueLabel.trailingAnchor.constraint(equalTo: billDetailsView.trailingAnchor, constant: -24)
         ])
+        
+        if let comments = order.orderComments, !comments.isEmpty {
+            billDetailsView.topAnchor.constraint(equalTo: commentsView.bottomAnchor, constant: 32).isActive = true
+        } else {
+            billDetailsView.topAnchor.constraint(equalTo: orderInfoView.bottomAnchor, constant: 32).isActive = true
+        }
+    }
+    
+    private func createOrderItemViews() -> [UIView] {
+        guard let orderItems = order.orderItems else { return [] }
+        
+        var views: [UIView] = []
+        
+        for item in orderItems {
+            guard let item = item as? OrderItemEntity else { continue }
+            
+            let nameLabel: UILabel = {
+                let label = UILabel()
+                label.translatesAutoresizingMaskIntoConstraints = false
+                label.textColor = ColorManager.shared.labelGray
+                label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 400])
+                label.text = item.dishName
+                return label
+            }()
+            
+            let quantityLabel: UILabel = {
+                let label = UILabel()
+                label.translatesAutoresizingMaskIntoConstraints = false
+                label.textColor = ColorManager.shared.labelGray
+                label.font = .systemFont(ofSize: 16, weight: .light)
+                label.textAlignment = .center
+                label.text = "\(item.quantity)"
+                return label
+            }()
+            
+            let priceLabel: UILabel = {
+                let label = UILabel()
+                label.translatesAutoresizingMaskIntoConstraints = false
+                label.textColor = ColorManager.shared.label
+                label.font = .systemFont(ofSize: 16, weight: .light)
+                label.textAlignment = .right
+                label.text = "$\(item.dishPrice)"
+                return label
+            }()
+            
+            let itemView = UIView()
+            
+            itemView.addSubview(nameLabel)
+            itemView.addSubview(quantityLabel)
+            itemView.addSubview(priceLabel)
+            
+            NSLayoutConstraint.activate([
+                itemView.heightAnchor.constraint(equalToConstant: 32),
+                nameLabel.centerYAnchor.constraint(equalTo: itemView.centerYAnchor),
+                nameLabel.leadingAnchor.constraint(equalTo: itemView.leadingAnchor),
+                nameLabel.trailingAnchor.constraint(equalTo: quantityLabel.leadingAnchor, constant: -8),
+                priceLabel.centerYAnchor.constraint(equalTo: itemView.centerYAnchor),
+                priceLabel.trailingAnchor.constraint(equalTo: itemView.trailingAnchor),
+                priceLabel.widthAnchor.constraint(equalToConstant: 60),
+                quantityLabel.centerYAnchor.constraint(equalTo: itemView.centerYAnchor),
+                quantityLabel.trailingAnchor.constraint(equalTo: priceLabel.leadingAnchor, constant: -8),
+                quantityLabel.widthAnchor.constraint(equalToConstant: 32)
+            ])
+            
+            views.append(itemView)
+            
+        }
+        
+        return views
     }
     
     // MARK: - Objc methods

@@ -151,7 +151,7 @@ final class CartTabVC: UIViewController {
         return label
     }()
     
-    private lazy var divider: UIView = {
+    private lazy var dividerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = ColorManager.shared.labelGray.withAlphaComponent(0.4)
@@ -280,7 +280,7 @@ final class CartTabVC: UIViewController {
         billDetailsView.addSubview(productPrice_amountOfMoneyLabel)
         billDetailsView.addSubview(deliveryChargeLabel)
         billDetailsView.addSubview(deliveryCharge_amountOfMoneyLabel)
-        billDetailsView.addSubview(divider)
+        billDetailsView.addSubview(dividerView)
         billDetailsView.addSubview(totalAmountLabel)
         billDetailsView.addSubview(totalAmount_amountOfMoneyLabel)
         billDetailsView.addSubview(continueOrderButton)
@@ -329,11 +329,11 @@ final class CartTabVC: UIViewController {
             deliveryChargeLabel.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
             deliveryCharge_amountOfMoneyLabel.centerYAnchor.constraint(equalTo: deliveryChargeLabel.centerYAnchor),
             deliveryCharge_amountOfMoneyLabel.trailingAnchor.constraint(equalTo: productPrice_amountOfMoneyLabel.trailingAnchor),
-            divider.topAnchor.constraint(equalTo: deliveryChargeLabel.bottomAnchor, constant: 13),
-            divider.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
-            divider.trailingAnchor.constraint(equalTo: productPrice_amountOfMoneyLabel.trailingAnchor),
-            divider.heightAnchor.constraint(equalToConstant: 0.5),
-            totalAmountLabel.topAnchor.constraint(equalTo: divider.bottomAnchor, constant: 10),
+            dividerView.topAnchor.constraint(equalTo: deliveryChargeLabel.bottomAnchor, constant: 13),
+            dividerView.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
+            dividerView.trailingAnchor.constraint(equalTo: productPrice_amountOfMoneyLabel.trailingAnchor),
+            dividerView.heightAnchor.constraint(equalToConstant: 0.5),
+            totalAmountLabel.topAnchor.constraint(equalTo: dividerView.bottomAnchor, constant: 10),
             totalAmountLabel.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
             totalAmount_amountOfMoneyLabel.centerYAnchor.constraint(equalTo: totalAmountLabel.centerYAnchor),
             totalAmount_amountOfMoneyLabel.trailingAnchor.constraint(equalTo: productPrice_amountOfMoneyLabel.trailingAnchor),
