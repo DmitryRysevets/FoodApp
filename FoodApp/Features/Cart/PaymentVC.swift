@@ -291,21 +291,92 @@ final class PaymentVC: UIViewController {
         return view
     }()
     
-    private lazy var totalAmountLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 650])
-        label.text = "Total Amount"
-        return label
-    }()
-    
     private lazy var seePriceDetailsLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 13, axis: [Constants.fontWeightAxis : 550])
         label.text = "See price details"
+        return label
+    }()
+    
+    private lazy var priceDetailsView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    private lazy var productCostLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Product Price"
+        return label
+    }()
+    
+    private lazy var productCostValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16)
+        label.text = "$\(String(format: "%.2f", productCost))"
+        return label
+    }()
+    
+    private lazy var deliveryChargeLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Delivery Charge"
+        return label
+    }()
+    
+    private lazy var deliveryChargeValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16)
+        label.text = "$\(String(format: "%.2f", deliveryCharge))"
+        return label
+    }()
+    
+    private lazy var promoCodeDiscountLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Promo Code Discount"
+        return label
+    }()
+    
+    private lazy var promoCodeDiscountValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16)
+        if promoCodeDiscount.isZero {
+            label.text = "-"
+        } else {
+            label.text = "$\(String(format: "%.2f", promoCodeDiscount))"
+        }
+        return label
+    }()
+    
+    private lazy var dividerView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.labelGray.withAlphaComponent(0.4)
+        return view
+    }()
+    
+    private lazy var totalAmountLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 650])
+        label.text = "Total Amount"
         return label
     }()
     
@@ -438,10 +509,19 @@ final class PaymentVC: UIViewController {
         selectAddressView.addSubview(selectedAddressLabel)
         selectAddressView.addSubview(goToDeliveryAddressesImageView)
         
-        placeOrderView.addSubview(totalAmountLabel)
         placeOrderView.addSubview(seePriceDetailsLabel)
+        placeOrderView.addSubview(priceDetailsView)
+        placeOrderView.addSubview(totalAmountLabel)
         placeOrderView.addSubview(priceLabel)
         placeOrderView.addSubview(placeOrderButton)
+        
+        priceDetailsView.addSubview(productCostLabel)
+        priceDetailsView.addSubview(productCostValueLabel)
+        priceDetailsView.addSubview(deliveryChargeLabel)
+        priceDetailsView.addSubview(deliveryChargeValueLabel)
+        priceDetailsView.addSubview(promoCodeDiscountLabel)
+        priceDetailsView.addSubview(promoCodeDiscountValueLabel)
+        priceDetailsView.addSubview(dividerView)
     }
     
     private func setupConstraints() {
@@ -452,20 +532,25 @@ final class PaymentVC: UIViewController {
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
+            // Payment section
             paymentOptionsView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 32),
             paymentOptionsView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
             paymentOptionsView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
             paymentOptionsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
+            
             payCashRadioButton.topAnchor.constraint(equalTo: paymentOptionsView.topAnchor, constant: 24),
             payCashRadioButton.leadingAnchor.constraint(equalTo: paymentOptionsView.leadingAnchor, constant: 24),
             payCashRadioButton.heightAnchor.constraint(equalToConstant: 20),
             payCashRadioButton.widthAnchor.constraint(equalToConstant: 20),
+            
             payCashLabel.centerYAnchor.constraint(equalTo: payCashRadioButton.centerYAnchor),
             payCashLabel.leadingAnchor.constraint(equalTo: payCashRadioButton.trailingAnchor, constant: 8),
+            
             payByCardRadioButton.topAnchor.constraint(equalTo: payCashRadioButton.bottomAnchor, constant: 24),
             payByCardRadioButton.leadingAnchor.constraint(equalTo: payCashRadioButton.leadingAnchor),
             payByCardRadioButton.heightAnchor.constraint(equalToConstant: 20),
             payByCardRadioButton.widthAnchor.constraint(equalToConstant: 20),
+            
             payByCardLabel.centerYAnchor.constraint(equalTo: payByCardRadioButton.centerYAnchor),
             payByCardLabel.leadingAnchor.constraint(equalTo: payByCardRadioButton.trailingAnchor, constant: 8),
             
@@ -476,31 +561,38 @@ final class PaymentVC: UIViewController {
             selectCardLabel.centerYAnchor.constraint(equalTo: selectCardView.centerYAnchor),
             selectCardLabel.leadingAnchor.constraint(equalTo: selectCardView.leadingAnchor, constant: 16),
             selectCardLabel.trailingAnchor.constraint(equalTo: goToPaymentMethodsImageView.leadingAnchor, constant: -16),
+            
             goToPaymentMethodsImageView.centerYAnchor.constraint(equalTo: selectCardView.centerYAnchor),
             goToPaymentMethodsImageView.trailingAnchor.constraint(equalTo: selectCardView.trailingAnchor, constant: -12),
             goToPaymentMethodsImageView.heightAnchor.constraint(equalToConstant: 20),
             goToPaymentMethodsImageView.widthAnchor.constraint(equalTo: goToPaymentMethodsImageView.heightAnchor),
             
+            // Address section
             mapSectionView.topAnchor.constraint(equalTo: paymentOptionsView.bottomAnchor, constant: 32),
             mapSectionView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
             mapSectionView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
             mapSectionView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
             mapSectionView.heightAnchor.constraint(equalToConstant: 280),
+            
             geolocationButton.topAnchor.constraint(equalTo: mapSectionView.topAnchor, constant: 16),
             geolocationButton.leadingAnchor.constraint(equalTo: mapSectionView.leadingAnchor, constant: 16),
             geolocationButton.heightAnchor.constraint(equalToConstant: 44),
             geolocationButton.widthAnchor.constraint(equalTo: geolocationButton.heightAnchor),
+            
             selectAddressView.topAnchor.constraint(equalTo: mapSectionView.topAnchor, constant: 16),
             selectAddressView.leadingAnchor.constraint(equalTo: geolocationButton.trailingAnchor, constant: 12),
             selectAddressView.trailingAnchor.constraint(equalTo: mapSectionView.trailingAnchor, constant: -16),
             selectAddressView.heightAnchor.constraint(equalToConstant: 44),
+            
             mapView.topAnchor.constraint(equalTo: geolocationButton.bottomAnchor, constant: 16),
             mapView.leadingAnchor.constraint(equalTo: mapSectionView.leadingAnchor, constant: 16),
             mapView.trailingAnchor.constraint(equalTo: mapSectionView.trailingAnchor, constant: -16),
             mapView.bottomAnchor.constraint(equalTo: mapSectionView.bottomAnchor, constant: -16),
+            
             selectedAddressLabel.centerYAnchor.constraint(equalTo: selectAddressView.centerYAnchor),
             selectedAddressLabel.leadingAnchor.constraint(equalTo: selectAddressView.leadingAnchor, constant: 16),
             selectedAddressLabel.trailingAnchor.constraint(equalTo: goToDeliveryAddressesImageView.leadingAnchor, constant: -16),
+            
             goToDeliveryAddressesImageView.centerYAnchor.constraint(equalTo: selectAddressView.centerYAnchor),
             goToDeliveryAddressesImageView.trailingAnchor.constraint(equalTo: selectAddressView.trailingAnchor, constant: -12),
             goToDeliveryAddressesImageView.heightAnchor.constraint(equalToConstant: 20),
@@ -510,43 +602,79 @@ final class PaymentVC: UIViewController {
             mapBlurEffectView.leadingAnchor.constraint(equalTo: mapView.leadingAnchor),
             mapBlurEffectView.trailingAnchor.constraint(equalTo: mapView.trailingAnchor),
             mapBlurEffectView.bottomAnchor.constraint(equalTo: mapView.bottomAnchor),
+            
             mapVibrancyEffectView.topAnchor.constraint(equalTo: mapBlurEffectView.topAnchor),
             mapVibrancyEffectView.leadingAnchor.constraint(equalTo: mapBlurEffectView.leadingAnchor),
             mapVibrancyEffectView.trailingAnchor.constraint(equalTo: mapBlurEffectView.trailingAnchor),
             mapVibrancyEffectView.bottomAnchor.constraint(equalTo: mapBlurEffectView.bottomAnchor),
+            
             mapVibrancyImageView.centerYAnchor.constraint(equalTo: mapVibrancyEffectView.centerYAnchor),
             mapVibrancyImageView.centerXAnchor.constraint(equalTo: mapVibrancyEffectView.centerXAnchor),
             mapVibrancyImageView.heightAnchor.constraint(equalToConstant: 80),
             mapVibrancyImageView.widthAnchor.constraint(equalTo: mapVibrancyImageView.heightAnchor),
             
+            // Order comments section
             orderCommentsTextView.topAnchor.constraint(equalTo: mapSectionView.bottomAnchor, constant: 56),
             orderCommentsTextView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 32),
             orderCommentsTextView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -32),
             orderCommentsTextView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -64),
             orderCommentsTextView.heightAnchor.constraint(equalToConstant: 96),
+            
             orderCommentsLabel.bottomAnchor.constraint(equalTo: orderCommentsTextView.topAnchor, constant: -8),
             orderCommentsLabel.leadingAnchor.constraint(equalTo: orderCommentsTextView.leadingAnchor, constant: 16),
             
+            // User agreement section
             userAgreementCheckBox.topAnchor.constraint(equalTo: orderCommentsTextView.bottomAnchor, constant: 32),
             userAgreementCheckBox.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
             userAgreementCheckBox.widthAnchor.constraint(equalToConstant: Constants.checkboxSize),
             userAgreementCheckBox.heightAnchor.constraint(equalToConstant: Constants.checkboxSize),
+            
             userAgreementLabel.topAnchor.constraint(equalTo: userAgreementCheckBox.topAnchor, constant: -4),
             userAgreementLabel.leadingAnchor.constraint(equalTo: userAgreementCheckBox.trailingAnchor, constant: 8),
             userAgreementLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
             
+            // Place order section
             placeOrderView.topAnchor.constraint(equalTo: userAgreementCheckBox.bottomAnchor, constant: 52),
             placeOrderView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
             placeOrderView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
             placeOrderView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
             placeOrderView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
-            totalAmountLabel.topAnchor.constraint(equalTo: placeOrderView.topAnchor, constant: 24),
-            totalAmountLabel.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 24),
-            seePriceDetailsLabel.topAnchor.constraint(equalTo: totalAmountLabel.bottomAnchor, constant: 3),
+            
+            seePriceDetailsLabel.topAnchor.constraint(equalTo: placeOrderView.topAnchor, constant: 24),
             seePriceDetailsLabel.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 24),
-            priceLabel.topAnchor.constraint(equalTo: placeOrderView.topAnchor, constant: 30),
+            
+            priceDetailsView.topAnchor.constraint(equalTo: seePriceDetailsLabel.bottomAnchor, constant: 20),
+            priceDetailsView.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 24),
+            priceDetailsView.trailingAnchor.constraint(equalTo: placeOrderView.trailingAnchor, constant: -24),
+            
+            productCostLabel.topAnchor.constraint(equalTo: priceDetailsView.topAnchor),
+            productCostLabel.leadingAnchor.constraint(equalTo: priceDetailsView.leadingAnchor),
+            productCostValueLabel.centerYAnchor.constraint(equalTo: productCostLabel.centerYAnchor),
+            productCostValueLabel.trailingAnchor.constraint(equalTo: priceDetailsView.trailingAnchor),
+            
+            deliveryChargeLabel.topAnchor.constraint(equalTo: productCostLabel.bottomAnchor, constant: 12),
+            deliveryChargeLabel.leadingAnchor.constraint(equalTo: priceDetailsView.leadingAnchor),
+            deliveryChargeValueLabel.centerYAnchor.constraint(equalTo: deliveryChargeLabel.centerYAnchor),
+            deliveryChargeValueLabel.trailingAnchor.constraint(equalTo: priceDetailsView.trailingAnchor),
+            
+            promoCodeDiscountLabel.topAnchor.constraint(equalTo: deliveryChargeLabel.bottomAnchor, constant: 12),
+            promoCodeDiscountLabel.leadingAnchor.constraint(equalTo: priceDetailsView.leadingAnchor),
+            promoCodeDiscountValueLabel.centerYAnchor.constraint(equalTo: promoCodeDiscountLabel.centerYAnchor),
+            promoCodeDiscountValueLabel.trailingAnchor.constraint(equalTo: priceDetailsView.trailingAnchor),
+            
+            dividerView.topAnchor.constraint(equalTo: promoCodeDiscountLabel.bottomAnchor, constant: 12),
+            dividerView.leadingAnchor.constraint(equalTo: priceDetailsView.leadingAnchor),
+            dividerView.trailingAnchor.constraint(equalTo: priceDetailsView.trailingAnchor),
+            dividerView.heightAnchor.constraint(equalToConstant: 0.5),
+            dividerView.bottomAnchor.constraint(equalTo: priceDetailsView.bottomAnchor),
+            
+            totalAmountLabel.topAnchor.constraint(equalTo: priceDetailsView.bottomAnchor, constant: 12),
+            totalAmountLabel.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 24),
+            
+            priceLabel.centerYAnchor.constraint(equalTo: totalAmountLabel.centerYAnchor),
             priceLabel.trailingAnchor.constraint(equalTo: placeOrderView.trailingAnchor, constant: -24),
-            placeOrderButton.topAnchor.constraint(equalTo: seePriceDetailsLabel.bottomAnchor, constant: 28),
+            
+            placeOrderButton.topAnchor.constraint(equalTo: totalAmountLabel.bottomAnchor, constant: 28),
             placeOrderButton.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 16),
             placeOrderButton.trailingAnchor.constraint(equalTo: placeOrderView.trailingAnchor, constant: -16),
             placeOrderButton.bottomAnchor.constraint(equalTo: placeOrderView.bottomAnchor, constant: -16),

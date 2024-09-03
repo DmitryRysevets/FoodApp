@@ -116,16 +116,16 @@ final class CartTabVC: UIViewController {
         return label
     }()
     
-    private lazy var productPriceLabel: UILabel = {
+    private lazy var productCostLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.labelGray
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 500])
-        label.text = "Product Price"
+        label.text = "Product Cost"
         return label
     }()
     
-    private lazy var productPrice_amountOfMoneyLabel: UILabel = {
+    private lazy var productCostValueLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
@@ -142,7 +142,7 @@ final class CartTabVC: UIViewController {
         return label
     }()
     
-    private lazy var deliveryCharge_amountOfMoneyLabel: UILabel = {
+    private lazy var deliveryChargeValueLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
@@ -276,10 +276,10 @@ final class CartTabVC: UIViewController {
         promoCodeView.addSubview(promoCodeTextField)
         promoCodeView.addSubview(applyCodeButton)
         billDetailsView.addSubview(billDetailsLabel)
-        billDetailsView.addSubview(productPriceLabel)
-        billDetailsView.addSubview(productPrice_amountOfMoneyLabel)
+        billDetailsView.addSubview(productCostLabel)
+        billDetailsView.addSubview(productCostValueLabel)
         billDetailsView.addSubview(deliveryChargeLabel)
-        billDetailsView.addSubview(deliveryCharge_amountOfMoneyLabel)
+        billDetailsView.addSubview(deliveryChargeValueLabel)
         billDetailsView.addSubview(dividerView)
         billDetailsView.addSubview(totalAmountLabel)
         billDetailsView.addSubview(totalAmount_amountOfMoneyLabel)
@@ -321,22 +321,22 @@ final class CartTabVC: UIViewController {
             billDetailsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
             billDetailsLabel.topAnchor.constraint(equalTo: billDetailsView.topAnchor, constant: 32),
             billDetailsLabel.leadingAnchor.constraint(equalTo: billDetailsView.leadingAnchor, constant: 16),
-            productPriceLabel.topAnchor.constraint(equalTo: billDetailsLabel.bottomAnchor, constant: 16),
-            productPriceLabel.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
-            productPrice_amountOfMoneyLabel.centerYAnchor.constraint(equalTo: productPriceLabel.centerYAnchor),
-            productPrice_amountOfMoneyLabel.trailingAnchor.constraint(equalTo: billDetailsView.trailingAnchor, constant: -12),
-            deliveryChargeLabel.topAnchor.constraint(equalTo: productPriceLabel.bottomAnchor, constant: 16),
+            productCostLabel.topAnchor.constraint(equalTo: billDetailsLabel.bottomAnchor, constant: 16),
+            productCostLabel.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
+            productCostValueLabel.centerYAnchor.constraint(equalTo: productCostLabel.centerYAnchor),
+            productCostValueLabel.trailingAnchor.constraint(equalTo: billDetailsView.trailingAnchor, constant: -12),
+            deliveryChargeLabel.topAnchor.constraint(equalTo: productCostLabel.bottomAnchor, constant: 16),
             deliveryChargeLabel.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
-            deliveryCharge_amountOfMoneyLabel.centerYAnchor.constraint(equalTo: deliveryChargeLabel.centerYAnchor),
-            deliveryCharge_amountOfMoneyLabel.trailingAnchor.constraint(equalTo: productPrice_amountOfMoneyLabel.trailingAnchor),
+            deliveryChargeValueLabel.centerYAnchor.constraint(equalTo: deliveryChargeLabel.centerYAnchor),
+            deliveryChargeValueLabel.trailingAnchor.constraint(equalTo: productCostValueLabel.trailingAnchor),
             dividerView.topAnchor.constraint(equalTo: deliveryChargeLabel.bottomAnchor, constant: 13),
             dividerView.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
-            dividerView.trailingAnchor.constraint(equalTo: productPrice_amountOfMoneyLabel.trailingAnchor),
+            dividerView.trailingAnchor.constraint(equalTo: productCostValueLabel.trailingAnchor),
             dividerView.heightAnchor.constraint(equalToConstant: 0.5),
             totalAmountLabel.topAnchor.constraint(equalTo: dividerView.bottomAnchor, constant: 10),
             totalAmountLabel.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
             totalAmount_amountOfMoneyLabel.centerYAnchor.constraint(equalTo: totalAmountLabel.centerYAnchor),
-            totalAmount_amountOfMoneyLabel.trailingAnchor.constraint(equalTo: productPrice_amountOfMoneyLabel.trailingAnchor),
+            totalAmount_amountOfMoneyLabel.trailingAnchor.constraint(equalTo: productCostValueLabel.trailingAnchor),
             continueOrderButton.topAnchor.constraint(equalTo: totalAmountLabel.bottomAnchor, constant: 32),
             continueOrderButton.leadingAnchor.constraint(equalTo: billDetailsView.leadingAnchor, constant: 16),
             continueOrderButton.trailingAnchor.constraint(equalTo: billDetailsView.trailingAnchor, constant: -16),
@@ -381,7 +381,7 @@ final class CartTabVC: UIViewController {
         
         totalAmount = productCost + deliveryCharge - promoCodeDiscount
         
-        productPrice_amountOfMoneyLabel.text = "$\(String(format: "%.2f", productCost))"
+        productCostValueLabel.text = "$\(String(format: "%.2f", productCost))"
         totalAmount_amountOfMoneyLabel.text = "$\(String(format: "%.2f", totalAmount))"
     }
     
