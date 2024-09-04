@@ -221,9 +221,7 @@ final class CoreDataManager {
             }
             
             saveContext()
-            
             CartStatusObserver.shared.observeCartStatus()
-            
         } catch {
             print("Failed to fetch cart item: \(error)")
         }
@@ -239,9 +237,7 @@ final class CoreDataManager {
             if let cartItem = cartItems.first {
                 context.delete(cartItem)
                 saveContext()
-                
                 CartStatusObserver.shared.observeCartStatus()
-                
             } else {
                 print("Cart item with dishID \(dishID) not found.")
             }
@@ -272,7 +268,14 @@ final class CoreDataManager {
     }
     
     func saveCart(_ cartItems: [CartItem]) {
-        clearCart()
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CartItemEntity.fetchRequest()
+        let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        
+        do {
+            try context.execute(batchDeleteRequest)
+        } catch {
+            print("Failed to clear existing cart items: \(error)")
+        }
         
         for item in cartItems {
             let cartItemEntity = CartItemEntity(context: context)
@@ -289,6 +292,7 @@ final class CoreDataManager {
         do {
             try context.execute(batchDeleteRequest)
             saveContext()
+            CartStatusObserver.shared.observeCartStatus()
         } catch {
             print("Failed to clear cart: \(error)")
         }

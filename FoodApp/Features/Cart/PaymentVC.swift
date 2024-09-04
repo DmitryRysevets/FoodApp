@@ -46,9 +46,10 @@ final class PaymentVC: UIViewController {
         return view
     }()
     
-    //MARK: - Payment method section
-    
     private var paymentOptionsViewHeightConstraint: NSLayoutConstraint?
+    private var totalAmountLabelTopConstraint: NSLayoutConstraint?
+    
+    //MARK: - Payment method section
     
     private lazy var paymentOptionsView: UIView = {
         let view = UIView()
@@ -291,18 +292,21 @@ final class PaymentVC: UIViewController {
         return view
     }()
     
-    private lazy var seePriceDetailsLabel: UILabel = {
-        let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.label
-        label.font = UIFont.getVariableVersion(of: "Raleway", size: 13, axis: [Constants.fontWeightAxis : 550])
-        label.text = "See price details"
-        return label
+    private lazy var seePriceDetailsButton: UIButton = {
+        let button = UIButton()
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setTitle("See price details", for: .normal)
+        button.setTitle("Hide price details", for: .selected)
+        button.tintColor = ColorManager.shared.label
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 13, axis: [Constants.fontWeightAxis : 550])
+        button.addTarget(self, action: #selector(seePriceDetailsButtonTapped), for: .touchUpInside)
+        return button
     }()
     
     private lazy var priceDetailsView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
+        view.alpha = 0
         return view
     }()
     
@@ -509,7 +513,7 @@ final class PaymentVC: UIViewController {
         selectAddressView.addSubview(selectedAddressLabel)
         selectAddressView.addSubview(goToDeliveryAddressesImageView)
         
-        placeOrderView.addSubview(seePriceDetailsLabel)
+        placeOrderView.addSubview(seePriceDetailsButton)
         placeOrderView.addSubview(priceDetailsView)
         placeOrderView.addSubview(totalAmountLabel)
         placeOrderView.addSubview(priceLabel)
@@ -640,10 +644,10 @@ final class PaymentVC: UIViewController {
             placeOrderView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
             placeOrderView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             
-            seePriceDetailsLabel.topAnchor.constraint(equalTo: placeOrderView.topAnchor, constant: 24),
-            seePriceDetailsLabel.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 24),
+            seePriceDetailsButton.topAnchor.constraint(equalTo: placeOrderView.topAnchor, constant: 24),
+            seePriceDetailsButton.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 24),
             
-            priceDetailsView.topAnchor.constraint(equalTo: seePriceDetailsLabel.bottomAnchor, constant: 20),
+            priceDetailsView.topAnchor.constraint(equalTo: seePriceDetailsButton.bottomAnchor, constant: 20),
             priceDetailsView.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 24),
             priceDetailsView.trailingAnchor.constraint(equalTo: placeOrderView.trailingAnchor, constant: -24),
             
@@ -668,7 +672,6 @@ final class PaymentVC: UIViewController {
             dividerView.heightAnchor.constraint(equalToConstant: 0.5),
             dividerView.bottomAnchor.constraint(equalTo: priceDetailsView.bottomAnchor),
             
-            totalAmountLabel.topAnchor.constraint(equalTo: priceDetailsView.bottomAnchor, constant: 12),
             totalAmountLabel.leadingAnchor.constraint(equalTo: placeOrderView.leadingAnchor, constant: 24),
             
             priceLabel.centerYAnchor.constraint(equalTo: totalAmountLabel.centerYAnchor),
@@ -683,6 +686,9 @@ final class PaymentVC: UIViewController {
         
         paymentOptionsViewHeightConstraint = paymentOptionsView.heightAnchor.constraint(equalToConstant: 172)
         paymentOptionsViewHeightConstraint?.isActive = true
+        
+        totalAmountLabelTopConstraint = totalAmountLabel.topAnchor.constraint(equalTo: seePriceDetailsButton.bottomAnchor, constant: 14)
+        totalAmountLabelTopConstraint?.isActive = true
     }
     
     private func updateMapView() {
@@ -855,6 +861,28 @@ final class PaymentVC: UIViewController {
     }
     
     @objc
+    private func seePriceDetailsButtonTapped() {
+        seePriceDetailsButton.isSelected.toggle()
+        
+        if seePriceDetailsButton.isSelected {
+            UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut]) {
+                self.priceDetailsView.alpha = 1
+                self.totalAmountLabelTopConstraint?.constant = 118
+                self.view.layoutIfNeeded()
+            }
+        } else {
+            UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut]) {
+                self.priceDetailsView.alpha = 0
+            }
+            
+            UIView.animate(withDuration: 0.3, delay: 0.2) {
+                self.totalAmountLabelTopConstraint?.constant = 14
+                self.view.layoutIfNeeded()
+            }
+        }
+    }
+    
+    @objc
     private func placeOrderButtonTouchDown() {
         UIView.animate(withDuration: 0.05) {
             self.placeOrderButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
@@ -877,7 +905,6 @@ final class PaymentVC: UIViewController {
                                              orderItems: orderItems)
             
             CoreDataManager.shared.clearCart()
-            CartStatusObserver.shared.observeCartStatus() // updating the status of the cart fullness indicator
             navigationController?.popViewController(animated: true)
         }
         

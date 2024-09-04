@@ -77,9 +77,13 @@ class TabBarButton: UIButton {
         label.isHidden = false
         icon.tintColor = .white
         
-        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) { [self] in
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) { [self] in
             icon.frame = iconFrame_unselected
             icon.center = iconCenterPoint_unselected
         }
+    }
+    
+    func setIcon(image: UIImage?) {
+        icon.image = image
     }
 }

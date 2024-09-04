@@ -159,12 +159,6 @@ final class ColorManager {
     
     // MARK: - Payment page colors
     
-    let payment_selectedRadioButtonBackColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
-        return traitCollection.userInterfaceStyle == .dark
-            ? .white
-            : UIColor(red: 0.063, green: 0.063, blue: 0.063, alpha: 1)
-    }
-    
     let payment_secondaryButtonColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
             ? UIColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 1)

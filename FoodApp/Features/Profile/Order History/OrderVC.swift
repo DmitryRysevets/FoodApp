@@ -268,7 +268,7 @@ final class OrderVC: UIViewController {
         label.textColor = ColorManager.shared.label
         label.font = .systemFont(ofSize: 17, weight: .semibold)
         label.textAlignment = .right
-        label.text = "$\(order.productCost + order.deliveryCharge - order.promoCodeDiscount)"
+        label.text = "$\(String(format: "%.2f", order.productCost + order.deliveryCharge - order.promoCodeDiscount))"
         return label
     }()
     
@@ -490,7 +490,7 @@ final class OrderVC: UIViewController {
                 label.textColor = ColorManager.shared.label
                 label.font = .systemFont(ofSize: 16, weight: .light)
                 label.textAlignment = .right
-                label.text = "$\(item.dishPrice)"
+                label.text = "$\(String(format: "%.2f", item.dishPrice))"
                 return label
             }()
             

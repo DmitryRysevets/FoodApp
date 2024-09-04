@@ -76,14 +76,6 @@ class TabBarVC: UIViewController {
         return button
     }()
     
-    private lazy var cartIndicatorView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.warningRed
-        view.layer.cornerRadius = 3
-        return view
-    }()
-    
     private lazy var activeTabBackgroundView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -95,11 +87,13 @@ class TabBarVC: UIViewController {
     
     private var activeTabBackgroundViewCenterXConstraint: NSLayoutConstraint?
     
-    private var cartIndacatorSizeConstraint: NSLayoutConstraint?
-    private var cartIndacatorCenterYConstraint: NSLayoutConstraint?
-    private var cartIndacatorCenterXConstraint: NSLayoutConstraint?
-    
     private var navBarIsVisible = true
+    
+    private var cartIsEmpty = true {
+        didSet {
+            updateCartIcon()
+        }
+    }
     
     private lazy var tabs = [menuTabButton, favoriteTabButton, cartTabButton, profileTabButton]
     
@@ -139,9 +133,7 @@ class TabBarVC: UIViewController {
         
         setupUI()
         setupConstraints()
-        
-        cartIndicatorView.alpha = CoreDataManager.shared.cartIsEmpty() ? 0 : 1
-        
+                
         setupCartStatusObserver()
         
         TabBarVC.cartNavVC.delegate = self
@@ -167,7 +159,6 @@ class TabBarVC: UIViewController {
         tabStack.addArrangedSubview(favoriteTabButton)
         tabStack.addArrangedSubview(cartTabButton)
         tabStack.addArrangedSubview(profileTabButton)
-        cartTabButton.addSubview(cartIndicatorView)
     }
     
     private func setupConstraints() {
@@ -189,20 +180,11 @@ class TabBarVC: UIViewController {
             tabStack.topAnchor.constraint(equalTo: tabBarView.topAnchor, constant: tabMargin),
             tabStack.leadingAnchor.constraint(equalTo: tabBarView.leadingAnchor, constant: tabMargin),
             tabStack.trailingAnchor.constraint(equalTo: tabBarView.trailingAnchor, constant: -tabMargin),
-            tabStack.bottomAnchor.constraint(equalTo: tabBarView.bottomAnchor, constant: -tabMargin),
-            
-            cartIndicatorView.widthAnchor.constraint(equalTo: cartIndicatorView.heightAnchor)
+            tabStack.bottomAnchor.constraint(equalTo: tabBarView.bottomAnchor, constant: -tabMargin)
         ])
         
         activeTabBackgroundViewCenterXConstraint = activeTabBackgroundView.centerXAnchor.constraint(equalTo: menuTabButton.centerXAnchor)
         activeTabBackgroundViewCenterXConstraint?.isActive = true
-        
-        cartIndacatorSizeConstraint = cartIndicatorView.heightAnchor.constraint(equalToConstant: 6)
-        cartIndacatorCenterYConstraint = cartIndicatorView.centerYAnchor.constraint(equalTo: cartTabButton.centerYAnchor, constant: -22)
-        cartIndacatorCenterXConstraint = cartIndicatorView.centerXAnchor.constraint(equalTo: cartTabButton.centerXAnchor, constant: 10)
-        cartIndacatorSizeConstraint?.isActive = true
-        cartIndacatorCenterYConstraint?.isActive = true
-        cartIndacatorCenterXConstraint?.isActive = true
         
         tabs.forEach { tab in
             tab.widthAnchor.constraint(equalToConstant: tabSize).isActive = true
@@ -210,40 +192,22 @@ class TabBarVC: UIViewController {
     }
     
     private func setupCartStatusObserver() {
-        CartStatusObserver.shared.cartStatusDidChange = { [weak self] isCartEmpty in
-            self?.updateCartIndicator(isCartEmpty: isCartEmpty)
+        CartStatusObserver.shared.cartStatusDidChange = { [weak self] value in
+            self?.cartIsEmpty = value
         }
         CartStatusObserver.shared.observeCartStatus()
     }
     
-    private func updateCartIndicator(isCartEmpty: Bool) {
-        if isCartEmpty {
-            UIView.animate(withDuration: 0.3) {
-                self.cartIndicatorView.alpha = 0
-            }
+    private func updateCartIcon() {
+        if cartIsEmpty {
+            cartTabButton.setIcon(image: UIImage(named: "Cart"))
         } else {
-            UIView.animate(withDuration: 0.3) {
-                self.cartIndicatorView.alpha = 1
-            }
-        }
-    }
-    
-    private func updateCartIndicatorConstraints(isCurrentTab: Bool) {
-        if isCurrentTab {
-            UIView.animate(withDuration: 0.2) {
-                self.cartIndicatorView.layer.cornerRadius = 4
-                self.cartIndacatorSizeConstraint?.constant = 8
-                self.cartIndacatorCenterYConstraint?.constant = -16
-                self.cartIndacatorCenterXConstraint?.constant = 12
-                self.view.layoutIfNeeded()
-            }
-        } else {
-            UIView.animate(withDuration: 0.2) {
-                self.cartIndicatorView.layer.cornerRadius = 3
-                self.cartIndacatorSizeConstraint?.constant = 6
-                self.cartIndacatorCenterYConstraint?.constant = -22
-                self.cartIndacatorCenterXConstraint?.constant = 10
-                self.view.layoutIfNeeded()
+            if selectedIndex == 2 {
+                cartTabButton.setIcon(image: UIImage(named: "Cart-full-active"))
+            } else if previousIndex == 2 {
+                cartTabButton.setIcon(image: UIImage(named: "Cart-full-passive"))
+            } else if selectedIndex == 0 && previousIndex == 0 {
+                cartTabButton.setIcon(image: UIImage(named: "Cart-full-passive"))
             }
         }
     }
@@ -274,10 +238,8 @@ extension TabBarVC {
         let previousVC = viewControllers[previousIndex]
         let currentVC = viewControllers[selectedIndex]
         
-        if selectedIndex == 2 {
-            updateCartIndicatorConstraints(isCurrentTab: true)
-        } else if previousIndex == 2 {
-            updateCartIndicatorConstraints(isCurrentTab: false)
+        if selectedIndex == 2 || previousIndex == 2 {
+            updateCartIcon()
         }
         
         updateBackgroundViewConstraint(for: sender)
