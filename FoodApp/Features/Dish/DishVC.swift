@@ -26,7 +26,7 @@ final class DishVC: UIViewController {
         return view
     }()
     
-    // MARK: - Header props.
+    // MARK: - Header
     
     private lazy var headerView: UIView = {
         let view = UIView()
@@ -71,7 +71,7 @@ final class DishVC: UIViewController {
         return button
     }()
     
-    // MARK: - Photo carousele props.
+    // MARK: - Photo carousele
     
     private lazy var carouselPhotos: [UIImage] = []
     private var dataSource: UICollectionViewDiffableDataSource<Int, UIImage>!
@@ -129,7 +129,7 @@ final class DishVC: UIViewController {
         return pageControl
     }()
     
-    // MARK: - Description section props.
+    // MARK: - Description section
     
     private lazy var descriptionContainerView: UIView = {
         let view = UIView()
@@ -198,6 +198,24 @@ final class DishVC: UIViewController {
         return label
     }()
     
+    private lazy var descriptionLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
+        label.text = "Description"
+        return label
+    }()
+    
+    private lazy var descriptionTextLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont(name: "Raleway", size: 14)
+        label.textColor = ColorManager.shared.label.withAlphaComponent(0.7)
+        label.numberOfLines = 0
+        label.text = dish.description
+        return label
+    }()
+    
     private lazy var ingredientsLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -216,7 +234,112 @@ final class DishVC: UIViewController {
         return label
     }()
     
-    // MARK: - Related section props.
+    // MARK: - Nutrients section
+    
+    private lazy var nutrientsView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.orderVC_SecrionColor
+        view.layer.cornerRadius = 24
+        return view
+    }()
+    
+    private lazy var weightLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Weight"
+        return label
+    }()
+    
+    private lazy var weightValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16, weight: .light)
+        label.textAlignment = .right
+        label.text = "\(dish.weight)g"
+        return label
+    }()
+    
+    private lazy var caloriesLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Calories"
+        return label
+    }()
+    
+    private lazy var caloriesValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16, weight: .light)
+        label.textAlignment = .right
+        label.text = "\(dish.calories)ckal"
+        return label
+    }()
+    
+    private lazy var carbsLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Carbohydrates"
+        return label
+    }()
+    
+    private lazy var carbsValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16, weight: .light)
+        label.textAlignment = .right
+        label.text = "\(dish.carbs)g"
+        return label
+    }()
+    
+    private lazy var proteinLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Protein"
+        return label
+    }()
+    
+    private lazy var proteinValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16, weight: .light)
+        label.textAlignment = .right
+        label.text = "\(dish.protein)g"
+        return label
+    }()
+    
+    private lazy var fatLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 16, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Fat"
+        return label
+    }()
+    
+    private lazy var fatValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.label
+        label.font = .systemFont(ofSize: 16, weight: .light)
+        label.textAlignment = .right
+        label.text = "\(dish.fats)g"
+        return label
+    }()
+    
+    // MARK: - Related section
     
     private lazy var relatedProductsContainerView: UIView = {
         let view = UIView()
@@ -242,7 +365,7 @@ final class DishVC: UIViewController {
         return stack
     }()
     
-    // MARK: - Order bar props.
+    // MARK: - Order bar
     
     private let orderBarHeight: CGFloat = 72
     private let orderBarMargin: CGFloat = 18
@@ -383,6 +506,8 @@ final class DishVC: UIViewController {
         
         scrollView.addSubview(carouseleContainerView)
         scrollView.addSubview(descriptionContainerView)
+        scrollView.addSubview(nutrientsView)
+
         scrollView.addSubview(relatedProductsContainerView)
         scrollView.addSubview(spacerView)
 
@@ -393,6 +518,8 @@ final class DishVC: UIViewController {
 
         descriptionContainerView.addSubview(dishName)
         descriptionContainerView.addSubview(ratingAndDeliveryStack)
+        descriptionContainerView.addSubview(descriptionLabel)
+        descriptionContainerView.addSubview(descriptionTextLabel)
         descriptionContainerView.addSubview(ingredientsLabel)
         descriptionContainerView.addSubview(ingredientsListLabel)
         ratingView.addSubview(ratingIcon)
@@ -401,6 +528,17 @@ final class DishVC: UIViewController {
         deliveryTimeView.addSubview(deliveryTimeLabel)
         ratingAndDeliveryStack.addArrangedSubview(ratingView)
         ratingAndDeliveryStack.addArrangedSubview(deliveryTimeView)
+        
+        nutrientsView.addSubview(weightLabel)
+        nutrientsView.addSubview(weightValueLabel)
+        nutrientsView.addSubview(caloriesLabel)
+        nutrientsView.addSubview(caloriesValueLabel)
+        nutrientsView.addSubview(carbsLabel)
+        nutrientsView.addSubview(carbsValueLabel)
+        nutrientsView.addSubview(proteinLabel)
+        nutrientsView.addSubview(proteinValueLabel)
+        nutrientsView.addSubview(fatLabel)
+        nutrientsView.addSubview(fatValueLabel)
         
         relatedProductsContainerView.addSubview(relatedProductLabel)
         relatedProductsContainerView.addSubview(relatedProductsStack)
@@ -416,7 +554,7 @@ final class DishVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            // Header constraints
+            // Header
             headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
             headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -433,13 +571,13 @@ final class DishVC: UIViewController {
             dishTitleLabel.leadingAnchor.constraint(equalTo: backButton.trailingAnchor, constant: 8),
             dishTitleLabel.trailingAnchor.constraint(equalTo: favoriteButton.leadingAnchor, constant: -8),
             
-            // Scroll view constraints
+            // Scroll view
             scrollView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            // Carousel block constraints
+            // Carousel section
             carouseleContainerView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             carouseleContainerView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             carouseleContainerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
@@ -456,41 +594,87 @@ final class DishVC: UIViewController {
             pageControl.topAnchor.constraint(equalTo: carouselCollectionView.bottomAnchor, constant: 16),
             pageControl.centerXAnchor.constraint(equalTo: carouseleContainerView.centerXAnchor),
             
-            // Description block constraints
+            // Description section
             descriptionContainerView.topAnchor.constraint(equalTo: carouseleContainerView.bottomAnchor),
             descriptionContainerView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             descriptionContainerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             descriptionContainerView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
+            
             dishName.topAnchor.constraint(equalTo: descriptionContainerView.topAnchor, constant: 20),
             dishName.leadingAnchor.constraint(equalTo: descriptionContainerView.leadingAnchor, constant: 16),
             dishName.trailingAnchor.constraint(equalTo: descriptionContainerView.trailingAnchor, constant: -16),
+            
             ratingAndDeliveryStack.topAnchor.constraint(equalTo: dishName.bottomAnchor, constant: 16),
             ratingAndDeliveryStack.leadingAnchor.constraint(equalTo: descriptionContainerView.leadingAnchor, constant: 16),
             ratingAndDeliveryStack.trailingAnchor.constraint(equalTo: descriptionContainerView.trailingAnchor, constant: -16),
             ratingAndDeliveryStack.heightAnchor.constraint(equalToConstant: 44),
+            
             ratingIcon.centerYAnchor.constraint(equalTo: ratingView.centerYAnchor),
             ratingIcon.leadingAnchor.constraint(equalTo: ratingView.leadingAnchor),
             ratingIcon.heightAnchor.constraint(equalToConstant: 18),
             ratingIcon.widthAnchor.constraint(equalToConstant: 18),
+            
             ratingLabel.centerYAnchor.constraint(equalTo: ratingView.centerYAnchor),
             ratingLabel.leadingAnchor.constraint(equalTo: ratingIcon.trailingAnchor, constant: 8),
             ratingLabel.trailingAnchor.constraint(equalTo: ratingView.trailingAnchor, constant: -8),
+            
             deliveryTimeLabel.centerYAnchor.constraint(equalTo: deliveryTimeView.centerYAnchor),
             deliveryTimeLabel.trailingAnchor.constraint(equalTo: deliveryTimeView.trailingAnchor),
+            
             deliveriIcon.centerYAnchor.constraint(equalTo: deliveryTimeView.centerYAnchor),
             deliveriIcon.trailingAnchor.constraint(equalTo: deliveryTimeLabel.leadingAnchor, constant: -8),
             deliveriIcon.heightAnchor.constraint(equalToConstant: 18),
             deliveriIcon.widthAnchor.constraint(equalToConstant: 18),
-            ingredientsLabel.topAnchor.constraint(equalTo: ratingAndDeliveryStack.bottomAnchor, constant: 6),
+            
+            descriptionLabel.topAnchor.constraint(equalTo: ratingAndDeliveryStack.bottomAnchor, constant: 6),
+            descriptionLabel.leadingAnchor.constraint(equalTo: descriptionContainerView.leadingAnchor, constant: 16),
+            
+            descriptionTextLabel.topAnchor.constraint(equalTo: descriptionLabel.bottomAnchor, constant: 8),
+            descriptionTextLabel.leadingAnchor.constraint(equalTo: descriptionContainerView.leadingAnchor, constant: 16),
+            descriptionTextLabel.trailingAnchor.constraint(equalTo: descriptionContainerView.trailingAnchor, constant: -16),
+            
+            ingredientsLabel.topAnchor.constraint(equalTo: descriptionTextLabel.bottomAnchor, constant: 14),
             ingredientsLabel.leadingAnchor.constraint(equalTo: descriptionContainerView.leadingAnchor, constant: 16),
-            ingredientsLabel.trailingAnchor.constraint(equalTo: descriptionContainerView.trailingAnchor, constant: -16),
+            
             ingredientsListLabel.topAnchor.constraint(equalTo: ingredientsLabel.bottomAnchor, constant: 8),
             ingredientsListLabel.leadingAnchor.constraint(equalTo: descriptionContainerView.leadingAnchor, constant: 16),
             ingredientsListLabel.trailingAnchor.constraint(equalTo: descriptionContainerView.trailingAnchor, constant: -16),
             ingredientsListLabel.bottomAnchor.constraint(equalTo: descriptionContainerView.bottomAnchor),
             
-            // Related product block constraints
-            relatedProductsContainerView.topAnchor.constraint(equalTo: descriptionContainerView.bottomAnchor, constant: 20),
+            // Nutrients section
+            nutrientsView.topAnchor.constraint(equalTo: descriptionContainerView.bottomAnchor, constant: 32),
+            nutrientsView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 16),
+            nutrientsView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: -16),
+            nutrientsView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32),
+            
+            weightLabel.topAnchor.constraint(equalTo: nutrientsView.topAnchor, constant: 24),
+            weightLabel.leadingAnchor.constraint(equalTo: nutrientsView.leadingAnchor, constant: 24),
+            weightValueLabel.centerYAnchor.constraint(equalTo: weightLabel.centerYAnchor),
+            weightValueLabel.trailingAnchor.constraint(equalTo: nutrientsView.trailingAnchor, constant: -24),
+
+            caloriesLabel.topAnchor.constraint(equalTo: weightLabel.bottomAnchor, constant: 12),
+            caloriesLabel.leadingAnchor.constraint(equalTo: nutrientsView.leadingAnchor, constant: 24),
+            caloriesValueLabel.centerYAnchor.constraint(equalTo: caloriesLabel.centerYAnchor),
+            caloriesValueLabel.trailingAnchor.constraint(equalTo: nutrientsView.trailingAnchor, constant: -24),
+            
+            carbsLabel.topAnchor.constraint(equalTo: caloriesLabel.bottomAnchor, constant: 12),
+            carbsLabel.leadingAnchor.constraint(equalTo: nutrientsView.leadingAnchor, constant: 24),
+            carbsValueLabel.centerYAnchor.constraint(equalTo: carbsLabel.centerYAnchor),
+            carbsValueLabel.trailingAnchor.constraint(equalTo: nutrientsView.trailingAnchor, constant: -24),
+            
+            proteinLabel.topAnchor.constraint(equalTo: carbsLabel.bottomAnchor, constant: 12),
+            proteinLabel.leadingAnchor.constraint(equalTo: nutrientsView.leadingAnchor, constant: 24),
+            proteinValueLabel.centerYAnchor.constraint(equalTo: proteinLabel.centerYAnchor),
+            proteinValueLabel.trailingAnchor.constraint(equalTo: nutrientsView.trailingAnchor, constant: -24),
+            
+            fatLabel.topAnchor.constraint(equalTo: proteinLabel.bottomAnchor, constant: 12),
+            fatLabel.leadingAnchor.constraint(equalTo: nutrientsView.leadingAnchor, constant: 24),
+            fatLabel.bottomAnchor.constraint(equalTo: nutrientsView.bottomAnchor, constant: -24),
+            fatValueLabel.centerYAnchor.constraint(equalTo: fatLabel.centerYAnchor),
+            fatValueLabel.trailingAnchor.constraint(equalTo: nutrientsView.trailingAnchor, constant: -24),
+            
+            // Related product section
+            relatedProductsContainerView.topAnchor.constraint(equalTo: nutrientsView.bottomAnchor, constant: 20),
             relatedProductsContainerView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             relatedProductsContainerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             relatedProductsContainerView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
@@ -503,7 +687,7 @@ final class DishVC: UIViewController {
             relatedProductsStack.bottomAnchor.constraint(equalTo: relatedProductsContainerView.bottomAnchor),
             relatedProductsStack.heightAnchor.constraint(equalToConstant: 130),
             
-            // Spacer constraints
+            // Spacer
             spacerView.topAnchor.constraint(equalTo: relatedProductsContainerView.bottomAnchor),
             spacerView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             spacerView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
@@ -511,7 +695,7 @@ final class DishVC: UIViewController {
             spacerView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             spacerView.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
             
-            // Order bar constraints
+            // Order bar
             orderBarView.heightAnchor.constraint(equalToConstant: orderBarHeight),
             orderBarView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: orderBarMargin),
             orderBarView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -orderBarMargin),
