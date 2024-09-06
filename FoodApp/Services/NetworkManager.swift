@@ -13,6 +13,7 @@ enum NetworkLayerError: Error {
     case downloadImageFailed(Error)
     case uploadImageFailed(Error)
     case firestoreDataWasNotReceived(Error)
+    case firestoreDataWasNotSaved(Error)
     case invalidData
     case networkError(Error)
     case authenticationFailed
@@ -226,6 +227,79 @@ final class NetworkManager {
                     continuation.resume(returning: ())
                 }
             }
+        }
+    }
+    
+    // MARK: - Order methods
+    
+    func saveOrderToFirestore(_ order: OrderEntity) async throws {
+        guard let orderID = order.orderID?.uuidString,
+              let address = order.address,
+              let status = order.status else {
+            throw NetworkLayerError.invalidData
+        }
+        
+        let orderData: [String: Any] = [
+            "orderID": orderID,
+            "productCost": order.productCost,
+            "deliveryCharge": order.deliveryCharge,
+            "promoCodeDiscount": order.promoCodeDiscount,
+            "orderDate": order.orderDate ?? Date(),
+            "paidByCard": order.paidByCard,
+            "address": address,
+            "latitude": order.latitude,
+            "longitude": order.longitude,
+            "orderComments": order.orderComments ?? "",
+            "phone": order.phone ?? "",
+            "status": status
+        ]
+        
+        var itemsArray: [[String: Any]] = []
+        if let orderItems = order.orderItems?.allObjects as? [OrderItemEntity] {
+            for item in orderItems {
+                guard let dishID = item.dishID,
+                      let dishName = item.dishName else {
+                    throw NetworkLayerError.invalidData
+                }
+                
+                let itemData: [String: Any] = [
+                    "dishID": dishID,
+                    "dishName": dishName,
+                    "dishPrice": item.dishPrice,
+                    "quantity": item.quantity
+                ]
+                itemsArray.append(itemData)
+            }
+        }
+        
+        var fullOrderData = orderData
+        fullOrderData["items"] = itemsArray
+
+        let collectionPath: String
+        if auth.currentUser == nil {
+            collectionPath = "guestOrders"
+        } else {
+            collectionPath = "orders/\(auth.currentUser!.uid)/userOrders"
+        }
+        
+        do {
+            try await firestore.collection(collectionPath).document(orderID).setData(fullOrderData)
+        } catch {
+            throw NetworkLayerError.firestoreDataWasNotSaved(error)
+        }
+    }
+    
+    func fetchOrderHistoryFromFirestore() async throws -> [[String: Any]] {
+        guard let user = auth.currentUser else {
+            throw NetworkLayerError.authenticationFailed
+        }
+        
+        let collectionPath = "orders/\(user.uid)/userOrders"
+        do {
+            let snapshot = try await firestore.collection(collectionPath).getDocuments()
+            return snapshot.documents.map { $0.data() }
+        } catch {
+            throw NetworkLayerError.firestoreDataWasNotReceived(error)
         }
     }
     

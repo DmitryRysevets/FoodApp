@@ -73,6 +73,7 @@ final class AddressVC: UIViewController {
         let field = TextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.returnKeyType = .done
+        field.autocapitalizationType = .words
         field.associatedLabel = addressLabel
         field.delegate = self
         return field

@@ -626,7 +626,7 @@ final class CoreDataManager {
     
     // MARK: - Orders methods
     
-    func saveOrder(orderID: UUID = UUID(), productCost: Double, deliveryCharge: Double, promoCodeDiscount: Double, orderDate: Date = Date(), paidByCard: Bool, address: String, latitude: Double, longitude: Double, orderComments: String?, phone: String?, status: String = "Pending", orderItems: [OrderItemEntity]) {
+    func createOrder(orderID: UUID = UUID(), productCost: Double, deliveryCharge: Double, promoCodeDiscount: Double, orderDate: Date = Date(), paidByCard: Bool, address: String, latitude: Double, longitude: Double, orderComments: String?, phone: String?, status: String = "Pending", orderItems: [OrderItemEntity]) -> OrderEntity {
         let order = OrderEntity(context: context)
         order.orderID = orderID
         order.productCost = productCost
@@ -645,6 +645,43 @@ final class CoreDataManager {
             order.addToOrderItems(item)
         }
         
+        return order
+    }
+    
+    func saveOrder(_ order: OrderEntity) {
+        saveContext()
+    }
+    
+    func saveOrdersFromFirestore(_ ordersData: [[String: Any]]) {
+        let context = persistentContainer.viewContext
+
+        for orderData in ordersData {
+            let order = OrderEntity(context: context)
+
+            order.orderID = orderData["orderID"] as? UUID ?? UUID()
+            order.productCost = orderData["productCost"] as? Double ?? 0.0
+            order.deliveryCharge = orderData["deliveryCharge"] as? Double ?? 0.0
+            order.promoCodeDiscount = orderData["promoCodeDiscount"] as? Double ?? 0.0
+            order.orderDate = orderData["orderDate"] as? Date ?? Date()
+            order.paidByCard = orderData["paidByCard"] as? Bool ?? false
+            order.address = orderData["address"] as? String ?? ""
+            order.latitude = orderData["latitude"] as? Double ?? 0.0
+            order.longitude = orderData["longitude"] as? Double ?? 0.0
+            order.orderComments = orderData["orderComments"] as? String
+            order.phone = orderData["phone"] as? String
+            order.status = orderData["status"] as? String ?? "Pending"
+
+            if let orderItemsData = orderData["orderItems"] as? [[String: Any]] {
+                for itemData in orderItemsData {
+                    let orderItem = OrderItemEntity(context: context)
+                    orderItem.dishName = itemData["name"] as? String
+                    orderItem.quantity = itemData["quantity"] as? Int64 ?? 0
+                    orderItem.dishPrice = itemData["price"] as? Double ?? 0.0
+                    order.addToOrderItems(orderItem)
+                }
+            }
+        }
+
         saveContext()
     }
     
@@ -672,5 +709,10 @@ final class CoreDataManager {
         } catch {
             print("Error deleting orders: \(error)")
         }
+    }
+    
+    func deleteOrderFromContext(_ order: OrderEntity) {
+        context.delete(order)
+        saveContext()
     }
 }

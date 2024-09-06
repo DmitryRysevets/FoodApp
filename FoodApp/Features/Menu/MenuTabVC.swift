@@ -439,17 +439,7 @@ final class MenuTabVC: UIViewController {
     @objc
     private func notificationButtonTaped() {
         // for testing
-        let orders = CoreDataManager.shared.fetchOrders()
         
-        if orders.isEmpty {
-            print("- is empty -")
-        } else {
-            orders.forEach { item in
-                print(item)
-                print("")
-                print("")
-            }
-        }
     }
     
     @objc
