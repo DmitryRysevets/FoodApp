@@ -65,6 +65,12 @@ final class DataManager {
             let avatarData = try await networkManager.downloadImage(from: avatarURL)
             coreDataManager.updateUserAvatar(with: avatarData)
         }
+        
+        do {
+            try await fetchOrderHistory()
+        } catch {
+            throw error
+        }
     }
     
     func registerUser(name: String, email: String, password: String) async throws {
@@ -80,6 +86,7 @@ final class DataManager {
     func logoutUser() throws {
         try Auth.auth().signOut()
         coreDataManager.deleteUser()
+        coreDataManager.deleteAllOrders()
         UserDefaults.standard.set(false, forKey: "isUserLoggedIn")
     }
     
@@ -108,5 +115,30 @@ final class DataManager {
         try await networkManager.deleteUserAvatar()
         coreDataManager.updateUserAvatar(avatarData: nil, avatarURL: nil)
     }
+    
+    // MARK: - Order methods
+    
+        func placeOrder(orderID: UUID = UUID(), productCost: Double, deliveryCharge: Double, promoCodeDiscount: Double, orderDate: Date = Date(), paidByCard: Bool, address: String, latitude: Double, longitude: Double, orderComments: String?, phone: String?, status: String = "Pending", orderItems: [OrderItemEntity]) async throws {
+            
+            let order = coreDataManager.createOrder(orderID: orderID, productCost: productCost, deliveryCharge: deliveryCharge, promoCodeDiscount: promoCodeDiscount, orderDate: orderDate, paidByCard: paidByCard, address: address, latitude: latitude, longitude: longitude, orderComments: orderComments, phone: phone, status: status, orderItems: orderItems)
 
+            do {
+                try await networkManager.saveOrderToFirestore(order)
+                coreDataManager.saveOrder(order)
+            } catch {
+                coreDataManager.deleteOrderFromContext(order)
+                throw error
+            }
+        }
+
+        func fetchOrderHistory() async throws {
+            do {
+                let firestoreOrders = try await networkManager.fetchOrderHistoryFromFirestore()
+                coreDataManager.deleteAllOrders()
+                coreDataManager.saveOrdersFromFirestore(firestoreOrders)
+            } catch {
+                throw error
+            }
+        }
+    
 }

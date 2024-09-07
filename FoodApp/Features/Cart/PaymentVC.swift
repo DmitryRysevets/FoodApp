@@ -891,26 +891,34 @@ final class PaymentVC: UIViewController {
     
     @objc
     private func placeOrderButtonTouchUp() {
-        if orderIsValid() {
-            guard let location = location else { return }
-            CoreDataManager.shared.saveOrder(productCost: productCost,
-                                             deliveryCharge: deliveryCharge,
-                                             promoCodeDiscount: promoCodeDiscount,
-                                             paidByCard: payByCardRadioButton.isSelected,
-                                             address: selectedAddressLabel.text ?? "",
-                                             latitude: location.coordinate.latitude,
-                                             longitude: location.coordinate.longitude,
-                                             orderComments: orderCommentsTextView.text,
-                                             phone: "",
-                                             orderItems: orderItems)
-            
-            CoreDataManager.shared.clearCart()
-            navigationController?.popViewController(animated: true)
-        }
-        
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.placeOrderButton.transform = CGAffineTransform.identity
         }, completion: nil)
+
+        if orderIsValid() {
+            guard let location = location else { return }
+            
+            Task {
+                do {
+                    try await DataManager.shared.placeOrder(productCost: productCost,
+                                                            deliveryCharge: deliveryCharge,
+                                                            promoCodeDiscount: promoCodeDiscount,
+                                                            paidByCard: payByCardRadioButton.isSelected,
+                                                            address: selectedAddressLabel.text ?? "",
+                                                            latitude: location.coordinate.latitude,
+                                                            longitude: location.coordinate.longitude,
+                                                            orderComments: orderCommentsTextView.text,
+                                                            phone: "",
+                                                            orderItems: orderItems)
+                    
+                    CoreDataManager.shared.clearCart()
+                    navigationController?.popViewController(animated: true)
+                } catch {
+                    // need warning
+                    print(error)
+                }
+            }
+        }
     }
     
     @objc
