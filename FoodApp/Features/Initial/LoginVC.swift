@@ -267,7 +267,7 @@ final class LoginVC: UIViewController {
             
             Task {
                 do {
-                    try await DataManager.shared.authenticateUser(email: email, password: password)
+                    try await UserManager.shared.authenticateUser(email: email, password: password)
                     navigationController?.popViewController(animated: true)
                 } catch {
                     handleAuthenticationError(error)

@@ -96,7 +96,7 @@ final class NetworkManager {
         return version
     }
     
-    // MARK: - User authentication methods
+    // MARK: - User methods
 
     func authenticateUser(email: String, password: String) async throws -> User {
         return try await withCheckedThrowingContinuation { continuation in

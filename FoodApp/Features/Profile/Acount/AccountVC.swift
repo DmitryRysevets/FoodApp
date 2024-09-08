@@ -7,7 +7,7 @@ import UIKit
 
 final class AccountVC: UIViewController {
     
-    var isUserLoggedIn = DataManager.shared.isUserLoggedIn() {
+    var isUserLoggedIn = UserManager.shared.isUserLoggedIn() {
         didSet {
             tableView.reloadData()
         }
@@ -57,7 +57,7 @@ final class AccountVC: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        isUserLoggedIn = DataManager.shared.isUserLoggedIn()
+        isUserLoggedIn = UserManager.shared.isUserLoggedIn()
     }
     
     // MARK: - Private methods
@@ -98,7 +98,7 @@ final class AccountVC: UIViewController {
         
         alert.addAction(UIAlertAction(title: "Log Out", style: .destructive, handler: { _ in
             do {
-                try DataManager.shared.logoutUser()
+                try UserManager.shared.logoutUser()
                 self.isUserLoggedIn = false
             } catch {
                 print(error)

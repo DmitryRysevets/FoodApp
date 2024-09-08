@@ -325,7 +325,7 @@ final class CreateAccountVC: UIViewController {
             
             Task {
                 do {
-                    try await DataManager.shared.registerUser(name: name, email: email, password: password)
+                    try await UserManager.shared.registerUser(name: name, email: email, password: password)
                     navigationController?.popViewController(animated: true)
                 } catch {
                     handleRegistrationError(error)

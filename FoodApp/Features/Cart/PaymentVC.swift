@@ -900,16 +900,16 @@ final class PaymentVC: UIViewController {
             
             Task {
                 do {
-                    try await DataManager.shared.placeOrder(productCost: productCost,
-                                                            deliveryCharge: deliveryCharge,
-                                                            promoCodeDiscount: promoCodeDiscount,
-                                                            paidByCard: payByCardRadioButton.isSelected,
-                                                            address: selectedAddressLabel.text ?? "",
-                                                            latitude: location.coordinate.latitude,
-                                                            longitude: location.coordinate.longitude,
-                                                            orderComments: orderCommentsTextView.text,
-                                                            phone: "",
-                                                            orderItems: orderItems)
+                    try await OrderManager.shared.placeOrder(productCost: productCost,
+                                                             deliveryCharge: deliveryCharge,
+                                                             promoCodeDiscount: promoCodeDiscount,
+                                                             paidByCard: payByCardRadioButton.isSelected,
+                                                             address: selectedAddressLabel.text ?? "",
+                                                             latitude: location.coordinate.latitude,
+                                                             longitude: location.coordinate.longitude,
+                                                             orderComments: orderCommentsTextView.text,
+                                                             phone: "",
+                                                             orderItems: orderItems)
                     
                     CoreDataManager.shared.clearCart()
                     navigationController?.popViewController(animated: true)

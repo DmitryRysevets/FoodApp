@@ -11,10 +11,12 @@ final class ProfileTabVC: UIViewController {
     private var user: UserEntity? {
         didSet {
             setUserNameInCell()
-            avatarImageView.image = DataManager.shared.getUserAvatar()
+            avatarImageView.image = userManager.getUserAvatar()
             tableView.reloadData()
         }
     }
+    
+    private let userManager = UserManager.shared
     
     private var userName = "Guest"
     private var addressName: String?
@@ -32,7 +34,7 @@ final class ProfileTabVC: UIViewController {
     ]
     
     private lazy var avatarImageView: UIImageView = {
-        let image = DataManager.shared.getUserAvatar()
+        let image = userManager.getUserAvatar()
         let imageView = UIImageView(image: image)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
@@ -74,7 +76,7 @@ final class ProfileTabVC: UIViewController {
             let defaultAddress = CoreDataManager.shared.getDefaultAddress()
             self.addressName = defaultAddress?.placeName
             self.cardName = CoreDataManager.shared.getPreferredCardName()
-            self.user = DataManager.shared.getUser()
+            self.user = self.userManager.getUser()
         }
     }
     
@@ -159,7 +161,7 @@ final class ProfileTabVC: UIViewController {
     
     @objc
     private func avatarImageViewTapped() {
-        if DataManager.shared.isUserLoggedIn() {
+        if userManager.isUserLoggedIn() {
             presentImagePicker()
         } else {
             presentLoginAlert()
@@ -210,7 +212,7 @@ extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
         switch menuItems[indexPath.row] {
         case "Account":
             let vc = AccountVC()
-            vc.isUserLoggedIn = DataManager.shared.isUserLoggedIn()
+            vc.isUserLoggedIn = userManager.isUserLoggedIn()
             navigationController?.pushViewController(vc, animated: true)
         case "Delivery Addresses":
             navigationController?.pushViewController(DeliveryAddressesVC(), animated: true)
@@ -251,7 +253,7 @@ extension ProfileTabVC: UIImagePickerControllerDelegate, UINavigationControllerD
         
         Task {
             do {
-                try await DataManager.shared.uploadUserAvatar(editedImage)
+                try await userManager.uploadUserAvatar(editedImage)
                 avatarImageView.image = editedImage
             } catch {
                 print("Failed to upload avatar: \(error)")

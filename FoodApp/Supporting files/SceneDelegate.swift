@@ -19,7 +19,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
 //        let initialVC: UIViewController
 //        
-//        if DataManager.shared.isUserLoggedIn() {
+//        if UserManager.shared.isUserLoggedIn() {
 //            let tabBarVC = TabBarVC()
 //            tabBarVC.initialSetup(with: window.frame)
 //            initialVC = tabBarVC

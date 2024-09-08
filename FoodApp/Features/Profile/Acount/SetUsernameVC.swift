@@ -67,7 +67,7 @@ final class SetUsernameVC: UIViewController {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
         
-        let user = DataManager.shared.getUser()
+        let user = UserManager.shared.getUser()
         usernameField.text = user?.displayName
     }
     
@@ -134,7 +134,7 @@ final class SetUsernameVC: UIViewController {
         
         if let username = usernameField.text {
             Task {
-                try await DataManager.shared.setUserName(username)
+                try await UserManager.shared.setUserName(username)
                 navigationController?.popViewController(animated: true)
             }
         }

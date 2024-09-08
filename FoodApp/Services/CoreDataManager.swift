@@ -1,5 +1,5 @@
 //
-//  DataManager.swift
+//  CoreDataManager.swift
 //  FoodApp
 //
 

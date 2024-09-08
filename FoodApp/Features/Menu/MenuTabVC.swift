@@ -399,7 +399,7 @@ final class MenuTabVC: UIViewController {
     
     private func getMenu() {
         Task {
-            if let menu = await DataManager.shared.getLatestMenu() {
+            if let menu = await MenuManager.shared.getLatestMenu() {
                 self.menu = menu
             }
         }
