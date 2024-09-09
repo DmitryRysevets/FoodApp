@@ -274,7 +274,8 @@ final class LoginVC: UIViewController {
                 }
             }
         } else {
-            // warning "Please fill in all fields"
+            let notification = NotificationView(message: "Please fill in all fields", type: .error, interval: 3)
+            notification.show(in: self.view)
         }
     }
     

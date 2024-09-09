@@ -63,8 +63,9 @@ final class ColorManager {
     
     let regularFieldBorderColor = UIColor(red: 0.16, green: 0.16, blue: 0.16, alpha: 0.3).cgColor
     
-    let warningRed = UIColor(red: 0.92, green: 0.23, blue: 0.35, alpha: 1.00)
     let confirmingGreen = UIColor(red: 0.476, green: 0.894, blue: 0.409, alpha: 1)
+    let warningOrange = UIColor(red: 0.992, green: 0.592, blue: 0.196, alpha: 1)
+    let warningRed = UIColor(red: 0.92, green: 0.23, blue: 0.35, alpha: 1.00)
     
     let orderVC_SecrionColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
