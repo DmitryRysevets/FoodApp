@@ -753,7 +753,9 @@ final class PaymentVC: UIViewController {
         }
 
         if location == nil {
-            // need warning
+            let notification = NotificationView(message: "No geolocation detected. Please provide your current location or select an address for delivery.", type: .warning, interval: 4)
+            notification.show(in: self.view)
+            
             setWarningOnAddressSection()
             isValid = false
         } else {
@@ -788,6 +790,41 @@ final class PaymentVC: UIViewController {
     private func unsetWarningOnAddressSection() {
         mapSectionView.layer.borderWidth = 0
         mapSectionView.layer.borderColor = .none
+    }
+    
+    private func handleOrderPlacementError(_ error: Error) {
+        if let networkError = error as? NetworkLayerError {
+            switch networkError {
+            case .networkError(let underlyingError):
+                let notification = NotificationView(message: "Network connection error. Please try again later.", type: .error)
+                notification.show(in: self.view)
+                print("Network error: \(underlyingError.localizedDescription)")
+                
+            case .firestoreDataWasNotSaved(let firestoreError):
+                let notification = NotificationView(message: "Failed to save order data. Please try again later.", type: .error)
+                notification.show(in: self.view)
+                print("Firestore save error: \(firestoreError.localizedDescription)")
+                
+            case .firestoreDataWasNotReceived(let firestoreError):
+                let notification = NotificationView(message: "Failed to retrieve data from server. Please try again later.", type: .error)
+                notification.show(in: self.view)
+                print("Firestore receive error: \(firestoreError.localizedDescription)")
+                
+            case .invalidData:
+                let notification = NotificationView(message: "Invalid order data. Please check your input and try again.", type: .error)
+                notification.show(in: self.view)
+                print("Invalid data error: \(error)")
+                
+            default:
+                let notification = NotificationView(message: "An unknown network error occurred. Please try again later.", type: .error)
+                notification.show(in: self.view)
+                print("Unknown network error: \(error)")
+            }
+        } else {
+            let notification = NotificationView(message: "An internal error occurred. Please try again later.", type: .error)
+            notification.show(in: self.view)
+            print("Core Data error: \(error)")
+        }
     }
     
     //MARK: - Objc methods
@@ -914,8 +951,7 @@ final class PaymentVC: UIViewController {
                     CoreDataManager.shared.clearCart()
                     navigationController?.popViewController(animated: true)
                 } catch {
-                    // need warning
-                    print(error)
+                    handleOrderPlacementError(error)
                 }
             }
         }
@@ -949,9 +985,16 @@ extension PaymentVC: CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        if status == .denied || status == .restricted {
-            print("trouble with geolocation - \(status)")
-            // Need a handler for a that case
+        if status == .denied {
+            let notification = NotificationView(message: "You have not given the app access to the location. You can change this in the iOS settings..", type: .warning, interval: 4)
+            notification.show(in: self.view)
+            print("Geolocation is denied")
+        }
+        
+        if status == .restricted {
+            let notification = NotificationView(message: "The application is not authorized to access the location.", type: .warning, interval: 4)
+            notification.show(in: self.view)
+            print("Geolocation is restricted")
         }
     }
 }

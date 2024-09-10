@@ -274,7 +274,7 @@ final class LoginVC: UIViewController {
                 }
             }
         } else {
-            let notification = NotificationView(message: "Please fill in all fields", type: .error, interval: 3)
+            let notification = NotificationView(message: "Please fill in all fields.", type: .warning, interval: 3)
             notification.show(in: self.view)
         }
     }
@@ -283,20 +283,30 @@ final class LoginVC: UIViewController {
         if let networkError = error as? NetworkLayerError {
             switch networkError {
             case .networkError(let underlyingError):
-                // warning - "Network connection error. Please try again later."
-                print(underlyingError.localizedDescription)
+                let notification = NotificationView(message: "Network connection error. Please try again later.", type: .error)
+                notification.show(in: self.view)
+                print("Network error: \(underlyingError.localizedDescription)")
+                
             case .authenticationFailed:
-                // warning - "Authentication failed. Please check your credentials and try again."
-                print(error)
+                let notification = NotificationView(message: "Authentication failed. Please check your credentials and try again.", type: .error)
+                notification.show(in: self.view)
+                print("Authentication error: \(error)")
+                
             case .firestoreDataWasNotReceived(let firestoreError):
-                // warning - "Failed to receive data from server. Please try again later."
-                print(firestoreError.localizedDescription)
+                let notification = NotificationView(message: "Failed to receive data from server. Please try again later.", type: .error)
+                notification.show(in: self.view)
+                print("Firestore receive error: \(firestoreError.localizedDescription)")
+                
             default:
-                // warning - "An unknown error occurred. Please try again later."
-                print(error)
+                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
+                notification.show(in: self.view)
+                print("Network error: \(error)")
+                
             }
         } else {
-            // warning - "An unknown error occurred. Please try again later."
+            let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
+            notification.show(in: self.view)
+            print("Unknown error: \(error)")
         }
     }
     

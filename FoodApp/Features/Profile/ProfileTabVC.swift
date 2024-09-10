@@ -256,6 +256,8 @@ extension ProfileTabVC: UIImagePickerControllerDelegate, UINavigationControllerD
                 try await userManager.uploadUserAvatar(editedImage)
                 avatarImageView.image = editedImage
             } catch {
+                let notification = NotificationView(message: "There was an error adding an avatar to your account. Please try again later.", type: .warning, interval: 4)
+                notification.show(in: self.view)
                 print("Failed to upload avatar: \(error)")
             }
         }

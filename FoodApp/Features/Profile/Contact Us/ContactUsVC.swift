@@ -110,12 +110,6 @@ final class ContactUsVC: UIViewController {
         ])
     }
     
-    private func showAlert(title: String, message: String) {
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-        present(alert, animated: true, completion: nil)
-    }
-    
     // MARK: - Objc methods
     
     @objc
@@ -139,10 +133,20 @@ final class ContactUsVC: UIViewController {
         let message = messageTextView.text.trimmingCharacters(in: .whitespacesAndNewlines)
                 
         if message.isEmpty {
-            showAlert(title: "Empty Message", message: "Please enter a message before sending.")
+            let notification = NotificationView(message: """
+                Empty Message
+                Please enter a message before sending
+            """, type: .warning, interval: 3)
+            notification.show(in: self)
         } else {
-//            NetworkManager.shared.sendUserMessage(message)
-            showAlert(title: "Message Sent", message: "Thank you for your feedback.")
+//            NetworkManager.shared.sendFeedback(message)
+            
+            let notification = NotificationView(message: """
+                Message Sent
+                Thank you for your feedback
+            """, type: .confirming, interval: 3)
+            notification.show(in: self)
+
             messageTextView.text = ""
         }
     }

@@ -332,7 +332,8 @@ final class CreateAccountVC: UIViewController {
                 }
             }
         } else {
-            // warning "Please fill in all fields"
+            let notification = NotificationView(message: "Please fill in all fields.", type: .warning, interval: 3)
+            notification.show(in: self.view)
         }
     }
     
@@ -340,20 +341,35 @@ final class CreateAccountVC: UIViewController {
         if let networkError = error as? NetworkLayerError {
             switch networkError {
             case .networkError(let underlyingError):
-                // warning - "Network connection error. Please try again later."
-                print(underlyingError.localizedDescription)
+                let notification = NotificationView(message: "Network connection error. Please try again later.", type: .error)
+                notification.show(in: self.view)
+                print("Network error: \(underlyingError.localizedDescription)")
+                
             case .authenticationFailed:
-                // warning - "Registration failed. Please check your credentials and try again."
-                print(error)
+                let notification = NotificationView(message: "Registration failed. Please check your credentials and try again.", type: .error)
+                notification.show(in: self.view)
+                print("Authentication error")
+                
+            case .userAlreadyExists:
+                let notification = NotificationView(message: "A user with this email address has already been registered. Please select a different email address.", type: .error)
+                notification.show(in: self.view)
+                print("User alrady exist error")
+                
             case .firestoreDataWasNotReceived(let firestoreError):
-                // warning - "Failed to receive data from server. Please try again later."
-                print(firestoreError.localizedDescription)
+                let notification = NotificationView(message: "Failed to receive data from server. Please try again later.", type: .error)
+                notification.show(in: self.view)
+                print("Firestore receive error: \(firestoreError.localizedDescription)")
+                
             default:
-                // warning - "An unknown error occurred. Please try again later."
-                print(error)
+                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
+                notification.show(in: self.view)
+                print("Network error: \(error)")
+                
             }
         } else {
-            // warning - "An unknown error occurred. Please try again later."
+            let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
+            notification.show(in: self.view)
+            print("Unknown error: \(error)")
         }
     }
     

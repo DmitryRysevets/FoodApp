@@ -6,10 +6,18 @@
 import UIKit
 
 enum NotificationType {
-    case info, warning, error
+    case info, confirming, warning, error
 }
 
 class NotificationView: UIView {
+    
+    private lazy var blurEffect: UIVisualEffectView = {
+        let view = UIVisualEffectView()
+        let blur = UIBlurEffect(style: .regular)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.effect = blur
+        return view
+    }()
     
     private var messageLabel: UILabel = {
         let label = UILabel()
@@ -38,7 +46,6 @@ class NotificationView: UIView {
     
     private func setupUI(for type: NotificationType, with image: UIImage?) {
         translatesAutoresizingMaskIntoConstraints = false
-        backgroundColor = ColorManager.shared.regularFieldColor
         layer.borderWidth = 1
         layer.cornerRadius = 24
         layer.masksToBounds = true
@@ -46,16 +53,28 @@ class NotificationView: UIView {
         
         switch type {
         case .info:
+            backgroundColor = ColorManager.shared.labelGray.withAlphaComponent(0.3)
+            layer.borderColor = ColorManager.shared.labelGray.cgColor
+        case .confirming:
+            backgroundColor = ColorManager.shared.confirmingGreen.withAlphaComponent(0.3)
             layer.borderColor = ColorManager.shared.confirmingGreen.cgColor
         case .warning:
+            backgroundColor = ColorManager.shared.warningOrange.withAlphaComponent(0.3)
             layer.borderColor = ColorManager.shared.warningOrange.cgColor
         case .error:
+            backgroundColor = ColorManager.shared.warningRed.withAlphaComponent(0.3)
             layer.borderColor = ColorManager.shared.warningRed.cgColor
         }
         
+        addSubview(blurEffect)
         addSubview(messageLabel)
         
         NSLayoutConstraint.activate([
+            blurEffect.topAnchor.constraint(equalTo: topAnchor),
+            blurEffect.leadingAnchor.constraint(equalTo: leadingAnchor),
+            blurEffect.trailingAnchor.constraint(equalTo: trailingAnchor),
+            blurEffect.bottomAnchor.constraint(equalTo: bottomAnchor),
+            
             messageLabel.topAnchor.constraint(equalTo: topAnchor, constant: 16),
             messageLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             messageLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16)
@@ -98,12 +117,19 @@ class NotificationView: UIView {
         parentView.layoutIfNeeded()
         
         UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5, animations: {
-            self.transform = CGAffineTransform(translationX: 0, y: 112)
+            self.transform = CGAffineTransform(translationX: 0, y: 102)
             self.alpha = 1
         }) { _ in
             self.hideTimer = Timer.scheduledTimer(timeInterval: self.timeInterval, target: self, selector: #selector(self.hide), userInfo: nil, repeats: false)
         }
     }
+
+    func show(in viewController: UIViewController) {
+        guard let targetView = viewController.navigationController?.view ?? viewController.view else { return }
+        show(in: targetView)
+    }
+
+
     
     func showGlobally() {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,

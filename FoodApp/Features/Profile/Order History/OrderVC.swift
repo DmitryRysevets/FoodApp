@@ -28,7 +28,7 @@ final class OrderVC: UIViewController {
     private lazy var orderInfoView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.orderVC_SecrionColor
+        view.backgroundColor = ColorManager.shared.orderVC_SectionColor
         view.layer.cornerRadius = 24
         return view
     }()
@@ -146,7 +146,7 @@ final class OrderVC: UIViewController {
     private lazy var commentsView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.orderVC_SecrionColor
+        view.backgroundColor = ColorManager.shared.orderVC_SectionColor
         view.layer.cornerRadius = 24
         view.isHidden = true
         return view
@@ -176,7 +176,7 @@ final class OrderVC: UIViewController {
     private lazy var billDetailsView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.orderVC_SecrionColor
+        view.backgroundColor = ColorManager.shared.orderVC_SectionColor
         view.layer.cornerRadius = 24
         return view
     }()

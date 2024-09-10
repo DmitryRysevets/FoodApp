@@ -67,7 +67,7 @@ final class ColorManager {
     let warningOrange = UIColor(red: 0.992, green: 0.592, blue: 0.196, alpha: 1)
     let warningRed = UIColor(red: 0.92, green: 0.23, blue: 0.35, alpha: 1.00)
     
-    let orderVC_SecrionColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+    let orderVC_SectionColor = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
             ? UIColor(red: 0.105, green: 0.105, blue: 0.105, alpha: 1)
             : UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1)

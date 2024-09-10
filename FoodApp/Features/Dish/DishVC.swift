@@ -239,7 +239,7 @@ final class DishVC: UIViewController {
     private lazy var nutrientsView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.orderVC_SecrionColor
+        view.backgroundColor = ColorManager.shared.orderVC_SectionColor
         view.layer.cornerRadius = 24
         return view
     }()
