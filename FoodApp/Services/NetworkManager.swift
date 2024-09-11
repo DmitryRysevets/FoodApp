@@ -49,6 +49,30 @@ final class NetworkManager {
         }
     }
     
+    func sendFeedback(message: String) async throws {
+        let userID: String
+        if let currentUser = auth.currentUser {
+            userID = currentUser.uid
+        } else {
+            userID = "guest"
+        }
+        
+        let documentID = UUID().uuidString
+        let feedbackDocument = firestore.collection("feedbacks").document(documentID)
+        
+        let feedbackData: [String: Any] = [
+            "user": userID,
+            "message": message,
+            "date": Timestamp(date: Date())
+        ]
+        
+        do {
+            try await feedbackDocument.setData(feedbackData)
+        } catch {
+            throw NetworkLayerError.firestoreDataWasNotSaved(error)
+        }
+    }
+    
     // MARK: - Menu methods
 
     func getMenu() async throws -> Menu {

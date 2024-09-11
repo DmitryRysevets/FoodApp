@@ -429,16 +429,11 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func avatarImageTapped() {
-        // for testing
-        print("")
-        print("clear orders")
-        print("")
-        CoreDataManager.shared.deleteAllOrders()
+        print(NetworkManager.shared.isConnectedToNetwork())
     }
     
     @objc
     private func notificationButtonTaped() {
-        // for testing
         
     }
     

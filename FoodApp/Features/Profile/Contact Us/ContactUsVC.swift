@@ -110,6 +110,32 @@ final class ContactUsVC: UIViewController {
         ])
     }
     
+    func handleFeedbackError(_ error: Error) {
+        if let networkError = error as? NetworkLayerError {
+            switch networkError {
+            case .noInternetConnection:
+                let notification = NotificationView(message: "There's a problem with the network. Check the connection.", type: .error)
+                notification.show(in: self)
+                print("No internet connection")
+
+            case .firestoreDataWasNotSaved(let firestoreError):
+                let notification = NotificationView(message: "Failed to save message. Please try again later.", type: .error)
+                notification.show(in: self)
+                print("Firestore error: \(firestoreError.localizedDescription)")
+
+            default:
+                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
+                notification.show(in: self)
+                print("Error: \(error.localizedDescription)")
+            }
+        } else {
+            let notification = NotificationView(message: "An unexpected error occurred. Please try again later.", type: .error)
+            notification.show(in: self)
+            print("Unexpected error: \(error.localizedDescription)")
+        }
+    }
+
+    
     // MARK: - Objc methods
     
     @objc
@@ -139,15 +165,24 @@ final class ContactUsVC: UIViewController {
             """, type: .warning, interval: 3)
             notification.show(in: self)
         } else {
-//            NetworkManager.shared.sendFeedback(message)
             
-            let notification = NotificationView(message: """
-                Message Sent
-                Thank you for your feedback
-            """, type: .confirming, interval: 3)
-            notification.show(in: self)
+            Task {
+                do {
+                    try await NetworkManager.shared.sendFeedback(message: message)
+                    
+                    let notification = NotificationView(message: """
+                        Message Sent
+                        Thank you for your feedback
+                    """, type: .confirming, interval: 3)
+                    notification.show(in: self)
 
-            messageTextView.text = ""
+                    messageTextView.text = ""
+                } catch {
+                    handleFeedbackError(error)
+                }
+            }
+            
+
         }
     }
     
