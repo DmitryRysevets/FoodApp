@@ -146,7 +146,7 @@ final class SetEmailVC: UIViewController {
         ])
     }
     
-    private func changePassword() {
+    private func updateEmail() {
         if isFormValid() {
             guard let email = emailField.text,
                   let password = passwordField.text else { return }
@@ -155,10 +155,13 @@ final class SetEmailVC: UIViewController {
                 do {
                     try await NetworkManager.shared.updateEmail(to: email, withPassword: password)
                     navigationController?.popViewController(animated: true)
+                } catch {
+                    handleEmailUpdateError(error)
                 }
             }
         } else {
-            // warning "Please fill in all fields"
+            let notification = NotificationView(message: "Please fill in all fields.", type: .warning, interval: 3)
+            notification.show(in: self)
         }
     }
     
@@ -191,6 +194,26 @@ final class SetEmailVC: UIViewController {
         return emailPred.evaluate(with: email)
     }
     
+    private func handleEmailUpdateError(_ error: Error) {
+        if let networkError = error as? NetworkLayerError {
+            switch networkError {
+            case .updateFailed(let underlyingError):
+                let notification = NotificationView(message: "Failed to update email. Please check your password and try again.", type: .error, interval: 3)
+                notification.show(in: self.view)
+                print("Email update failed: \(underlyingError.localizedDescription)")
+                
+            default:
+                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error, interval: 3)
+                notification.show(in: self.view)
+                print("Unknown error: \(error)")
+            }
+        } else {
+            let notification = NotificationView(message: "An internal error occurred. Please try again later.", type: .error, interval: 3)
+            notification.show(in: self.view)
+            print("Internal error: \(error)")
+        }
+    }
+    
     // MARK: - Objc methods
     
     @objc
@@ -211,7 +234,7 @@ final class SetEmailVC: UIViewController {
             self.saveButton.transform = CGAffineTransform.identity
         }, completion: nil)
         
-        changePassword()
+        updateEmail()
     }
     
     @objc

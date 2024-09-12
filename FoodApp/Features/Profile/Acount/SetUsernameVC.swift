@@ -114,6 +114,28 @@ final class SetUsernameVC: UIViewController {
         ])
     }
     
+    private func handleSetDisplayNameError(_ error: Error) {
+        if let networkError = error as? NetworkLayerError {
+            switch networkError {
+            case .updateFailed(let underlyingError):
+                let notification = NotificationView(message: "Failed to update display name. Please try again later.", type: .error, interval: 3)
+                notification.show(in: self)
+                print("Update failed: \(underlyingError.localizedDescription)")
+                
+            default:
+                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error, interval: 3)
+                notification.show(in: self)
+                print("Unknown error: \(error)")
+            }
+        } else {
+            let notification = NotificationView(message: "An internal error occurred. Please try again later.", type: .error, interval: 3)
+            notification.show(in: self)
+            print("Internal error: \(error)")
+        }
+    }
+
+    // MARK: - Objc methods
+    
     @objc
     private func backButtonTapped() {
         navigationController?.popViewController(animated: true)
@@ -134,8 +156,12 @@ final class SetUsernameVC: UIViewController {
         
         if let username = usernameField.text {
             Task {
-                try await UserManager.shared.setUserName(username)
-                navigationController?.popViewController(animated: true)
+                do {
+                    try await UserManager.shared.setUserName(username)
+                    navigationController?.popViewController(animated: true)
+                } catch {
+                    handleSetDisplayNameError(error)
+                }
             }
         }
     }
