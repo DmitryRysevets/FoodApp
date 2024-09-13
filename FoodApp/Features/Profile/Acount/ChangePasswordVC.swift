@@ -172,6 +172,55 @@ final class ChangePasswordVC: UIViewController {
         ])
     }
     
+    private func isFormValid() -> Bool {
+        var isValid = true
+        let minimumPasswordLength = 6
+
+        if currentPasswordField.text?.count ?? 0 < minimumPasswordLength {
+            currentPasswordField.isInWarning = true
+            isValid = false
+        }
+        
+        if newPasswordField.text?.count ?? 0 < minimumPasswordLength {
+            newPasswordField.isInWarning = true
+            isValid = false
+        }
+        
+        if confirmNewPasswordField.text?.count ?? 0 < minimumPasswordLength {
+            confirmNewPasswordField.isInWarning = true
+            isValid = false
+        }
+        
+        if newPasswordField.text != confirmNewPasswordField.text {
+            newPasswordField.isInWarning = true
+            confirmNewPasswordField.isInWarning = true
+            isValid = false
+        }
+        
+        return isValid
+    }
+    
+    private func handlePasswordUpdateError(_ error: Error) {
+        if let networkError = error as? NetworkLayerError {
+            switch networkError {
+            case .updateFailed(let underlyingError):
+                let notification = NotificationView(message: "Failed to update password. Please check your current password and try again.", type: .error)
+                notification.show(in: self)
+                print("Password update failed: \(underlyingError.localizedDescription)")
+                
+            default:
+                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
+                notification.show(in: self)
+                print("Unknown error: \(error)")
+            }
+        } else {
+            let notification = NotificationView(message: "An internal error occurred. Please try again later.", type: .error)
+            notification.show(in: self)
+            print("Internal error: \(error)")
+        }
+    }
+
+    
     // MARK: - Objc methods
     
     @objc
@@ -191,6 +240,20 @@ final class ChangePasswordVC: UIViewController {
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.saveButton.transform = CGAffineTransform.identity
         }, completion: nil)
+        
+        if isFormValid() {
+            guard let olpPass = currentPasswordField.text, let newPass = newPasswordField.text else { return }
+            Task {
+                do {
+                    try await UserManager.shared.updatePassword(currentPassword: olpPass, to: newPass)
+                } catch {
+                    handlePasswordUpdateError(error)
+                }
+            }
+        } else {
+            let notification = NotificationView(message: "Please fill in all fields.", type: .warning, interval: 3)
+            notification.show(in: self)
+        }
     }
     
     @objc

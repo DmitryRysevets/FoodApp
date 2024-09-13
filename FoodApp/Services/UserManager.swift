@@ -59,6 +59,15 @@ final class UserManager {
         coreDataManager.setDisplayName(name)
     }
     
+    func updateEmail(to newEmail: String, withPassword password: String) async throws {
+        try await networkManager.updateEmail(to: newEmail, withPassword: password)
+        coreDataManager.updateEmail(newEmail)
+    }
+    
+    func updatePassword(currentPassword: String, to newPassword: String) async throws {
+        try await networkManager.updatePassword(currentPassword: currentPassword, to: newPassword)
+    }
+    
     func getUserAvatar() -> UIImage? {
         if let userEntity = coreDataManager.fetchUser(),
            let avatarData = userEntity.avatar {

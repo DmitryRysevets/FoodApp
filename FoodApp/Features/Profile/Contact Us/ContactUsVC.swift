@@ -113,11 +113,6 @@ final class ContactUsVC: UIViewController {
     func handleFeedbackError(_ error: Error) {
         if let networkError = error as? NetworkLayerError {
             switch networkError {
-            case .noInternetConnection:
-                let notification = NotificationView(message: "There's a problem with the network. Check the connection.", type: .error)
-                notification.show(in: self)
-                print("No internet connection")
-
             case .firestoreDataWasNotSaved(let firestoreError):
                 let notification = NotificationView(message: "Failed to save message. Please try again later.", type: .error)
                 notification.show(in: self)

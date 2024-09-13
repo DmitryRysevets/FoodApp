@@ -599,6 +599,12 @@ final class CoreDataManager {
         saveContext()
     }
     
+    func updateEmail(_ newEmail: String) {
+        let user = fetchUser()
+        user?.email = newEmail
+        saveContext()
+    }
+    
     func savePhoneNumber(_ phoneNumber: String) {
         let user = fetchUser()
         user?.phoneNumber = phoneNumber

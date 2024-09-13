@@ -153,7 +153,11 @@ final class SetEmailVC: UIViewController {
             
             Task {
                 do {
-                    try await NetworkManager.shared.updateEmail(to: email, withPassword: password)
+                    try await UserManager.shared.updateEmail(to: email, withPassword: password)
+                    
+                    let notification = NotificationView(message: "A verification message has been sent to your new email. Please confirm your new email.", type: .confirming, interval: 5)
+                    notification.show(in: self)
+                    
                     navigationController?.popViewController(animated: true)
                 } catch {
                     handleEmailUpdateError(error)
