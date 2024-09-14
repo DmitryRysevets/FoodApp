@@ -12,7 +12,7 @@ final class OrderManager {
     private init() {}
 
     private let coreDataManager = CoreDataManager.shared
-    private let networkManager = NetworkManager.shared
+    private let networkManager = FirebaseManager.shared
     
     func placeOrder(orderID: UUID = UUID(), productCost: Double, deliveryCharge: Double, promoCodeDiscount: Double, orderDate: Date = Date(), paidByCard: Bool, address: String, latitude: Double, longitude: Double, orderComments: String?, phone: String?, status: String = "Pending", orderItems: [OrderItemEntity]) async throws {
         

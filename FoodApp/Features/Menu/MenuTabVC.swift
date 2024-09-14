@@ -429,7 +429,7 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func avatarImageTapped() {
-        print(NetworkManager.shared.isConnectedToNetwork())
+        
     }
     
     @objc

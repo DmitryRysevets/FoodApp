@@ -793,7 +793,7 @@ final class PaymentVC: UIViewController {
     }
     
     private func handleOrderPlacementError(_ error: Error) {
-        if let networkError = error as? NetworkLayerError {
+        if let networkError = error as? FirebaseManagerError {
             switch networkError {
             case .networkError(let underlyingError):
                 let notification = NotificationView(message: "Network connection error. Please try again later.", type: .error)

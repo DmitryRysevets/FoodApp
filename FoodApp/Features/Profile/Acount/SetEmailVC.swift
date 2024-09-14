@@ -199,7 +199,7 @@ final class SetEmailVC: UIViewController {
     }
     
     private func handleEmailUpdateError(_ error: Error) {
-        if let networkError = error as? NetworkLayerError {
+        if let networkError = error as? FirebaseManagerError {
             switch networkError {
             case .updateFailed(let underlyingError):
                 let notification = NotificationView(message: "Failed to update email. Please check your password and try again.", type: .error, interval: 3)

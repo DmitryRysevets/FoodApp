@@ -12,7 +12,7 @@ final class MenuManager {
     private init() {}
 
     private let coreDataManager = CoreDataManager.shared
-    private let networkManager = NetworkManager.shared
+    private let networkManager = FirebaseManager.shared
 
     // MARK: - Menu methods
     

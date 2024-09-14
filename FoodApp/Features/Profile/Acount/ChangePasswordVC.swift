@@ -201,7 +201,7 @@ final class ChangePasswordVC: UIViewController {
     }
     
     private func handlePasswordUpdateError(_ error: Error) {
-        if let networkError = error as? NetworkLayerError {
+        if let networkError = error as? FirebaseManagerError {
             switch networkError {
             case .updateFailed(let underlyingError):
                 let notification = NotificationView(message: "Failed to update password. Please check your current password and try again.", type: .error)

@@ -1,5 +1,5 @@
 //
-//  NetworkManager.swift
+//  FirebaseManager.swift
 //  FoodApp
 //
 
@@ -8,23 +8,27 @@ import FirebaseFirestore
 import FirebaseStorage
 import FirebaseAuth
 
-enum NetworkLayerError: Error {
+enum FirebaseManagerError: Error {
+    case invalidData
     case parseDataFailed
+    case updateFailed(Error)
+    case networkError(Error)
     case downloadImageFailed(Error)
     case uploadImageFailed(Error)
     case firestoreDataWasNotReceived(Error)
     case firestoreDataWasNotSaved(Error)
-    case invalidData
-    case networkError(Error)
     case authenticationFailed
     case userAlreadyExists
     case userNotFound
-    case updateFailed(Error)
+    
+    case promoCodeNotFound
+    case promoCodeExpired
+    case promoCodeLimitReached
 }
 
-final class NetworkManager {
+final class FirebaseManager {
 
-    static let shared = NetworkManager()
+    static let shared = FirebaseManager()
 
     private init() {}
 
@@ -39,7 +43,7 @@ final class NetworkManager {
         return try await withCheckedThrowingContinuation { continuation in
             imageStorageReference.getData(maxSize: maxImageSize) { data, error in
                 if let error = error {
-                    continuation.resume(throwing: NetworkLayerError.downloadImageFailed(error))
+                    continuation.resume(throwing: FirebaseManagerError.downloadImageFailed(error))
                 } else if let data = data {
                     continuation.resume(returning: data)
                 } else {
@@ -69,7 +73,47 @@ final class NetworkManager {
         do {
             try await feedbackDocument.setData(feedbackData)
         } catch {
-            throw NetworkLayerError.firestoreDataWasNotSaved(error)
+            throw FirebaseManagerError.firestoreDataWasNotSaved(error)
+        }
+    }
+    
+    func applyPromoCode(_ code: String) async throws -> (discountPercentage: Int, freeDelivery: Bool) {
+        let promoCodeRef = firestore.collection("promoCodes").document(code)
+        
+        do {
+            let promoCodeSnapshot = try await promoCodeRef.getDocument()
+
+            guard let data = promoCodeSnapshot.data() else {
+                throw FirebaseManagerError.promoCodeNotFound
+            }
+            
+            guard let usageLimit = data["usageLimit"] as? Int,
+                  let usedCount = data["usedCount"] as? Int,
+                  let expirationDate = (data["expirationDate"] as? Timestamp)?.dateValue() else {
+                throw FirebaseManagerError.invalidData
+            }
+            
+            let currentDate = Date()
+            if expirationDate < currentDate {
+                throw FirebaseManagerError.promoCodeExpired
+            }
+            
+            if usedCount >= usageLimit {
+                throw FirebaseManagerError.promoCodeLimitReached
+            }
+
+            _ = try await firestore.runTransaction { transaction, _ in
+                let updatedUsedCount = usedCount + 1
+                transaction.updateData(["usedCount": updatedUsedCount], forDocument: promoCodeRef)
+                return nil
+            }
+
+            let discountPercentage = data["discountPercent"] as? Int ?? 0
+            let freeDelivery = data["freeDelivery"] as? Bool ?? false
+            
+            return (discountPercentage, freeDelivery)
+        } catch {
+            throw FirebaseManagerError.firestoreDataWasNotReceived(error)
         }
     }
     
@@ -114,7 +158,7 @@ final class NetworkManager {
               let data = document.data(),
               let version = data["menu"] as? String
         else {
-            throw NetworkLayerError.invalidData
+            throw FirebaseManagerError.invalidData
         }
         
         return version
@@ -127,14 +171,14 @@ final class NetworkManager {
             auth.signIn(withEmail: email, password: password) { authResult, error in
                 if let error = error {
                     if (error as NSError).code == AuthErrorCode.networkError.rawValue {
-                        continuation.resume(throwing: NetworkLayerError.networkError(error))
+                        continuation.resume(throwing: FirebaseManagerError.networkError(error))
                     } else {
-                        continuation.resume(throwing: NetworkLayerError.authenticationFailed)
+                        continuation.resume(throwing: FirebaseManagerError.authenticationFailed)
                     }
                     return
                 }
                 guard let user = authResult?.user else {
-                    continuation.resume(throwing: NetworkLayerError.authenticationFailed)
+                    continuation.resume(throwing: FirebaseManagerError.authenticationFailed)
                     return
                 }
                 continuation.resume(returning: user)
@@ -147,16 +191,16 @@ final class NetworkManager {
             auth.createUser(withEmail: email, password: password) { authResult, error in
                 if let error = error {
                     if (error as NSError).code == AuthErrorCode.emailAlreadyInUse.rawValue {
-                        continuation.resume(throwing: NetworkLayerError.userAlreadyExists)
+                        continuation.resume(throwing: FirebaseManagerError.userAlreadyExists)
                     } else if (error as NSError).code == AuthErrorCode.networkError.rawValue {
-                        continuation.resume(throwing: NetworkLayerError.networkError(error))
+                        continuation.resume(throwing: FirebaseManagerError.networkError(error))
                     } else {
-                        continuation.resume(throwing: NetworkLayerError.authenticationFailed)
+                        continuation.resume(throwing: FirebaseManagerError.authenticationFailed)
                     }
                     return
                 }
                 guard let user = authResult?.user else {
-                    continuation.resume(throwing: NetworkLayerError.authenticationFailed)
+                    continuation.resume(throwing: FirebaseManagerError.authenticationFailed)
                     return
                 }
                 continuation.resume(returning: user)
@@ -166,7 +210,7 @@ final class NetworkManager {
     
     func setDisplayName(_ name: String) async throws {
         guard let currentUser = Auth.auth().currentUser else {
-            throw NetworkLayerError.userNotFound
+            throw FirebaseManagerError.userNotFound
         }
         
         let changeRequest = currentUser.createProfileChangeRequest()
@@ -175,13 +219,13 @@ final class NetworkManager {
         do {
             try await changeRequest.commitChanges()
         } catch {
-            throw NetworkLayerError.updateFailed(error)
+            throw FirebaseManagerError.updateFailed(error)
         }
     }
     
     func updateEmail(to newEmail: String, withPassword password: String) async throws {
         guard let currentUser = Auth.auth().currentUser else {
-            throw NetworkLayerError.userNotFound
+            throw FirebaseManagerError.userNotFound
         }
         
         let credential = EmailAuthProvider.credential(withEmail: currentUser.email ?? "", password: password)
@@ -191,13 +235,13 @@ final class NetworkManager {
             try await currentUser.sendEmailVerification(beforeUpdatingEmail: newEmail)
             
         } catch {
-            throw NetworkLayerError.updateFailed(error)
+            throw FirebaseManagerError.updateFailed(error)
         }
     }
     
     func updatePassword(currentPassword: String, to newPassword: String) async throws {
         guard let currentUser = Auth.auth().currentUser else {
-            throw NetworkLayerError.userNotFound
+            throw FirebaseManagerError.userNotFound
         }
 
         let credential = EmailAuthProvider.credential(withEmail: currentUser.email ?? "", password: currentPassword)
@@ -206,13 +250,13 @@ final class NetworkManager {
             try await currentUser.reauthenticate(with: credential)
             try await currentUser.updatePassword(to: newPassword)
         } catch {
-            throw NetworkLayerError.updateFailed(error)
+            throw FirebaseManagerError.updateFailed(error)
         }
     }
     
     func uploadUserAvatar(_ avatarData: Data) async throws -> URL {
         guard let currentUser = Auth.auth().currentUser else {
-            throw NetworkLayerError.userNotFound
+            throw FirebaseManagerError.userNotFound
         }
 
         let storageRef = storage.reference().child("userAvatars/\(currentUser.uid)/avatar.jpg")
@@ -231,14 +275,14 @@ final class NetworkManager {
             
             return downloadURL
         } catch {
-            throw NetworkLayerError.uploadImageFailed(error)
+            throw FirebaseManagerError.uploadImageFailed(error)
         }
     }
 
     
     func deleteUserAvatar() async throws {
         guard let currentUser = Auth.auth().currentUser else {
-            throw NetworkLayerError.userNotFound
+            throw FirebaseManagerError.userNotFound
         }
         
         let avatarRef = storage.reference().child("userAvatars/\(currentUser.uid)/avatar.jpg")
@@ -260,7 +304,7 @@ final class NetworkManager {
         guard let orderID = order.orderID?.uuidString,
               let address = order.address,
               let status = order.status else {
-            throw NetworkLayerError.invalidData
+            throw FirebaseManagerError.invalidData
         }
         
         let orderData: [String: Any] = [
@@ -283,7 +327,7 @@ final class NetworkManager {
             for item in orderItems {
                 guard let dishID = item.dishID,
                       let dishName = item.dishName else {
-                    throw NetworkLayerError.invalidData
+                    throw FirebaseManagerError.invalidData
                 }
                 
                 let itemData: [String: Any] = [
@@ -309,13 +353,13 @@ final class NetworkManager {
         do {
             try await firestore.collection(collectionPath).document(orderID).setData(fullOrderData)
         } catch {
-            throw NetworkLayerError.firestoreDataWasNotSaved(error)
+            throw FirebaseManagerError.firestoreDataWasNotSaved(error)
         }
     }
     
     func fetchOrderHistoryFromFirestore() async throws -> [[String: Any]] {
         guard let user = auth.currentUser else {
-            throw NetworkLayerError.authenticationFailed
+            throw FirebaseManagerError.authenticationFailed
         }
         
         let collectionPath = "orders/\(user.uid)/userOrders"
@@ -323,7 +367,7 @@ final class NetworkManager {
             let snapshot = try await firestore.collection(collectionPath).getDocuments()
             return snapshot.documents.map { $0.data() }
         } catch {
-            throw NetworkLayerError.firestoreDataWasNotReceived(error)
+            throw FirebaseManagerError.firestoreDataWasNotReceived(error)
         }
     }
     
@@ -334,13 +378,13 @@ final class NetworkManager {
         let snapshot = try await firestore.collection(collectionName).getDocuments()
         return snapshot.documents
       } catch {
-        throw NetworkLayerError.firestoreDataWasNotReceived(error)
+        throw FirebaseManagerError.firestoreDataWasNotReceived(error)
       }
     }
 
     private func createOffer(from data: DocumentSnapshot) async throws -> Offer {
         guard let offerData = try data.data(as: OfferDataModel?.self) else {
-            throw NetworkLayerError.parseDataFailed
+            throw FirebaseManagerError.parseDataFailed
         }
 
         let imageData = try await downloadImage(from: offerData.imageURL)
@@ -354,7 +398,7 @@ final class NetworkManager {
 
     private func createDish(from data: DocumentSnapshot) async throws -> Dish {
         guard let dishData = try data.data(as: DishDataModel?.self) else {
-            throw NetworkLayerError.parseDataFailed
+            throw FirebaseManagerError.parseDataFailed
         }
 
         let imageData = try await downloadImage(from: dishData.imageURL)

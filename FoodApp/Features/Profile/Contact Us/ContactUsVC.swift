@@ -111,7 +111,7 @@ final class ContactUsVC: UIViewController {
     }
     
     func handleFeedbackError(_ error: Error) {
-        if let networkError = error as? NetworkLayerError {
+        if let networkError = error as? FirebaseManagerError {
             switch networkError {
             case .firestoreDataWasNotSaved(let firestoreError):
                 let notification = NotificationView(message: "Failed to save message. Please try again later.", type: .error)
@@ -163,7 +163,7 @@ final class ContactUsVC: UIViewController {
             
             Task {
                 do {
-                    try await NetworkManager.shared.sendFeedback(message: message)
+                    try await FirebaseManager.shared.sendFeedback(message: message)
                     
                     let notification = NotificationView(message: """
                         Message Sent

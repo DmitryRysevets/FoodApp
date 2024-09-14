@@ -373,6 +373,19 @@ final class CartTabVC: UIViewController {
         tableViewHeightConstraint?.constant = CGFloat(numberOfRows) * cellHeight
     }
     
+    private func applyPromoCode(discount discountPercent: Int, freeDelivery: Bool) {
+        var totalDiscount = 0.0
+        
+        if freeDelivery {
+            totalDiscount = deliveryCharge
+        } else {
+            totalDiscount = (productCost / 100 * Double(discountPercent) * 100).rounded() / 100
+        }
+        
+        promoCodeDiscount = totalDiscount
+        calculateTheBill()
+    }
+    
     private func calculateTheBill() {
         productCost = 0
         for item in cartContent {
@@ -430,6 +443,20 @@ final class CartTabVC: UIViewController {
         UIView.animate(withDuration: 0.1, delay: 0.1, options: [], animations: {
             self.applyCodeButton.transform = CGAffineTransform.identity
         }, completion: nil)
+        
+        guard let code = promoCodeTextField.text, !code.isEmpty else { return }
+        
+        Task {
+            do {
+                let result = try await FirebaseManager.shared.applyPromoCode(code)
+                applyPromoCode(discount: result.discountPercentage, freeDelivery: result.freeDelivery)
+                promoCodeTextField.text = ""
+                promoCodeTextField.resignFirstResponder()
+            } catch {
+                promoCodeTextField.text = ""
+                // need handler
+            }
+        }
     }
     
     @objc

@@ -13,7 +13,7 @@ final class UserManager {
     private init() {}
 
     private let coreDataManager = CoreDataManager.shared
-    private let networkManager = NetworkManager.shared
+    private let networkManager = FirebaseManager.shared
     
     func isUserLoggedIn() -> Bool {
         return Auth.auth().currentUser != nil
