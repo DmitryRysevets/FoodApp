@@ -429,6 +429,48 @@ final class CartTabVC: UIViewController {
         return orderItems
     }
     
+    private func handlePromoCodeError(_ error: Error) {
+        if let promoCodeError = error as? FirebaseManagerError {
+            switch promoCodeError {
+            case .promoCodeNotFound:
+                let notification = NotificationView(message: "Promo code not found. Please check the code and try again.", type: .error)
+                notification.show(in: self)
+                
+            case .promoCodeExpired:
+                let notification = NotificationView(message: "This promo code has expired.", type: .error)
+                notification.show(in: self)
+                
+            case .promoCodeLimitReached:
+                let notification = NotificationView(message: "This promo code has reached its usage limit.", type: .error)
+                notification.show(in: self)
+                
+            case .firestoreDataWasNotReceived(let firestoreError):
+                let notification = NotificationView(message: "Failed to receive data from the server. Please try again later.", type: .error)
+                notification.show(in: self)
+                print("Firestore receive error: \(firestoreError.localizedDescription)")
+                
+            case .invalidData:
+                let notification = NotificationView(message: "Invalid promo code data. Please try again.", type: .error)
+                notification.show(in: self)
+                print("Promo code error: Invalid data")
+                
+            case .networkError(let underlyingError):
+                let notification = NotificationView(message: "Network connection error. Please try again later.", type: .error)
+                notification.show(in: self)
+                print("Network error: \(underlyingError.localizedDescription)")
+                
+            default:
+                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
+                notification.show(in: self)
+                print("Promo code error: \(error)")
+            }
+        } else {
+            let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
+            notification.show(in: self)
+            print("Unknown error: \(error)")
+        }
+    }
+    
     // MARK: - ObjC methods
 
     @objc
@@ -454,7 +496,7 @@ final class CartTabVC: UIViewController {
                 promoCodeTextField.resignFirstResponder()
             } catch {
                 promoCodeTextField.text = ""
-                // need handler
+                handlePromoCodeError(error)
             }
         }
     }
