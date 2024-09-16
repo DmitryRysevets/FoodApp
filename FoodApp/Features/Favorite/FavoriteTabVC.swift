@@ -9,10 +9,6 @@ final class FavoriteTabVC: UIViewController {
     
     private lazy var favoriteDishes: [Dish] = [] {
         didSet {
-            if dishColors.count != favoriteDishes.count {
-                dishColors = ColorManager.shared.getColors(favoriteDishes.count)
-            }
-            
             if favoriteDishes.isEmpty {
                 emptyFavoriteView.isHidden = false
                 tableView.isHidden = true
@@ -22,15 +18,7 @@ final class FavoriteTabVC: UIViewController {
             }
         }
     }
-    
-    private var dishColors: [UIColor] = []
 
-    private lazy var headerView: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
-    
     private lazy var favoriteTitle: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -102,11 +90,10 @@ final class FavoriteTabVC: UIViewController {
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.background
         
-        view.addSubview(headerView)
+        view.addSubview(favoriteTitle)
         view.addSubview(tableView)
         view.addSubview(emptyFavoriteView)
         
-        headerView.addSubview(favoriteTitle)
         emptyFavoriteView.addSubview(favoriteIsEmptyLabel)
         emptyFavoriteView.addSubview(emptyFavoriteImageView)
     }
@@ -114,19 +101,15 @@ final class FavoriteTabVC: UIViewController {
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            headerView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            headerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            headerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            headerView.heightAnchor.constraint(equalToConstant: Constants.headerHeight),
-            favoriteTitle.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -4),
-            favoriteTitle.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
+            favoriteTitle.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 3),
+            favoriteTitle.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            tableView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
+            tableView.topAnchor.constraint(equalTo: favoriteTitle.bottomAnchor, constant: 16),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             
-            emptyFavoriteView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 32),
+            emptyFavoriteView.topAnchor.constraint(equalTo: favoriteTitle.bottomAnchor, constant: 43),
             emptyFavoriteView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             emptyFavoriteView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             emptyFavoriteView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100),
@@ -143,7 +126,6 @@ final class FavoriteTabVC: UIViewController {
         let itemToDelete = favoriteDishes[indexPath.row]
         CoreDataManager.shared.deleteFromFavorite(by: itemToDelete.id)
 
-        dishColors.remove(at: indexPath.row)
         favoriteDishes.remove(at: indexPath.row)
         
         tableView.deleteRows(at: [indexPath], with: .automatic)
@@ -169,14 +151,13 @@ extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
         
         let cell = tableView.dequeueReusableCell(withIdentifier: FavoriteCell.id, for: indexPath) as! FavoriteCell
         cell.favoriteDish = favoriteDishes[indexPath.row]
-        cell.cartItemImageBackColor = dishColors[indexPath.row]
         cell.selectionStyle = .none
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 90
+        return 104
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -193,7 +174,7 @@ extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
                 }
             }
             
-            let dishPage = DishVC(dish: favoriteDishes[indexPath.row], color: dishColors[indexPath.row])
+            let dishPage = DishVC(dish: favoriteDishes[indexPath.row])
             
             dishPage.modalTransitionStyle = .coverVertical
             dishPage.modalPresentationStyle = .fullScreen
@@ -221,5 +202,20 @@ extension FavoriteTabVC: UITableViewDelegate, UITableViewDataSource {
 
         let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
         return configuration
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.contentView.subviews.forEach { subview in
+            if subview is SeparatorView {
+                subview.removeFromSuperview()
+            }
+        }
+
+        let totalRows = tableView.numberOfRows(inSection: indexPath.section)
+        if indexPath.row < totalRows - 2 {
+            let separatorHeight: CGFloat = 1.0
+            let separator = SeparatorView(frame: CGRect(x: 16, y: cell.contentView.frame.size.height - separatorHeight, width: cell.contentView.frame.size.width - 32, height: separatorHeight))
+            cell.contentView.addSubview(separator)
+        }
     }
 }

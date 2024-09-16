@@ -8,7 +8,7 @@ import Foundation
 struct Menu: Hashable {
     
     var offersContainer: OffersContainer
-    var categoriesContainer = CategoriesContainer()
+    var categoriesContainer = CategoriesContainer(categories: [])
     var dishes: [Dish]
     
     init(offers: [Offer] = [], dishes: [Dish] = [], categories: [String] = []) {

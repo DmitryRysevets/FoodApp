@@ -15,7 +15,7 @@ final class FavoriteCell: UITableViewCell {
             setupConstraints()
             
             productNameLabel.text = favoriteDish.name
-            productWeightLabel.text = "\(favoriteDish.weight)g (1 pcs)"
+            moreProductInfoLabel.text = "\(favoriteDish.weight)g / \(favoriteDish.calories)kcal"
             productPriceLabel.text = "$\(String(format: "%.2f", favoriteDish.price))"
             
             if favoriteDish.isOffer, let recentPrice = favoriteDish.recentPrice {
@@ -36,35 +36,7 @@ final class FavoriteCell: UITableViewCell {
         }
     }
     
-    var cartItemImageBackColor: UIColor = ColorManager.shared.green {
-        didSet {
-            imageColorBackground.backgroundColor = cartItemImageBackColor
-        }
-    }
-    
     private lazy var productPriceLabelCenterYConstraint: NSLayoutConstraint = productPriceLabel.centerYAnchor.constraint(equalTo: centerYAnchor, constant: 0)
-    
-    private lazy var imageColorBackground: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = cartItemImageBackColor
-        view.clipsToBounds = true
-        view.layer.cornerRadius = 22
-        return view
-    }()
-    
-    private lazy var gradientLayer: CAGradientLayer = {
-        let layer = CAGradientLayer()
-        layer.type = .radial
-        layer.colors = [
-            UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 0.20).cgColor,
-            UIColor(red: 0.149, green: 0.149, blue: 0.149, alpha: 0.7).cgColor
-        ]
-        layer.startPoint = CGPoint(x: 0, y: 0)
-        layer.endPoint = CGPoint(x: 1, y: 1)
-        layer.isHidden = traitCollection.userInterfaceStyle != .dark
-        return layer
-    }()
     
     private lazy var producImageView: UIImageView = {
         let imageView = UIImageView()
@@ -78,6 +50,7 @@ final class FavoriteCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 18, axis: [Constants.fontWeightAxis : 600])
+        label.numberOfLines = 1
         label.layer.shadowOffset = CGSize(width: 2, height: 2)
         label.layer.shadowOpacity = 0.2
         label.layer.shadowColor = UIColor.black.cgColor
@@ -85,7 +58,7 @@ final class FavoriteCell: UITableViewCell {
         return label
     }()
     
-    private lazy var productWeightLabel: UILabel = {
+    private lazy var moreProductInfoLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label.withAlphaComponent(0.5)
@@ -106,13 +79,9 @@ final class FavoriteCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
         label.font = .systemFont(ofSize: 18, weight: .bold)
+        label.textAlignment = .center
         return label
     }()
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        updateGradientLayer()
-    }
     
     override func prepareForReuse() {
         super.prepareForReuse()
@@ -121,52 +90,36 @@ final class FavoriteCell: UITableViewCell {
     
     // MARK: - Private methods
     
-    private func updateGradientLayer() {
-        gradientLayer.frame = imageColorBackground.bounds
-        if traitCollection.userInterfaceStyle == .dark {
-            gradientLayer.isHidden = false
-        } else {
-            gradientLayer.isHidden = true
-        }
-    }
-    
     private func setupUI() {
         backgroundColor = ColorManager.shared.background
         
-        addSubview(imageColorBackground)
+        addSubview(producImageView)
+        addSubview(productNameLabel)
+        addSubview(moreProductInfoLabel)
+        
         addSubview(productRecentPriceLabel)
         addSubview(productPriceLabel)
-        
-        imageColorBackground.addSubview(producImageView)
-        imageColorBackground.addSubview(productNameLabel)
-        imageColorBackground.addSubview(productWeightLabel)
-        
-        imageColorBackground.layer.insertSublayer(gradientLayer, at: 0)
     }
 
     private func setupConstraints() {
         NSLayoutConstraint.activate([
-            imageColorBackground.centerYAnchor.constraint(equalTo: centerYAnchor),
-            imageColorBackground.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
-            imageColorBackground.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -80),
-            imageColorBackground.heightAnchor.constraint(equalToConstant: 76),
-            
-            producImageView.leadingAnchor.constraint(equalTo: imageColorBackground.leadingAnchor, constant: 16),
-            producImageView.centerYAnchor.constraint(equalTo: imageColorBackground.centerYAnchor),
-            producImageView.heightAnchor.constraint(equalTo: imageColorBackground.heightAnchor, constant: -12),
+            producImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            producImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            producImageView.heightAnchor.constraint(equalTo: heightAnchor, constant: -16),
             producImageView.widthAnchor.constraint(equalTo: producImageView.heightAnchor),
             
             productNameLabel.leadingAnchor.constraint(equalTo: producImageView.trailingAnchor, constant: 16),
-            productNameLabel.trailingAnchor.constraint(equalTo: imageColorBackground.trailingAnchor, constant: -16),
-            productNameLabel.centerYAnchor.constraint(equalTo: imageColorBackground.centerYAnchor, constant: -10),
+            productNameLabel.trailingAnchor.constraint(equalTo: productPriceLabel.leadingAnchor, constant: -16),
+            productNameLabel.bottomAnchor.constraint(equalTo: centerYAnchor, constant: -2),
             
-            productWeightLabel.topAnchor.constraint(equalTo: productNameLabel.bottomAnchor, constant: 4),
-            productWeightLabel.leadingAnchor.constraint(equalTo: productNameLabel.leadingAnchor),
+            moreProductInfoLabel.topAnchor.constraint(equalTo: centerYAnchor, constant: 2),
+            moreProductInfoLabel.leadingAnchor.constraint(equalTo: productNameLabel.leadingAnchor),
             
             productRecentPriceLabel.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -9),
             productRecentPriceLabel.centerXAnchor.constraint(equalTo: productPriceLabel.centerXAnchor),
             
-            productPriceLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16)
+            productPriceLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            productPriceLabel.widthAnchor.constraint(equalToConstant: 64)
         ])
         
         productPriceLabelCenterYConstraint.isActive = true
@@ -180,4 +133,3 @@ final class FavoriteCell: UITableViewCell {
         productPriceLabelCenterYConstraint.constant = 0
     }
 }
-

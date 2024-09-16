@@ -254,6 +254,11 @@ final class ColorManager {
         return colors
     }
     
+    func getRandomColor() -> UIColor {
+        let colors = [gold, green, indigo, mint, teal, sandy, lavender]
+        return colors.randomElement()!
+    }
+    
     func getOfferLabelColor(bounds: CGRect) -> UIColor? {
         let colors = [label.withAlphaComponent(0.3).cgColor, UIColor.clear.cgColor]
         return getGradientColor(bounds: bounds, colors: colors, parameter: .vertical)

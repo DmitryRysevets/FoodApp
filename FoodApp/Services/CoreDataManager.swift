@@ -55,7 +55,7 @@ final class CoreDataManager {
             
             let dishes = dishEntities.map { Dish(from: $0) }
             let offers = offerEntities.map { Offer(from: $0) }
-            let categories = (categoriesContainerEntities.first?.categories as? [String]) ?? ["All"]
+            let categories = (categoriesContainerEntities.first?.categories as? [String]) ?? []
             
             return Menu(offers: offers, dishes: dishes, categories: categories)
         } catch {
@@ -64,7 +64,7 @@ final class CoreDataManager {
         }
     }
     
-    func saveMenu(_ menu: Menu) {
+    func saveMenu(_ menu: Menu, version: String) {
         // Fetch existing favorite dish IDs
         let favoriteDishes = fetchFavorites()
         let favoriteDishIDs = Set(favoriteDishes.map { $0.id })
@@ -76,7 +76,7 @@ final class CoreDataManager {
             print("Failed to clear existing data: \(error)")
         }
         
-        // Save new data
+        // Save new menu data
         for dish in menu.dishes {
             let dishEntity = DishEntity(context: context)
             dishEntity.update(with: dish)
@@ -93,8 +93,26 @@ final class CoreDataManager {
         let categoriesContainerEntity = CategoriesContainerEntity(context: context)
         categoriesContainerEntity.categories = menu.categoriesContainer.categories as NSObject
         
+        // Save menu version
+        let fetchRequest: NSFetchRequest<MenuVersion> = MenuVersion.fetchRequest()
+        
+        do {
+            let results = try context.fetch(fetchRequest)
+            let versionNumber: MenuVersion
+            if let existingVersionNumbers = results.first {
+                versionNumber = existingVersionNumbers
+            } else {
+                versionNumber = MenuVersion(context: context)
+            }
+            
+            versionNumber.version = version
+        } catch {
+            print("Failed to fetch or save current menu version: \(error)")
+        }
+        
         saveContext()
     }
+
     
     func deleteMenu() throws {
         let fetchRequestDishes: NSFetchRequest<NSFetchRequestResult> = DishEntity.fetchRequest()
@@ -135,26 +153,6 @@ final class CoreDataManager {
         } catch {
             print("Failed to fetch current menu version: \(error)")
             return nil
-        }
-    }
-    
-    func setMenuVersion(_ version: String) {
-        let fetchRequest: NSFetchRequest<MenuVersion> = MenuVersion.fetchRequest()
-        
-        do {
-            let results = try context.fetch(fetchRequest)
-            let versionNumber: MenuVersion
-            if let existingVersionNumbers = results.first {
-                versionNumber = existingVersionNumbers
-            } else {
-                versionNumber = MenuVersion(context: context)
-            }
-            
-            versionNumber.version = version
-            
-            saveContext()
-        } catch {
-            print("Failed to fetch or save current menu version: \(error)")
         }
     }
     

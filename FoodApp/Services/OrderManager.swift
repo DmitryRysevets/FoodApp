@@ -12,14 +12,14 @@ final class OrderManager {
     private init() {}
 
     private let coreDataManager = CoreDataManager.shared
-    private let networkManager = FirebaseManager.shared
+    private let firebaseManager = FirebaseManager.shared
     
     func placeOrder(orderID: UUID = UUID(), productCost: Double, deliveryCharge: Double, promoCodeDiscount: Double, orderDate: Date = Date(), paidByCard: Bool, address: String, latitude: Double, longitude: Double, orderComments: String?, phone: String?, status: String = "Pending", orderItems: [OrderItemEntity]) async throws {
         
         let order = coreDataManager.createOrder(orderID: orderID, productCost: productCost, deliveryCharge: deliveryCharge, promoCodeDiscount: promoCodeDiscount, orderDate: orderDate, paidByCard: paidByCard, address: address, latitude: latitude, longitude: longitude, orderComments: orderComments, phone: phone, status: status, orderItems: orderItems)
 
         do {
-            try await networkManager.saveOrderToFirestore(order)
+            try await firebaseManager.saveOrderToFirestore(order)
             coreDataManager.saveOrder(order)
         } catch {
             coreDataManager.deleteOrderFromContext(order)
@@ -29,7 +29,7 @@ final class OrderManager {
 
     func fetchOrderHistory() async throws {
         do {
-            let firestoreOrders = try await networkManager.fetchOrderHistoryFromFirestore()
+            let firestoreOrders = try await firebaseManager.fetchOrderHistoryFromFirestore()
             coreDataManager.deleteAllOrders()
             coreDataManager.saveOrdersFromFirestore(firestoreOrders)
         } catch {

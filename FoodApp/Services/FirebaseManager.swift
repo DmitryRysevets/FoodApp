@@ -147,8 +147,11 @@ final class FirebaseManager {
                 dishes.append(dish)
             }
         }
+        
+        var menu = Menu(offers: offers, dishes: dishes)
+        menu.categoriesContainer.categories.insert("All", at: 0)
 
-        return Menu(offers: offers, dishes: dishes)
+        return menu
     }
     
     func getLatestMenuVersionNumber() async throws -> String {

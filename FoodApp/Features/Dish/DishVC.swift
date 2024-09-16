@@ -453,7 +453,7 @@ final class DishVC: UIViewController {
     
     // MARK: - Controller methods
     
-    init(dish: Dish, color: UIColor) {
+    init(dish: Dish, color: UIColor = ColorManager.shared.getRandomColor()) {
         self.dish = dish
         relatedProducts = CoreDataManager.shared.findSimilarDishes(to: dish)
         super.init(nibName: nil, bundle: nil)

@@ -13,7 +13,7 @@ final class UserManager {
     private init() {}
 
     private let coreDataManager = CoreDataManager.shared
-    private let networkManager = FirebaseManager.shared
+    private let firebaseManager = FirebaseManager.shared
     
     func isUserLoggedIn() -> Bool {
         return Auth.auth().currentUser != nil
@@ -24,11 +24,11 @@ final class UserManager {
     }
     
     func authenticateUser(email: String, password: String) async throws {
-        let user = try await networkManager.authenticateUser(email: email, password: password)
+        let user = try await firebaseManager.authenticateUser(email: email, password: password)
         coreDataManager.saveUser(user)
         
         if let avatarURL = user.photoURL?.absoluteString {
-            let avatarData = try await networkManager.downloadImage(from: avatarURL)
+            let avatarData = try await firebaseManager.downloadImage(from: avatarURL)
             coreDataManager.updateUserAvatar(with: avatarData)
         }
         
@@ -40,7 +40,7 @@ final class UserManager {
     }
     
     func registerUser(name: String, email: String, password: String) async throws {
-        let user = try await networkManager.registerUser(email: email, password: password)
+        let user = try await firebaseManager.registerUser(email: email, password: password)
         coreDataManager.saveUser(user)
         
         if !name.isEmpty {
@@ -55,17 +55,17 @@ final class UserManager {
     }
     
     func setUserName(_ name: String) async throws {
-        try await networkManager.setDisplayName(name)
+        try await firebaseManager.setDisplayName(name)
         coreDataManager.setDisplayName(name)
     }
     
     func updateEmail(to newEmail: String, withPassword password: String) async throws {
-        try await networkManager.updateEmail(to: newEmail, withPassword: password)
+        try await firebaseManager.updateEmail(to: newEmail, withPassword: password)
         coreDataManager.updateEmail(newEmail)
     }
     
     func updatePassword(currentPassword: String, to newPassword: String) async throws {
-        try await networkManager.updatePassword(currentPassword: currentPassword, to: newPassword)
+        try await firebaseManager.updatePassword(currentPassword: currentPassword, to: newPassword)
     }
     
     func getUserAvatar() -> UIImage? {
@@ -80,12 +80,12 @@ final class UserManager {
     func uploadUserAvatar(_ image: UIImage) async throws {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
 
-        let avatarURL = try await networkManager.uploadUserAvatar(imageData)
+        let avatarURL = try await firebaseManager.uploadUserAvatar(imageData)
         coreDataManager.updateUserAvatar(avatarData: imageData, avatarURL: avatarURL.absoluteString)
     }
 
     func deleteUserAvatar() async throws {
-        try await networkManager.deleteUserAvatar()
+        try await firebaseManager.deleteUserAvatar()
         coreDataManager.updateUserAvatar(avatarData: nil, avatarURL: nil)
     }
 }

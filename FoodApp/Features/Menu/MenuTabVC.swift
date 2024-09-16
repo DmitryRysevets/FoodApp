@@ -137,12 +137,12 @@ final class MenuTabVC: UIViewController {
         setupConstraints()
         configureDataSource()
         applyInitialSnapshot()
-        getMenu()
+        getMenuFromCoreData()
+        menuCheck()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
-        getMenuFromCoreData()
         if !isMenuReceived {
             preloaderView.startLoadingAnimation()
         }
@@ -220,14 +220,16 @@ final class MenuTabVC: UIViewController {
         if dishColors.count != menu.dishes.count {
             dishColors = ColorManager.shared.getColors(menu.dishes.count)
         }
-
-        isMenuReceived = true
-        preloaderView.isHidden = true
         
-        nestedOffersSnapshot = createOffersSnapshot()
-        nestedCategoriesSnapshot = createCategoriesSnapshot()
-        
-        applyFilteredSnapshot()
+        if !menu.dishes.isEmpty {
+            isMenuReceived = true
+            preloaderView.isHidden = true
+            
+            nestedOffersSnapshot = createOffersSnapshot()
+            nestedCategoriesSnapshot = createCategoriesSnapshot()
+            
+            applyFilteredSnapshot()
+        }
     }
     
     private func createOffersSnapshot() -> NSDiffableDataSourceSnapshot<Int, Offer> {
@@ -397,7 +399,7 @@ final class MenuTabVC: UIViewController {
         )
     }
     
-    private func getMenu() {
+    private func menuCheck() {
         Task {
             if let menu = await MenuManager.shared.getLatestMenu() {
                 self.menu = menu

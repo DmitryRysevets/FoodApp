@@ -6,5 +6,5 @@
 import Foundation
 
 struct CategoriesContainer: Hashable {
-    var categories: [String] = ["All"]
+    var categories: [String]
 }
