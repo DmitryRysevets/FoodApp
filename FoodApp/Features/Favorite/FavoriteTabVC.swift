@@ -78,10 +78,14 @@ final class FavoriteTabVC: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        let favorite = CoreDataManager.shared.fetchFavorites()
-        if favoriteDishes != favorite {
-            favoriteDishes = favorite
-            tableView.reloadData()
+        do {
+            let favorite = try CoreDataManager.shared.fetchFavorites()
+            if favoriteDishes != favorite {
+                favoriteDishes = favorite
+                tableView.reloadData()
+            }
+        } catch {
+            // need handler
         }
     }
     
@@ -123,12 +127,14 @@ final class FavoriteTabVC: UIViewController {
     }
     
     private func deleteFromFavorite(at indexPath: IndexPath) {
-        let itemToDelete = favoriteDishes[indexPath.row]
-        CoreDataManager.shared.deleteFromFavorite(by: itemToDelete.id)
-
-        favoriteDishes.remove(at: indexPath.row)
-        
-        tableView.deleteRows(at: [indexPath], with: .automatic)
+        do {
+            let itemToDelete = favoriteDishes[indexPath.row]
+            try CoreDataManager.shared.deleteFromFavorite(by: itemToDelete.id)
+            favoriteDishes.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        } catch {
+            // need handler
+        }
     }
 }
 

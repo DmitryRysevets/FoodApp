@@ -401,15 +401,24 @@ final class MenuTabVC: UIViewController {
     
     private func menuCheck() {
         Task {
-            if let menu = await MenuManager.shared.getLatestMenu() {
-                self.menu = menu
+            do {
+                let menuUpdateIsNeeded = try await !MenuManager.shared.isLatestMenuDownloaded()
+                if menuUpdateIsNeeded {
+                    menu = try await MenuManager.shared.getLatestMenu()
+                }
+            } catch {
+                // need handler
             }
         }
     }
     
     private func getMenuFromCoreData() {
-        if let menu = CoreDataManager.shared.fetchMenu() {
-            self.menu = menu
+        do {
+            if let menu = try CoreDataManager.shared.fetchMenu() {
+                self.menu = menu
+            }
+        } catch {
+            // need handler
         }
     }
     

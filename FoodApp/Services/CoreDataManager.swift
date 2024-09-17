@@ -7,6 +7,13 @@ import Foundation
 import CoreData
 import FirebaseAuth
 
+enum CoreDataManagerError: Error {
+    case fetchError(Error)
+    case saveError(Error)
+    case deleteError(Error)
+    case favoriteNotFound
+}
+
 final class CoreDataManager {
     
     static let shared = CoreDataManager()
@@ -43,7 +50,7 @@ final class CoreDataManager {
     
     // MARK: - Menu methods
     
-    func fetchMenu() -> Menu? {
+    func fetchMenu() throws -> Menu? {
         let fetchRequestDishes: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
         let fetchRequestOffers: NSFetchRequest<OfferEntity> = OfferEntity.fetchRequest()
         let fetchRequestCategories: NSFetchRequest<CategoriesContainerEntity> = CategoriesContainerEntity.fetchRequest()
@@ -57,23 +64,28 @@ final class CoreDataManager {
             let offers = offerEntities.map { Offer(from: $0) }
             let categories = (categoriesContainerEntities.first?.categories as? [String]) ?? []
             
+            if dishes.isEmpty && offers.isEmpty && categories.isEmpty {
+                return nil
+            }
+            
             return Menu(offers: offers, dishes: dishes, categories: categories)
+            
         } catch {
-            print("Failed to fetch menu: \(error)")
-            return nil
+            throw CoreDataManagerError.fetchError(error)
         }
     }
+
     
-    func saveMenu(_ menu: Menu, version: String) {
+    func saveMenu(_ menu: Menu, version: String) throws {
         // Fetch existing favorite dish IDs
-        let favoriteDishes = fetchFavorites()
+        let favoriteDishes = try fetchFavorites()
         let favoriteDishIDs = Set(favoriteDishes.map { $0.id })
         
         // Clear existing data
         do {
             try deleteMenu()
         } catch {
-            print("Failed to clear existing data: \(error)")
+            throw CoreDataManagerError.deleteError(error)
         }
         
         // Save new menu data
@@ -107,7 +119,7 @@ final class CoreDataManager {
             
             versionNumber.version = version
         } catch {
-            print("Failed to fetch or save current menu version: \(error)")
+            throw CoreDataManagerError.saveError(error)
         }
         
         saveContext()
@@ -123,13 +135,17 @@ final class CoreDataManager {
         let batchDeleteRequestOffers = NSBatchDeleteRequest(fetchRequest: fetchRequestOffers)
         let batchDeleteRequestCategories = NSBatchDeleteRequest(fetchRequest: fetchRequestCategories)
         
-        try context.execute(batchDeleteRequestDishes)
-        try context.execute(batchDeleteRequestOffers)
-        try context.execute(batchDeleteRequestCategories)
+        do {
+            try context.execute(batchDeleteRequestDishes)
+            try context.execute(batchDeleteRequestOffers)
+            try context.execute(batchDeleteRequestCategories)
+        } catch {
+            throw CoreDataManagerError.deleteError(error)
+        }
     }
     
-    func isMenuDifferentFrom(_ newMenu: Menu) -> Bool {
-        guard let existingMenu = fetchMenu() else { return true }
+    func isMenuDifferentFrom(_ newMenu: Menu) throws -> Bool {
+        guard let existingMenu = try fetchMenu() else { return true }
         
         let existingDishIDs = Set(existingMenu.dishes.map { $0.id })
         let newDishIDs = Set(newMenu.dishes.map { $0.id })
@@ -140,25 +156,20 @@ final class CoreDataManager {
         return existingDishIDs != newDishIDs || existingOfferIDs != newOfferIDs
     }
     
-    func getCurrentMenuVersionNumber() -> String? {
+    func getCurrentMenuVersionNumber() throws -> String? {
         let fetchRequest: NSFetchRequest<MenuVersion> = MenuVersion.fetchRequest()
         
         do {
             let results = try context.fetch(fetchRequest)
-            if let versionNumber = results.first {
-                return versionNumber.version
-            } else {
-                return nil
-            }
+            return results.first?.version
         } catch {
-            print("Failed to fetch current menu version: \(error)")
-            return nil
+            throw CoreDataManagerError.fetchError(error)
         }
     }
     
     // MARK: - Favorite methods
     
-    func fetchFavorites() -> [Dish] {
+    func fetchFavorites() throws -> [Dish] {
         let fetchRequest: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "isFavorite == true")
         
@@ -166,12 +177,11 @@ final class CoreDataManager {
             let dishEntities = try context.fetch(fetchRequest)
             return dishEntities.map { Dish(from: $0) }
         } catch {
-            print("Failed to fetch favorite dishes: \(error)")
-            return []
+            throw CoreDataManagerError.fetchError(error)
         }
     }
     
-    func setAsFavorite(by dishID: String) {
+    func setAsFavorite(by dishID: String) throws {
         let fetchRequest: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", dishID)
         
@@ -180,13 +190,15 @@ final class CoreDataManager {
             if let dish = dishes.first {
                 dish.isFavorite = true
                 saveContext()
+            } else {
+                throw CoreDataManagerError.favoriteNotFound
             }
         } catch {
-            print("Failed to set as favorite: \(error)")
+            throw CoreDataManagerError.saveError(error)
         }
     }
     
-    func deleteFromFavorite(by dishID: String) {
+    func deleteFromFavorite(by dishID: String) throws {
         let fetchRequest: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", dishID)
         
@@ -195,9 +207,11 @@ final class CoreDataManager {
             if let dish = dishes.first {
                 dish.isFavorite = false
                 saveContext()
+            } else {
+                throw CoreDataManagerError.favoriteNotFound
             }
         } catch {
-            print("Failed to delete from favorite: \(error)")
+            throw CoreDataManagerError.deleteError(error)
         }
     }
     

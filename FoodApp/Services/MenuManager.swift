@@ -13,34 +13,17 @@ final class MenuManager {
 
     private let coreDataManager = CoreDataManager.shared
     private let firebaseManager = FirebaseManager.shared
-
-    // MARK: - Menu methods
     
-    func isLatestMenuInStorage() async -> Bool {
-        do {
-            let localVersion = coreDataManager.getCurrentMenuVersionNumber()
-            let latestVersion = try await firebaseManager.getLatestMenuVersionNumber()
-            return localVersion == latestVersion
-        } catch {
-            print("Error fetching menu version from firestore: \(error)")
-            return false
-        }
+    func isLatestMenuDownloaded() async throws -> Bool {
+        let localVersion = try coreDataManager.getCurrentMenuVersionNumber()
+        let latestVersion = try await firebaseManager.getLatestMenuVersionNumber()
+        return localVersion == latestVersion
     }
     
-    func getLatestMenu() async -> Menu? {
-        do {
-            let isLatest = await isLatestMenuInStorage()
-            if isLatest, let menu = coreDataManager.fetchMenu() {
-                return menu
-            } else {
-                let newMenu = try await firebaseManager.getMenu()
-                let latestVersion = try await firebaseManager.getLatestMenuVersionNumber()
-                coreDataManager.saveMenu(newMenu, version: latestVersion)
-                return newMenu
-            }
-        } catch {
-            print("Error fetching from firestore: \(error)")
-            return nil
-        }
+    func getLatestMenu() async throws -> Menu {
+        let menu = try await firebaseManager.getMenu()
+        let latestVersion = try await firebaseManager.getLatestMenuVersionNumber()
+        try coreDataManager.saveMenu(menu, version: latestVersion)
+        return menu
     }
 }
