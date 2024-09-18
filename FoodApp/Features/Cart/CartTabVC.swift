@@ -237,17 +237,25 @@ final class CartTabVC: UIViewController {
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        CoreDataManager.shared.saveCart(cartContent)
+        do {
+            try CoreDataManager.shared.saveCart(cartContent)
+        } catch {
+            // need handler
+        }
     }
     
     // MARK: - Private methods
     
     private func checkCart() {
-        let items = CoreDataManager.shared.fetchCart()
-        if cartContent != items {
-            cartContent = items
-            tableView.reloadData()
-            updateTableViewHeight()
+        do {
+            let items = try CoreDataManager.shared.fetchCart()
+            if cartContent != items {
+                cartContent = items
+                tableView.reloadData()
+                updateTableViewHeight()
+            }
+        } catch {
+            // need handler
         }
     }
     
@@ -399,13 +407,16 @@ final class CartTabVC: UIViewController {
     }
     
     private func deleteCartItem(at indexPath: IndexPath) {
-        let itemToDelete = cartContent[indexPath.row]
-        CoreDataManager.shared.deleteCartItem(by: itemToDelete.dish.id)
-
-        cartItemColors.remove(at: indexPath.row)
-        cartContent.remove(at: indexPath.row)
-        
-        tableView.deleteRows(at: [indexPath], with: .automatic)
+        do {
+            let itemToDelete = cartContent[indexPath.row]
+            try CoreDataManager.shared.deleteCartItem(by: itemToDelete.dish.id)
+            
+            cartItemColors.remove(at: indexPath.row)
+            cartContent.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        } catch {
+            // need handler
+        }
         
         UIView.animate(withDuration: 0.3) {
             self.updateTableViewHeight()

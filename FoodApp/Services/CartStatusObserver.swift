@@ -15,8 +15,8 @@ final class CartStatusObserver {
     
     var cartStatusDidChange: ((Bool) -> Void)?
     
-    func observeCartStatus() {
-        let isCurrentlyEmpty = CoreDataManager.shared.cartIsEmpty()
+    func observeCartStatus() throws {
+        let isCurrentlyEmpty = try CoreDataManager.shared.cartIsEmpty()
         
         if isCurrentlyEmpty != isCartEmpty {
             isCartEmpty = isCurrentlyEmpty

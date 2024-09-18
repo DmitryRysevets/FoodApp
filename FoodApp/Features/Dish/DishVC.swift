@@ -10,7 +10,7 @@ final class DishVC: UIViewController {
     var isFavoriteDidChange: ((Bool) -> Void)?
     
     private let dish: Dish
-    private let relatedProducts: [Dish]
+    private var relatedProducts: [Dish] = []
 
     private lazy var relatedProductColors = ColorManager.shared.getColors(relatedProducts.count)
     
@@ -455,10 +455,14 @@ final class DishVC: UIViewController {
     
     init(dish: Dish, color: UIColor = ColorManager.shared.getRandomColor()) {
         self.dish = dish
-        relatedProducts = CoreDataManager.shared.findSimilarDishes(to: dish)
         super.init(nibName: nil, bundle: nil)
         coloredBackgroundView.backgroundColor = color
         favoriteButton.isSelected = dish.isFavorite
+        do {
+            relatedProducts = try CoreDataManager.shared.findSimilarDishes(to: dish)
+        } catch {
+            // need handler
+        }
     }
     
     required init?(coder: NSCoder) {
@@ -826,8 +830,12 @@ final class DishVC: UIViewController {
     
     @objc
     private func addToCartButtonTouchUp() {
-        if let quantity = Int(quantityLabel.text ?? "1") {
-            CoreDataManager.shared.saveCartItem(dish: dish, quantity: quantity)
+        do {
+            if let quantity = Int(quantityLabel.text ?? "1") {
+                try CoreDataManager.shared.saveCartItem(dish: dish, quantity: quantity)
+            }
+        } catch {
+            // need handler
         }
         
         UIView.animate(withDuration: 0.1, delay: 0.1, options: [], animations: {

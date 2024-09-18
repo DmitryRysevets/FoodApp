@@ -178,7 +178,12 @@ final class DishCell: UICollectionViewCell {
     
     @objc 
     private func addButtonTouchUp() {
-        CoreDataManager.shared.saveCartItem(dish: dishData, quantity: 1)
+        do {
+            try CoreDataManager.shared.saveCartItem(dish: dishData, quantity: 1)
+        } catch {
+            // need handler
+        }
+        
         UIView.animate(withDuration: 0.1, delay: 0.1, options: [], animations: {
             self.addButton.transform = CGAffineTransform.identity
         }, completion: nil)

@@ -948,7 +948,7 @@ final class PaymentVC: UIViewController {
                                                              phone: "",
                                                              orderItems: orderItems)
                     
-                    CoreDataManager.shared.clearCart()
+                    try CoreDataManager.shared.clearCart()
                     navigationController?.popViewController(animated: true)
                 } catch {
                     handleOrderPlacementError(error)

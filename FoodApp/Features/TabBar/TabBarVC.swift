@@ -195,7 +195,12 @@ class TabBarVC: UIViewController {
         CartStatusObserver.shared.cartStatusDidChange = { [weak self] value in
             self?.cartIsEmpty = value
         }
-        CartStatusObserver.shared.observeCartStatus()
+        
+        do {
+            try CartStatusObserver.shared.observeCartStatus()
+        } catch {
+            // need handler
+        }
     }
     
     private func updateCartIcon() {

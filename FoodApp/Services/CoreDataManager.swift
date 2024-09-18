@@ -11,7 +11,13 @@ enum CoreDataManagerError: Error {
     case fetchError(Error)
     case saveError(Error)
     case deleteError(Error)
+    
+    case dishNotFound
     case favoriteNotFound
+    case cartItemNotFound
+
+    case clearCartError(Error)
+    case batchDeleteError(Error)
 }
 
 final class CoreDataManager {
@@ -217,7 +223,7 @@ final class CoreDataManager {
     
     // MARK: - Cart methods
     
-    func saveCartItem(dish: Dish, quantity: Int) {
+    func saveCartItem(dish: Dish, quantity: Int) throws {
         let fetchRequest: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "dishID == %@", dish.id)
         
@@ -233,13 +239,13 @@ final class CoreDataManager {
             }
             
             saveContext()
-            CartStatusObserver.shared.observeCartStatus()
+            try CartStatusObserver.shared.observeCartStatus()
         } catch {
-            print("Failed to fetch cart item: \(error)")
+            throw CoreDataManagerError.fetchError(error)
         }
     }
     
-    func deleteCartItem(by dishID: String) {
+    func deleteCartItem(by dishID: String) throws {
         let fetchRequest: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "dishID == %@", dishID)
         
@@ -249,16 +255,17 @@ final class CoreDataManager {
             if let cartItem = cartItems.first {
                 context.delete(cartItem)
                 saveContext()
-                CartStatusObserver.shared.observeCartStatus()
+                try CartStatusObserver.shared.observeCartStatus()
             } else {
                 print("Cart item with dishID \(dishID) not found.")
+                throw CoreDataManagerError.cartItemNotFound
             }
         } catch {
-            print("Failed to fetch cart item for deletion: \(error)")
+            throw CoreDataManagerError.deleteError(error)
         }
     }
     
-    func fetchCart() -> [CartItem] {
+    func fetchCart() throws -> [CartItem] {
         let fetchRequest: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
         
         do {
@@ -266,65 +273,67 @@ final class CoreDataManager {
             var cartItems: [CartItem] = []
             
             for entity in cartItemEntities {
-                if let dish = fetchDish(by: entity.dishID!) {
+                do {
+                    let dish = try fetchDish(by: entity.dishID!)
                     let cartItem = CartItem(dish: dish, quantity: Int(entity.quantity))
                     cartItems.append(cartItem)
+                } catch {
+                    continue
                 }
+                                
             }
             
             return cartItems
         } catch {
-            print("Failed to fetch cart: \(error)")
-            return []
+            throw CoreDataManagerError.fetchError(error)
         }
     }
     
-    func saveCart(_ cartItems: [CartItem]) {
+    func saveCart(_ cartItems: [CartItem]) throws {
         let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CartItemEntity.fetchRequest()
         let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
         
         do {
             try context.execute(batchDeleteRequest)
+            
+            for item in cartItems {
+                let cartItemEntity = CartItemEntity(context: context)
+                cartItemEntity.update(with: item)
+            }
+            
+            saveContext()
         } catch {
-            print("Failed to clear existing cart items: \(error)")
+            throw CoreDataManagerError.batchDeleteError(error)
         }
-        
-        for item in cartItems {
-            let cartItemEntity = CartItemEntity(context: context)
-            cartItemEntity.update(with: item)
-        }
-        
-        saveContext()
     }
     
-    func clearCart() {
+    func clearCart() throws {
         let fetchRequest: NSFetchRequest<NSFetchRequestResult> = CartItemEntity.fetchRequest()
         let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
         
         do {
             try context.execute(batchDeleteRequest)
             saveContext()
-            CartStatusObserver.shared.observeCartStatus()
+            try CartStatusObserver.shared.observeCartStatus()
         } catch {
-            print("Failed to clear cart: \(error)")
+            throw CoreDataManagerError.clearCartError(error)
         }
     }
     
-    func cartIsEmpty() -> Bool {
+    func cartIsEmpty() throws -> Bool {
         let fetchRequest: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
         
         do {
             let itemCount = try context.count(for: fetchRequest)
             return itemCount == 0
         } catch {
-            print("Failed to fetch cart items count: \(error)")
-            return true
+            throw CoreDataManagerError.fetchError(error)
         }
     }
     
     // MARK: - Dish methods
     
-    func findSimilarDishes(to dish: Dish, limit: Int = 3) -> [Dish] {
+    func findSimilarDishes(to dish: Dish, limit: Int = 3) throws -> [Dish] {
         let fetchRequest: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
         
         do {
@@ -336,8 +345,7 @@ final class CoreDataManager {
             }
             return Array(similarDishes.prefix(limit))
         } catch {
-            print("Failed to fetch dishes: \(error)")
-            return []
+            throw CoreDataManagerError.fetchError(error)
         }
     }
     
@@ -346,7 +354,7 @@ final class CoreDataManager {
         return commonTags.count
     }
     
-    func fetchDish(by id: String) -> Dish? {
+    func fetchDish(by id: String) throws -> Dish {
         let fetchRequest: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", id)
         
@@ -354,11 +362,12 @@ final class CoreDataManager {
             let dishes = try context.fetch(fetchRequest)
             if let dishEntity = dishes.first {
                 return Dish(from: dishEntity)
+            } else {
+                throw CoreDataManagerError.dishNotFound
             }
         } catch {
-            print("Failed to fetch dish by id: \(error)")
+            throw CoreDataManagerError.fetchError(error)
         }
-        return nil
     }
     
     // MARK: - Payment card methods

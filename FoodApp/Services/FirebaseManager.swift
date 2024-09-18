@@ -17,6 +17,7 @@ enum FirebaseManagerError: Error {
     case uploadImageFailed(Error)
     case firestoreDataWasNotReceived(Error)
     case firestoreDataWasNotSaved(Error)
+    
     case authenticationFailed
     case userAlreadyExists
     case userNotFound
