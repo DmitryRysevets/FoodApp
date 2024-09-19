@@ -21,9 +21,15 @@ final class MenuManager {
     }
     
     func getLatestMenu() async throws -> Menu {
-        let menu = try await firebaseManager.getMenu()
-        let latestVersion = try await firebaseManager.getLatestMenuVersionNumber()
-        try coreDataManager.saveMenu(menu, version: latestVersion)
+        async let fetchedMenu = firebaseManager.getMenu()
+        async let latestVersion = firebaseManager.getLatestMenuVersionNumber()
+        
+        let menu = try await fetchedMenu
+        let version = try await latestVersion
+        
+        try coreDataManager.saveMenu(menu, version: version)
+        
         return menu
     }
+
 }

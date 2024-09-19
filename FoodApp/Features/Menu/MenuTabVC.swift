@@ -445,7 +445,15 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func notificationButtonTaped() {
-        
+        // for testing
+        do {
+            try CoreDataManager.shared.deleteMenu()
+            try CoreDataManager.shared.clearCart()
+            CoreDataManager.shared.deleteCurrentMenuVersion()
+            menu = Menu()
+        } catch {
+            print("menu delete error: \(error)")
+        }
     }
     
     @objc

@@ -20,20 +20,16 @@ final class OrderManager {
 
         do {
             try await firebaseManager.saveOrderToFirestore(order)
-            coreDataManager.saveOrder(order)
+            try coreDataManager.saveOrder(order)
         } catch {
-            coreDataManager.deleteOrderFromContext(order)
+            try coreDataManager.deleteOrderFromContext(order)
             throw error
         }
     }
 
     func fetchOrderHistory() async throws {
-        do {
-            let firestoreOrders = try await firebaseManager.fetchOrderHistoryFromFirestore()
-            coreDataManager.deleteAllOrders()
-            coreDataManager.saveOrdersFromFirestore(firestoreOrders)
-        } catch {
-            throw error
-        }
+        let firestoreOrders = try await firebaseManager.fetchOrderHistoryFromFirestore()
+        try coreDataManager.deleteAllOrders()
+        try coreDataManager.saveOrdersFromFirestore(firestoreOrders)
     }
 }
