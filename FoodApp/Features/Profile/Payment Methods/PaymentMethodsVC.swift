@@ -106,8 +106,12 @@ final class PaymentMethodsVC: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        cards = CoreDataManager.shared.fetchAllCards()
-        tableView.reloadData()
+        do {
+            cards = try CoreDataManager.shared.fetchAllCards()
+            tableView.reloadData()
+        } catch {
+            // need handler
+        }
     }
     
     // MARK: - Private methods
@@ -168,9 +172,13 @@ final class PaymentMethodsVC: UIViewController {
     
     private func deleteCard(at indexPath: IndexPath) {
         guard let cardName = cards[indexPath.row].cardName else { return }
-        CoreDataManager.shared.deleteCard(by: cardName)
-        cards.remove(at: indexPath.row)
-        tableView.deleteRows(at: [indexPath], with: .automatic)
+        do {
+            try CoreDataManager.shared.deleteCard(by: cardName)
+            cards.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        } catch {
+            // need handler
+        }
     }
     
     private func setPrefferedCardInLocal(at indexPath: IndexPath) {
@@ -272,10 +280,14 @@ extension PaymentMethodsVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if !cards[indexPath.row].isPreferred {
             guard let cardName = cards[indexPath.row].cardName else { return }
-            CoreDataManager.shared.setPreferredCard(by: cardName)
-            setPrefferedCardInLocal(at: indexPath)
-            tableView.reloadData()
-            navigationController?.popViewController(animated: true)
+            do {
+                try CoreDataManager.shared.setPreferredCard(by: cardName)
+                setPrefferedCardInLocal(at: indexPath)
+                tableView.reloadData()
+                navigationController?.popViewController(animated: true)
+            } catch {
+                // need handler
+            }
         }
     }
     

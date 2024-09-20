@@ -76,7 +76,11 @@ final class ProfileTabVC: UIViewController {
             let defaultAddress = CoreDataManager.shared.getDefaultAddress()
             self.addressName = defaultAddress?.placeName
             self.cardName = CoreDataManager.shared.getPreferredCardName()
-            self.user = self.userManager.getUser()
+            do {
+                self.user = try self.userManager.getUser()
+            } catch {
+                // need handler
+            }
         }
     }
     
@@ -212,6 +216,7 @@ extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
         switch menuItems[indexPath.row] {
         case "Account":
             let vc = AccountVC()
+            print(Auth.auth().currentUser)
             vc.isUserLoggedIn = userManager.isUserLoggedIn()
             navigationController?.pushViewController(vc, animated: true)
         case "Delivery Addresses":

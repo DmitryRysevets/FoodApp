@@ -458,7 +458,7 @@ final class CoreDataManager {
         try saveContext()
     }
     
-    func getPreferredCardName() throws -> String? {
+    func getPreferredCardName() -> String? {
         let fetchRequest: NSFetchRequest<CardEntity> = CardEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "isPreferred == true")
         fetchRequest.fetchLimit = 1
@@ -467,10 +467,10 @@ final class CoreDataManager {
             if let preferredCard = try context.fetch(fetchRequest).first {
                 return preferredCard.cardName
             } else {
-                throw CoreDataManagerError.itemNotFound
+                return nil
             }
         } catch {
-            throw CoreDataManagerError.fetchError(error)
+            return nil
         }
     }
     
@@ -588,8 +588,7 @@ final class CoreDataManager {
         try saveContext()
     }
 
-    
-    func getDefaultAddress() throws -> AddressEntity? {
+    func getDefaultAddress() -> AddressEntity? {
         let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "isDefaultAddress == true")
         fetchRequest.fetchLimit = 1
@@ -597,10 +596,9 @@ final class CoreDataManager {
         do {
             return try context.fetch(fetchRequest).first
         } catch {
-            throw CoreDataManagerError.fetchError(error)
+            return nil
         }
     }
-
     
     func placeNameExists(_ placeName: String) -> Bool {
         let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()

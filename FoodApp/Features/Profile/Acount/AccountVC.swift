@@ -7,7 +7,7 @@ import UIKit
 
 final class AccountVC: UIViewController {
     
-    var isUserLoggedIn = UserManager.shared.isUserLoggedIn() {
+    var isUserLoggedIn = false {
         didSet {
             tableView.reloadData()
         }

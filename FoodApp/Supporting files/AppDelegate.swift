@@ -22,7 +22,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     func applicationWillTerminate(_ application: UIApplication) {
-        CoreDataManager.shared.saveContext()
+        do {
+            try CoreDataManager.shared.saveContext()
+        } catch {
+            // need handler
+        }
     }
 
     // MARK: UISceneSession Lifecycle

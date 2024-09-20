@@ -67,8 +67,12 @@ final class SetUsernameVC: UIViewController {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
         
-        let user = UserManager.shared.getUser()
-        usernameField.text = user?.displayName
+        do {
+            let user = try UserManager.shared.getUser()
+            usernameField.text = user?.displayName
+        } catch {
+            // need handler
+        }
     }
     
     // MARK: - Private methods

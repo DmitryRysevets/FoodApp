@@ -96,8 +96,13 @@ final class DeliveryAddressesVC: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        addresses = CoreDataManager.shared.fetchAllAddresses()
-        tableView.reloadData()
+        do {
+            addresses = try CoreDataManager.shared.fetchAllAddresses()
+            tableView.reloadData()
+        } catch {
+            let notification = NotificationView(message: "An error occurred while loading the data. Please try again later.", type: .error, interval: 5)
+            notification.show(in: self)
+        }
     }
     
     // MARK: - Private methods
@@ -154,9 +159,14 @@ final class DeliveryAddressesVC: UIViewController {
     
     private func deleteAddress(at indexPath: IndexPath) {
         guard let placeName = addresses[indexPath.row].placeName else { return }
-        CoreDataManager.shared.deleteAddress(by: placeName)
-        addresses.remove(at: indexPath.row)
-        tableView.deleteRows(at: [indexPath], with: .automatic)
+        do {
+            try CoreDataManager.shared.deleteAddress(by: placeName)
+            addresses.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+        } catch {
+            let notification = NotificationView(message: "An error occurred while deleting the data. Please try again later.", type: .error, interval: 5)
+            notification.show(in: self)
+        }
     }
     
     private func setAddressAsDefaultInLocal(at indexPath: IndexPath) {
@@ -227,10 +237,15 @@ extension DeliveryAddressesVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if !addresses[indexPath.row].isDefaultAddress {
             guard let placeName = addresses[indexPath.row].placeName else { return }
-            CoreDataManager.shared.setAddressAsDefault(by: placeName)
-            setAddressAsDefaultInLocal(at: indexPath)
-            tableView.reloadData()
-            navigationController?.popViewController(animated: true)
+            do {
+                try CoreDataManager.shared.setAddressAsDefault(by: placeName)
+                setAddressAsDefaultInLocal(at: indexPath)
+                tableView.reloadData()
+                navigationController?.popViewController(animated: true)
+            } catch {
+                let notification = NotificationView(message: "An error occurred while working with the data. Please try again later.", type: .error, interval: 5)
+                notification.show(in: self)
+            }
         }
     }
     

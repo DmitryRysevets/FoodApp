@@ -57,7 +57,12 @@ final class OrderHistoryVC: UIViewController {
         setupUI()
         setupConstraints()
         
-        orders = CoreDataManager.shared.fetchOrders()
+        do {
+            orders = try CoreDataManager.shared.fetchOrders()
+        } catch {
+            let notification = NotificationView(message: "An error occurred while loading the data. Please try again later.", type: .error, interval: 5)
+            notification.show(in: self)
+        }
         
         orderHistoryIsEmpty.isHidden = !orders.isEmpty
     }

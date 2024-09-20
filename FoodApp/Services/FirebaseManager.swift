@@ -7,8 +7,10 @@ import Foundation
 import FirebaseFirestore
 import FirebaseStorage
 import FirebaseAuth
+import Network
 
 enum FirebaseManagerError: Error {
+    case noInternetConnection
     case invalidData
     case parseDataFailed
     case updateFailed(Error)
@@ -31,30 +33,43 @@ final class FirebaseManager {
 
     static let shared = FirebaseManager()
 
-    private init() {}
+    private init() {
+        networkMonitor.pathUpdateHandler = { [weak self] path in
+            self?.isConnectedToNetwork = (path.status == .satisfied)
+        }
+        networkMonitor.start(queue: networkQueue)
+    }
 
     private let firestore = Firestore.firestore()
     private let storage = Storage.storage()
     private let auth = Auth.auth()
     
+    private let networkMonitor = NWPathMonitor()
+    private let networkQueue = DispatchQueue.global(qos: .background)
+    
+    private(set) var isConnectedToNetwork: Bool = false
+    
+    private func checkConnection() throws {
+        guard isConnectedToNetwork else { throw FirebaseManagerError.noInternetConnection }
+    }
+    
     func downloadImage(from storageURL: String) async throws -> Data {
-        let imageStorageReference = storage.reference(forURL: storageURL)
+        try checkConnection()
+        
+        let storageRef = storage.reference(forURL: storageURL)
         let maxImageSize: Int64 = 3 * 1024 * 1024 // 3MB
 
-        return try await withCheckedThrowingContinuation { continuation in
-            imageStorageReference.getData(maxSize: maxImageSize) { data, error in
-                if let error = error {
-                    continuation.resume(throwing: FirebaseManagerError.downloadImageFailed(error))
-                } else if let data = data {
-                    continuation.resume(returning: data)
-                } else {
-                    fatalError("\(#function) Unexpected: Both data and error are nil")
-                }
-            }
+        do {
+            let data = try await storageRef.data(maxSize: maxImageSize)
+            return data
+        } catch {
+            throw FirebaseManagerError.networkError(error)
         }
     }
     
     func sendFeedback(message: String) async throws {
+        try checkConnection()
+        
         let userID: String
         if let currentUser = auth.currentUser {
             userID = currentUser.uid
@@ -79,6 +94,8 @@ final class FirebaseManager {
     }
     
     func applyPromoCode(_ code: String) async throws -> (discountPercentage: Int, freeDelivery: Bool) {
+        try checkConnection()
+        
         let promoCodeRef = firestore.collection("promoCodes").document(code)
         
         do {
@@ -121,6 +138,8 @@ final class FirebaseManager {
     // MARK: - Menu methods
 
     func getMenu() async throws -> Menu {
+        try checkConnection()
+        
         let offersData = try await getFirestoreData("offers")
         let dishesData = try await getFirestoreData("menu")
 
@@ -156,6 +175,8 @@ final class FirebaseManager {
     }
     
     func getLatestMenuVersionNumber() async throws -> String {
+        try checkConnection()
+        
         let documents = try await getFirestoreData("versions")
                 
         guard let document = documents.first(where: { $0.documentID == "latest" }),
@@ -171,48 +192,40 @@ final class FirebaseManager {
     // MARK: - User methods
 
     func authenticateUser(email: String, password: String) async throws -> User {
-        return try await withCheckedThrowingContinuation { continuation in
-            auth.signIn(withEmail: email, password: password) { authResult, error in
-                if let error = error {
-                    if (error as NSError).code == AuthErrorCode.networkError.rawValue {
-                        continuation.resume(throwing: FirebaseManagerError.networkError(error))
-                    } else {
-                        continuation.resume(throwing: FirebaseManagerError.authenticationFailed)
-                    }
-                    return
-                }
-                guard let user = authResult?.user else {
-                    continuation.resume(throwing: FirebaseManagerError.authenticationFailed)
-                    return
-                }
-                continuation.resume(returning: user)
+        try checkConnection()
+        
+        do {
+            let result = try await auth.signIn(withEmail: email, password: password)
+            return result.user
+        } catch let error as NSError {
+            if error.code == AuthErrorCode.networkError.rawValue {
+                throw FirebaseManagerError.networkError(error)
             }
+            throw FirebaseManagerError.authenticationFailed
         }
     }
-
+  
     func registerUser(email: String, password: String) async throws -> User {
-        return try await withCheckedThrowingContinuation { continuation in
-            auth.createUser(withEmail: email, password: password) { authResult, error in
-                if let error = error {
-                    if (error as NSError).code == AuthErrorCode.emailAlreadyInUse.rawValue {
-                        continuation.resume(throwing: FirebaseManagerError.userAlreadyExists)
-                    } else if (error as NSError).code == AuthErrorCode.networkError.rawValue {
-                        continuation.resume(throwing: FirebaseManagerError.networkError(error))
-                    } else {
-                        continuation.resume(throwing: FirebaseManagerError.authenticationFailed)
-                    }
-                    return
-                }
-                guard let user = authResult?.user else {
-                    continuation.resume(throwing: FirebaseManagerError.authenticationFailed)
-                    return
-                }
-                continuation.resume(returning: user)
+        try checkConnection()
+        
+        do {
+            let authResult = try await auth.createUser(withEmail: email, password: password)
+            return authResult.user
+        } catch let error as NSError {
+            switch error.code {
+            case AuthErrorCode.emailAlreadyInUse.rawValue:
+                throw FirebaseManagerError.userAlreadyExists
+            case AuthErrorCode.networkError.rawValue:
+                throw FirebaseManagerError.networkError(error)
+            default:
+                throw FirebaseManagerError.authenticationFailed
             }
         }
     }
     
     func setDisplayName(_ name: String) async throws {
+        try checkConnection()
+        
         guard let currentUser = Auth.auth().currentUser else {
             throw FirebaseManagerError.userNotFound
         }
@@ -228,6 +241,8 @@ final class FirebaseManager {
     }
     
     func updateEmail(to newEmail: String, withPassword password: String) async throws {
+        try checkConnection()
+        
         guard let currentUser = Auth.auth().currentUser else {
             throw FirebaseManagerError.userNotFound
         }
@@ -244,6 +259,8 @@ final class FirebaseManager {
     }
     
     func updatePassword(currentPassword: String, to newPassword: String) async throws {
+        try checkConnection()
+        
         guard let currentUser = Auth.auth().currentUser else {
             throw FirebaseManagerError.userNotFound
         }
@@ -259,6 +276,8 @@ final class FirebaseManager {
     }
     
     func uploadUserAvatar(_ avatarData: Data) async throws -> URL {
+        try checkConnection()
+        
         guard let currentUser = Auth.auth().currentUser else {
             throw FirebaseManagerError.userNotFound
         }
@@ -282,29 +301,24 @@ final class FirebaseManager {
             throw FirebaseManagerError.uploadImageFailed(error)
         }
     }
-
     
     func deleteUserAvatar() async throws {
+        try checkConnection()
+        
         guard let currentUser = Auth.auth().currentUser else {
             throw FirebaseManagerError.userNotFound
         }
         
         let avatarRef = storage.reference().child("userAvatars/\(currentUser.uid)/avatar.jpg")
         
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            avatarRef.delete { error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume(returning: ())
-                }
-            }
-        }
+        try await avatarRef.delete()
     }
     
     // MARK: - Order methods
     
     func saveOrderToFirestore(_ order: OrderEntity) async throws {
+        try checkConnection()
+        
         guard let orderID = order.orderID?.uuidString,
               let address = order.address,
               let status = order.status else {
@@ -362,6 +376,8 @@ final class FirebaseManager {
     }
     
     func fetchOrderHistoryFromFirestore() async throws -> [[String: Any]] {
+        try checkConnection()
+        
         guard let user = auth.currentUser else {
             throw FirebaseManagerError.authenticationFailed
         }
@@ -378,6 +394,8 @@ final class FirebaseManager {
     // MARK: - Private methods
     
     private func getFirestoreData(_ collectionName: String) async throws -> [DocumentSnapshot] {
+        try checkConnection()
+        
       do {
         let snapshot = try await firestore.collection(collectionName).getDocuments()
         return snapshot.documents
@@ -387,6 +405,8 @@ final class FirebaseManager {
     }
 
     private func createOffer(from data: DocumentSnapshot) async throws -> Offer {
+        try checkConnection()
+        
         guard let offerData = try data.data(as: OfferDataModel?.self) else {
             throw FirebaseManagerError.parseDataFailed
         }
@@ -401,6 +421,8 @@ final class FirebaseManager {
     }
 
     private func createDish(from data: DocumentSnapshot) async throws -> Dish {
+        try checkConnection()
+        
         guard let dishData = try data.data(as: DishDataModel?.self) else {
             throw FirebaseManagerError.parseDataFailed
         }

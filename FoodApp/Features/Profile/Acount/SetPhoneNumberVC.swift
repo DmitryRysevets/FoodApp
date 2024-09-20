@@ -123,8 +123,13 @@ final class SetPhoneNumberVC: UIViewController {
         let phoneTest = NSPredicate(format: "SELF MATCHES %@", phoneRegex)
         
         if phoneTest.evaluate(with: phoneNumber) {
-            phoneNumberField.isInWarning = false
-            CoreDataManager.shared.savePhoneNumber(phoneNumber)
+            do {
+                try CoreDataManager.shared.savePhoneNumber(phoneNumber)
+                phoneNumberField.isInWarning = false
+            } catch {
+                let notification = NotificationView(message: "An error occurred while saving data. Please try again later.", type: .error, interval: 5)
+                notification.show(in: self)
+            }
         } else {
             phoneNumberField.isInWarning = true
         }
