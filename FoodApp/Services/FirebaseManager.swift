@@ -21,9 +21,10 @@ enum FirebaseManagerError: Error {
     case firestoreDataWasNotSaved(Error)
     
     case authenticationFailed
+    case registrationFailed
     case userAlreadyExists
     case userNotFound
-    
+
     case promoCodeNotFound
     case promoCodeExpired
     case promoCodeLimitReached
@@ -218,7 +219,7 @@ final class FirebaseManager {
             case AuthErrorCode.networkError.rawValue:
                 throw FirebaseManagerError.networkError(error)
             default:
-                throw FirebaseManagerError.authenticationFailed
+                throw FirebaseManagerError.registrationFailed
             }
         }
     }

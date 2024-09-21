@@ -270,43 +270,12 @@ final class LoginVC: UIViewController {
                     try await UserManager.shared.authenticateUser(email: email, password: password)
                     navigationController?.popViewController(animated: true)
                 } catch {
-                    handleAuthenticationError(error)
+                    NotificationView.show(for: error, in: self)
                 }
             }
         } else {
             let notification = NotificationView(message: "Please fill in all fields.", type: .warning, interval: 3)
             notification.show(in: self.view)
-        }
-    }
-    
-    private func handleAuthenticationError(_ error: Error) {
-        if let networkError = error as? FirebaseManagerError {
-            switch networkError {
-            case .networkError(let underlyingError):
-                let notification = NotificationView(message: "Network connection error. Please try again later.", type: .error)
-                notification.show(in: self.view)
-                print("Network error: \(underlyingError.localizedDescription)")
-                
-            case .authenticationFailed:
-                let notification = NotificationView(message: "Authentication failed. Please check your credentials and try again.", type: .error)
-                notification.show(in: self.view)
-                print("Authentication error: \(error)")
-                
-            case .firestoreDataWasNotReceived(let firestoreError):
-                let notification = NotificationView(message: "Failed to receive data from server. Please try again later.", type: .error)
-                notification.show(in: self.view)
-                print("Firestore receive error: \(firestoreError.localizedDescription)")
-                
-            default:
-                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
-                notification.show(in: self.view)
-                print("Network error: \(error)")
-                
-            }
-        } else {
-            let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
-            notification.show(in: self.view)
-            print("Unknown error: \(error)")
         }
     }
     

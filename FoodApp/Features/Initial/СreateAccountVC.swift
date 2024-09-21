@@ -328,48 +328,12 @@ final class CreateAccountVC: UIViewController {
                     try await UserManager.shared.registerUser(name: name, email: email, password: password)
                     navigationController?.popViewController(animated: true)
                 } catch {
-                    handleRegistrationError(error)
+                    NotificationView.show(for: error, in: self)
                 }
             }
         } else {
             let notification = NotificationView(message: "Please fill in all fields.", type: .warning, interval: 3)
             notification.show(in: self.view)
-        }
-    }
-    
-    private func handleRegistrationError(_ error: Error) {
-        if let networkError = error as? FirebaseManagerError {
-            switch networkError {
-            case .networkError(let underlyingError):
-                let notification = NotificationView(message: "Network connection error. Please try again later.", type: .error)
-                notification.show(in: self.view)
-                print("Network error: \(underlyingError.localizedDescription)")
-                
-            case .authenticationFailed:
-                let notification = NotificationView(message: "Registration failed. Please check your credentials and try again.", type: .error)
-                notification.show(in: self.view)
-                print("Authentication error")
-                
-            case .userAlreadyExists:
-                let notification = NotificationView(message: "A user with this email address has already been registered. Please select a different email address.", type: .error)
-                notification.show(in: self.view)
-                print("User alrady exist error")
-                
-            case .firestoreDataWasNotReceived(let firestoreError):
-                let notification = NotificationView(message: "Failed to receive data from server. Please try again later.", type: .error)
-                notification.show(in: self.view)
-                print("Firestore receive error: \(firestoreError.localizedDescription)")
-                
-            default:
-                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
-                notification.show(in: self.view)
-                print("Network error: \(error)")
-                
-            }
-        } else {
-            let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
-            notification.show(in: self.view)
-            print("Unknown error: \(error)")
         }
     }
     

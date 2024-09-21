@@ -160,7 +160,7 @@ final class SetEmailVC: UIViewController {
                     
                     navigationController?.popViewController(animated: true)
                 } catch {
-                    handleEmailUpdateError(error)
+                    NotificationView.show(for: error, in: self)
                 }
             }
         } else {
@@ -196,26 +196,6 @@ final class SetEmailVC: UIViewController {
         let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailPred = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
         return emailPred.evaluate(with: email)
-    }
-    
-    private func handleEmailUpdateError(_ error: Error) {
-        if let networkError = error as? FirebaseManagerError {
-            switch networkError {
-            case .updateFailed(let underlyingError):
-                let notification = NotificationView(message: "Failed to update email. Please check your password and try again.", type: .error, interval: 3)
-                notification.show(in: self.view)
-                print("Email update failed: \(underlyingError.localizedDescription)")
-                
-            default:
-                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error, interval: 3)
-                notification.show(in: self.view)
-                print("Unknown error: \(error)")
-            }
-        } else {
-            let notification = NotificationView(message: "An internal error occurred. Please try again later.", type: .error, interval: 3)
-            notification.show(in: self.view)
-            print("Internal error: \(error)")
-        }
     }
     
     // MARK: - Objc methods

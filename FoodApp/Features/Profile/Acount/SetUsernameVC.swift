@@ -117,26 +117,6 @@ final class SetUsernameVC: UIViewController {
             saveButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
     }
-    
-    private func handleSetDisplayNameError(_ error: Error) {
-        if let networkError = error as? FirebaseManagerError {
-            switch networkError {
-            case .updateFailed(let underlyingError):
-                let notification = NotificationView(message: "Failed to update display name. Please try again later.", type: .error, interval: 3)
-                notification.show(in: self)
-                print("Update failed: \(underlyingError.localizedDescription)")
-                
-            default:
-                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error, interval: 3)
-                notification.show(in: self)
-                print("Unknown error: \(error)")
-            }
-        } else {
-            let notification = NotificationView(message: "An internal error occurred. Please try again later.", type: .error, interval: 3)
-            notification.show(in: self)
-            print("Internal error: \(error)")
-        }
-    }
 
     // MARK: - Objc methods
     
@@ -164,7 +144,7 @@ final class SetUsernameVC: UIViewController {
                     try await UserManager.shared.setUserName(username)
                     navigationController?.popViewController(animated: true)
                 } catch {
-                    handleSetDisplayNameError(error)
+                    NotificationView.show(for: error, in: self)
                 }
             }
         }

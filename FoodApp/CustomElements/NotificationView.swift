@@ -28,21 +28,23 @@ class NotificationView: UIView {
         return label
     }()
     
-    private var timeInterval: Double
+    private var timeInterval: Double = 4
     private var hideTimer: Timer?
     
-    init(message: String, image: UIImage? = nil, type: NotificationType, interval: Double = 5) {
+    init(message: String, image: UIImage? = nil, type: NotificationType, interval: Double = 4) {
         self.timeInterval = interval
-        super.init(frame: CGRect.zero)
+        super.init(frame: .zero)
         self.messageLabel.text = message
         
         setupUI(for: type, with: image)
         setupGestures()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+    // MARK: - Private methods
     
     private func setupUI(for type: NotificationType, with image: UIImage?) {
         translatesAutoresizingMaskIntoConstraints = false
@@ -51,20 +53,7 @@ class NotificationView: UIView {
         layer.masksToBounds = true
         alpha = 0
         
-        switch type {
-        case .info:
-            backgroundColor = ColorManager.shared.labelGray.withAlphaComponent(0.3)
-            layer.borderColor = ColorManager.shared.labelGray.cgColor
-        case .confirming:
-            backgroundColor = ColorManager.shared.confirmingGreen.withAlphaComponent(0.3)
-            layer.borderColor = ColorManager.shared.confirmingGreen.cgColor
-        case .warning:
-            backgroundColor = ColorManager.shared.warningOrange.withAlphaComponent(0.3)
-            layer.borderColor = ColorManager.shared.warningOrange.cgColor
-        case .error:
-            backgroundColor = ColorManager.shared.warningRed.withAlphaComponent(0.3)
-            layer.borderColor = ColorManager.shared.warningRed.cgColor
-        }
+        setColorTheme(for: type)
         
         addSubview(blurEffect)
         addSubview(messageLabel)
@@ -99,11 +88,31 @@ class NotificationView: UIView {
         }
     }
     
+    private func setColorTheme(for type: NotificationType) {
+        switch type {
+        case .info:
+            backgroundColor = ColorManager.shared.labelGray.withAlphaComponent(0.3)
+            layer.borderColor = ColorManager.shared.labelGray.cgColor
+        case .confirming:
+            backgroundColor = ColorManager.shared.confirmingGreen.withAlphaComponent(0.3)
+            layer.borderColor = ColorManager.shared.confirmingGreen.cgColor
+        case .warning:
+            backgroundColor = ColorManager.shared.warningOrange.withAlphaComponent(0.3)
+            layer.borderColor = ColorManager.shared.warningOrange.cgColor
+        case .error:
+            backgroundColor = ColorManager.shared.warningRed.withAlphaComponent(0.3)
+            layer.borderColor = ColorManager.shared.warningRed.cgColor
+        }
+    }
+    
     private func setupGestures() {
         let swipeUpGesture = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipeUp))
         swipeUpGesture.direction = .up
         addGestureRecognizer(swipeUpGesture)
     }
+    
+    
+    // MARK: - Internal methods
     
     func show(in parentView: UIView) {
         parentView.addSubview(self)
@@ -128,8 +137,6 @@ class NotificationView: UIView {
         guard let targetView = viewController.navigationController?.view ?? viewController.view else { return }
         show(in: targetView)
     }
-
-
     
     func showGlobally() {
         if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
@@ -137,6 +144,8 @@ class NotificationView: UIView {
             show(in: window)
         }
     }
+    
+    // MARK: - Objc methods
     
     @objc 
     private func hide() {
@@ -153,4 +162,97 @@ class NotificationView: UIView {
         hideTimer?.invalidate()
         hide()
     }
+    
+    // MARK: - Static methods
+    
+    static func show(for error: Error, in parentVC: UIViewController) {
+        let notification: NotificationView
+
+        if let networkError = error as? FirebaseManagerError {
+            
+            switch networkError {
+            case .noInternetConnection:
+                notification = NotificationView(message: "No internet connection. Please check your connection and try again.", type: .error)
+
+            case .invalidData:
+                notification = NotificationView(message: "Invalid input data. Please check and try again.", type: .error)
+
+            case .parseDataFailed:
+                notification = NotificationView(message: "Failed to process data. Please try again later.", type: .error)
+
+            case .networkError(let underlyingError):
+                notification = NotificationView(message: "Network error. Please try again later.", type: .error)
+                print("Network error: \(underlyingError.localizedDescription)")
+
+            case .firestoreDataWasNotSaved(let underlyingError):
+                notification = NotificationView(message: "Failed to save data. Please try again later.", type: .error)
+                print("Firestore save error: \(underlyingError.localizedDescription)")
+
+            case .firestoreDataWasNotReceived(let underlyingError):
+                notification = NotificationView(message: "Failed to retrieve data. Please try again later.", type: .error)
+                print("Firestore receive error: \(underlyingError.localizedDescription)")
+
+            case .updateFailed(let underlyingError):
+                notification = NotificationView(message: "Failed to update data. Please try again later.", type: .error)
+                print("Update error: \(underlyingError.localizedDescription)")
+
+            case .downloadImageFailed(let underlyingError):
+                notification = NotificationView(message: "Failed to download image. Please try again later.", type: .error)
+                print("Image download error: \(underlyingError.localizedDescription)")
+
+            case .uploadImageFailed(let underlyingError):
+                notification = NotificationView(message: "Failed to upload image. Please try again later.", type: .error)
+                print("Image upload error: \(underlyingError.localizedDescription)")
+
+            case .authenticationFailed:
+                notification = NotificationView(message: "Authentication failed. Please check your credentials and try again.", type: .error)
+                
+            case .registrationFailed:
+                notification = NotificationView(message: "Registration failed. Please check your credentials and try again.", type: .error)
+
+            case .userAlreadyExists:
+                notification = NotificationView(message: "User already exists. Please use a different email.", type: .warning)
+
+            case .userNotFound:
+                notification = NotificationView(message: "Authentication problem occurred. Please try again.", type: .warning)
+
+            case .promoCodeNotFound:
+                notification = NotificationView(message: "Promo code not found. Please check and try again.", type: .warning)
+
+            case .promoCodeExpired:
+                notification = NotificationView(message: "This promo code has expired.", type: .warning)
+
+            case .promoCodeLimitReached:
+                notification = NotificationView(message: "This promo code has reached its usage limit.", type: .warning)
+            }
+            
+        } else if let coreDataError = error as? CoreDataManagerError {
+            
+            switch coreDataError {
+            case .fetchError(let underlyingError):
+                notification = NotificationView(message: "Failed to retrieve data. Please try again later.", type: .error)
+                print("CoreData fetch error: \(underlyingError.localizedDescription)")
+
+            case .saveError(let underlyingError):
+                notification = NotificationView(message: "Failed to save data. Please try again later.", type: .error)
+                print("CoreData save error: \(underlyingError.localizedDescription)")
+
+            case .deleteError(let underlyingError):
+                notification = NotificationView(message: "Failed to delete data. Please try again later.", type: .error)
+                print("CoreData delete error: \(underlyingError.localizedDescription)")
+
+            case .itemNotFound:
+                notification = NotificationView(message: "Item not found. Please check and try again.", type: .info)
+
+            case .itemAlreadyExists:
+                notification = NotificationView(message: "An item with that name already exists.", type: .warning)
+            }
+        } else {
+            notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
+            print("Unknown error: \(error)")
+        }
+
+        notification.show(in: parentVC)
+    }
+
 }

@@ -110,27 +110,6 @@ final class ContactUsVC: UIViewController {
         ])
     }
     
-    func handleFeedbackError(_ error: Error) {
-        if let networkError = error as? FirebaseManagerError {
-            switch networkError {
-            case .firestoreDataWasNotSaved(let firestoreError):
-                let notification = NotificationView(message: "Failed to save message. Please try again later.", type: .error)
-                notification.show(in: self)
-                print("Firestore error: \(firestoreError.localizedDescription)")
-
-            default:
-                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
-                notification.show(in: self)
-                print("Error: \(error.localizedDescription)")
-            }
-        } else {
-            let notification = NotificationView(message: "An unexpected error occurred. Please try again later.", type: .error)
-            notification.show(in: self)
-            print("Unexpected error: \(error.localizedDescription)")
-        }
-    }
-
-    
     // MARK: - Objc methods
     
     @objc
@@ -173,7 +152,7 @@ final class ContactUsVC: UIViewController {
 
                     messageTextView.text = ""
                 } catch {
-                    handleFeedbackError(error)
+                    NotificationView.show(for: error, in: self)
                 }
             }
             

@@ -792,41 +792,6 @@ final class PaymentVC: UIViewController {
         mapSectionView.layer.borderColor = .none
     }
     
-    private func handleOrderPlacementError(_ error: Error) {
-        if let networkError = error as? FirebaseManagerError {
-            switch networkError {
-            case .networkError(let underlyingError):
-                let notification = NotificationView(message: "Network connection error. Please try again later.", type: .error)
-                notification.show(in: self.view)
-                print("Network error: \(underlyingError.localizedDescription)")
-                
-            case .firestoreDataWasNotSaved(let firestoreError):
-                let notification = NotificationView(message: "Failed to save order data. Please try again later.", type: .error)
-                notification.show(in: self.view)
-                print("Firestore save error: \(firestoreError.localizedDescription)")
-                
-            case .firestoreDataWasNotReceived(let firestoreError):
-                let notification = NotificationView(message: "Failed to retrieve data from server. Please try again later.", type: .error)
-                notification.show(in: self.view)
-                print("Firestore receive error: \(firestoreError.localizedDescription)")
-                
-            case .invalidData:
-                let notification = NotificationView(message: "Invalid order data. Please check your input and try again.", type: .error)
-                notification.show(in: self.view)
-                print("Invalid data error: \(error)")
-                
-            default:
-                let notification = NotificationView(message: "An unknown network error occurred. Please try again later.", type: .error)
-                notification.show(in: self.view)
-                print("Unknown network error: \(error)")
-            }
-        } else {
-            let notification = NotificationView(message: "An internal error occurred. Please try again later.", type: .error)
-            notification.show(in: self.view)
-            print("Core Data error: \(error)")
-        }
-    }
-    
     //MARK: - Objc methods
     
     @objc
@@ -951,7 +916,7 @@ final class PaymentVC: UIViewController {
                     try CoreDataManager.shared.clearCart()
                     navigationController?.popViewController(animated: true)
                 } catch {
-                    handleOrderPlacementError(error)
+                    NotificationView.show(for: error, in: self)
                 }
             }
         }

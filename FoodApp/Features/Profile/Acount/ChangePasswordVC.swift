@@ -200,27 +200,6 @@ final class ChangePasswordVC: UIViewController {
         return isValid
     }
     
-    private func handlePasswordUpdateError(_ error: Error) {
-        if let networkError = error as? FirebaseManagerError {
-            switch networkError {
-            case .updateFailed(let underlyingError):
-                let notification = NotificationView(message: "Failed to update password. Please check your current password and try again.", type: .error)
-                notification.show(in: self)
-                print("Password update failed: \(underlyingError.localizedDescription)")
-                
-            default:
-                let notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
-                notification.show(in: self)
-                print("Unknown error: \(error)")
-            }
-        } else {
-            let notification = NotificationView(message: "An internal error occurred. Please try again later.", type: .error)
-            notification.show(in: self)
-            print("Internal error: \(error)")
-        }
-    }
-
-    
     // MARK: - Objc methods
     
     @objc
@@ -247,7 +226,7 @@ final class ChangePasswordVC: UIViewController {
                 do {
                     try await UserManager.shared.updatePassword(currentPassword: olpPass, to: newPass)
                 } catch {
-                    handlePasswordUpdateError(error)
+                    NotificationView.show(for: error, in: self)
                 }
             }
         } else {
