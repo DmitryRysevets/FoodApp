@@ -16,6 +16,8 @@ final class PaymentVC: UIViewController {
     
     private var paymentMethodIsSelected: Bool!
     
+    var deletePromocodeHandler: (() -> Void)?
+    
     private var location: CLLocation? {
         didSet {
             updateMapView()
@@ -358,13 +360,9 @@ final class PaymentVC: UIViewController {
     private lazy var promoCodeDiscountValueLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.label
+        label.textColor = ColorManager.shared.confirmingGreen
         label.font = .systemFont(ofSize: 16)
-        if promoCodeDiscount.isZero {
-            label.text = "-"
-        } else {
-            label.text = "$\(String(format: "%.2f", promoCodeDiscount))"
-        }
+        label.text = "$\(String(format: "%.2f", promoCodeDiscount))"
         return label
     }()
     
@@ -415,6 +413,13 @@ final class PaymentVC: UIViewController {
         self.promoCodeDiscount = promoCodeDiscount
         self.orderItems = orderItems
         super.init(nibName: nil, bundle: nil)
+        
+        if deliveryCharge == promoCodeDiscount {
+            deliveryChargeValueLabel.text = "$0.00"
+            promoCodeDiscountValueLabel.text = "Free delivery"
+        } else if promoCodeDiscount.isZero {
+            promoCodeDiscountValueLabel.text = "-"
+        }
     }
     
     required init?(coder: NSCoder) {
@@ -914,6 +919,8 @@ final class PaymentVC: UIViewController {
                                                              orderItems: orderItems)
                     
                     try CoreDataManager.shared.clearCart()
+                    
+                    deletePromocodeHandler?()
                     navigationController?.popViewController(animated: true)
                 } catch {
                     NotificationView.show(for: error, in: self)

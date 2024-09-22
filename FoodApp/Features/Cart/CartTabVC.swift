@@ -40,6 +40,7 @@ final class CartTabVC: UIViewController {
     }()
     
     private var tableViewHeightConstraint: NSLayoutConstraint?
+    private var dividerTopAnchorConstraint: NSLayoutConstraint?
     
     private lazy var tableView: UITableView = {
         let table = UITableView()
@@ -77,6 +78,7 @@ final class CartTabVC: UIViewController {
         let field = UITextField()
         field.translatesAutoresizingMaskIntoConstraints = false
         field.placeholder = "Promo Code"
+        field.autocapitalizationType = .allCharacters
         field.font = UIFont.getVariableVersion(of: "Raleway", size: 17, axis: [Constants.fontWeightAxis : 600])
         field.textColor = ColorManager.shared.label
         field.tintColor = ColorManager.shared.orange
@@ -151,6 +153,25 @@ final class CartTabVC: UIViewController {
         return label
     }()
     
+    private lazy var promoCodeDiscountLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.labelGray
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 14, axis: [Constants.fontWeightAxis : 500])
+        label.text = "Promo Code Discount"
+        label.alpha = 0
+        return label
+    }()
+    
+    private lazy var promoCodeDiscountValueLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = ColorManager.shared.confirmingGreen
+        label.font = .systemFont(ofSize: 16)
+        label.alpha = 0
+        return label
+    }()
+    
     private lazy var dividerView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -167,7 +188,7 @@ final class CartTabVC: UIViewController {
         return label
     }()
     
-    private lazy var totalAmount_amountOfMoneyLabel: UILabel = {
+    private lazy var totalAmountValueLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = ColorManager.shared.label
@@ -288,9 +309,11 @@ final class CartTabVC: UIViewController {
         billDetailsView.addSubview(productCostValueLabel)
         billDetailsView.addSubview(deliveryChargeLabel)
         billDetailsView.addSubview(deliveryChargeValueLabel)
+        billDetailsView.addSubview(promoCodeDiscountLabel)
+        billDetailsView.addSubview(promoCodeDiscountValueLabel)
         billDetailsView.addSubview(dividerView)
         billDetailsView.addSubview(totalAmountLabel)
-        billDetailsView.addSubview(totalAmount_amountOfMoneyLabel)
+        billDetailsView.addSubview(totalAmountValueLabel)
         billDetailsView.addSubview(continueOrderButton)
         
         emptyCartView.addSubview(cartIsEmptyLabel)
@@ -337,14 +360,17 @@ final class CartTabVC: UIViewController {
             deliveryChargeLabel.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
             deliveryChargeValueLabel.centerYAnchor.constraint(equalTo: deliveryChargeLabel.centerYAnchor),
             deliveryChargeValueLabel.trailingAnchor.constraint(equalTo: productCostValueLabel.trailingAnchor),
-            dividerView.topAnchor.constraint(equalTo: deliveryChargeLabel.bottomAnchor, constant: 13),
+            promoCodeDiscountLabel.topAnchor.constraint(equalTo: deliveryChargeLabel.bottomAnchor, constant: 16),
+            promoCodeDiscountLabel.leadingAnchor.constraint(equalTo: deliveryChargeLabel.leadingAnchor),
+            promoCodeDiscountValueLabel.centerYAnchor.constraint(equalTo: promoCodeDiscountLabel.centerYAnchor),
+            promoCodeDiscountValueLabel.trailingAnchor.constraint(equalTo: deliveryChargeValueLabel.trailingAnchor),
             dividerView.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
             dividerView.trailingAnchor.constraint(equalTo: productCostValueLabel.trailingAnchor),
             dividerView.heightAnchor.constraint(equalToConstant: 0.5),
             totalAmountLabel.topAnchor.constraint(equalTo: dividerView.bottomAnchor, constant: 10),
             totalAmountLabel.leadingAnchor.constraint(equalTo: billDetailsLabel.leadingAnchor),
-            totalAmount_amountOfMoneyLabel.centerYAnchor.constraint(equalTo: totalAmountLabel.centerYAnchor),
-            totalAmount_amountOfMoneyLabel.trailingAnchor.constraint(equalTo: productCostValueLabel.trailingAnchor),
+            totalAmountValueLabel.centerYAnchor.constraint(equalTo: totalAmountLabel.centerYAnchor),
+            totalAmountValueLabel.trailingAnchor.constraint(equalTo: productCostValueLabel.trailingAnchor),
             continueOrderButton.topAnchor.constraint(equalTo: totalAmountLabel.bottomAnchor, constant: 32),
             continueOrderButton.leadingAnchor.constraint(equalTo: billDetailsView.leadingAnchor, constant: 16),
             continueOrderButton.trailingAnchor.constraint(equalTo: billDetailsView.trailingAnchor, constant: -16),
@@ -373,6 +399,9 @@ final class CartTabVC: UIViewController {
         
         tableViewHeightConstraint = tableView.heightAnchor.constraint(equalToConstant: 0)
         tableViewHeightConstraint?.isActive = true
+        
+        dividerTopAnchorConstraint = dividerView.topAnchor.constraint(equalTo: deliveryChargeLabel.bottomAnchor, constant: 13)
+        dividerTopAnchorConstraint?.isActive = true
     }
     
     private func updateTableViewHeight() {
@@ -381,13 +410,35 @@ final class CartTabVC: UIViewController {
         tableViewHeightConstraint?.constant = CGFloat(numberOfRows) * cellHeight
     }
     
+    private func deletePromoCode() {
+        deliveryCharge = 2
+        promoCodeDiscountLabel.alpha = 0
+        promoCodeDiscountValueLabel.alpha = 0
+        promoCodeDiscountValueLabel.text = ""
+        deliveryChargeValueLabel.text = "$\(String(format: "%.2f", deliveryCharge))"
+        dividerTopAnchorConstraint?.constant = 13
+    }
+    
     private func applyPromoCode(discount discountPercent: Int, freeDelivery: Bool) {
+        let notification = NotificationView(message: "The promo code has been successfully applied.", type: .confirming, interval: 3)
+        notification.show(in: self)
+        
         var totalDiscount = 0.0
         
         if freeDelivery {
             totalDiscount = deliveryCharge
+            promoCodeDiscountValueLabel.text = "Free delivery"
+            deliveryChargeValueLabel.text = "$0.00"
         } else {
             totalDiscount = (productCost / 100 * Double(discountPercent) * 100).rounded() / 100
+            promoCodeDiscountValueLabel.text = "-$\(String(format: "%.2f", totalDiscount))"
+        }
+        
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 80, initialSpringVelocity: 0.5) {
+            self.promoCodeDiscountLabel.alpha = 1
+            self.promoCodeDiscountValueLabel.alpha = 1
+            self.dividerTopAnchorConstraint?.constant = 42
+            self.view.layoutIfNeeded()
         }
         
         promoCodeDiscount = totalDiscount
@@ -403,7 +454,7 @@ final class CartTabVC: UIViewController {
         totalAmount = productCost + deliveryCharge - promoCodeDiscount
         
         productCostValueLabel.text = "$\(String(format: "%.2f", productCost))"
-        totalAmount_amountOfMoneyLabel.text = "$\(String(format: "%.2f", totalAmount))"
+        totalAmountValueLabel.text = "$\(String(format: "%.2f", totalAmount))"
     }
     
     private func deleteCartItem(at indexPath: IndexPath) {
@@ -484,7 +535,15 @@ final class CartTabVC: UIViewController {
         }, completion: nil)
 
         let orderItems = getOrderItems()
-        navigationController?.pushViewController(PaymentVC(productCost: productCost, deliveryCharge: deliveryCharge, promoCodeDiscount: promoCodeDiscount, orderItems: orderItems), animated: true)
+        let vc = PaymentVC(productCost: productCost, deliveryCharge: deliveryCharge, promoCodeDiscount: promoCodeDiscount, orderItems: orderItems)
+        
+        if !promoCodeDiscount.isZero {
+            vc.deletePromocodeHandler = { [weak self] in
+                self?.deletePromoCode()
+            }
+        }
+        
+        navigationController?.pushViewController(vc, animated: true)
     }
 }
 
