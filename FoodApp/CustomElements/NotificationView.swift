@@ -167,61 +167,61 @@ class NotificationView: UIView {
     
     static func show(for error: Error, in parentVC: UIViewController) {
         let notification: NotificationView
-
+        
         if let networkError = error as? FirebaseManagerError {
             
             switch networkError {
             case .noInternetConnection:
                 notification = NotificationView(message: "No internet connection. Please check your connection and try again.", type: .error)
-
+                
             case .invalidData:
                 notification = NotificationView(message: "Invalid input data. Please check and try again.", type: .error)
-
+                
             case .parseDataFailed:
                 notification = NotificationView(message: "Failed to process data. Please try again later.", type: .error)
-
+                
             case .networkError(let underlyingError):
                 notification = NotificationView(message: "Network error. Please try again later.", type: .error)
                 print("Network error: \(underlyingError.localizedDescription)")
-
+                
             case .firestoreDataWasNotSaved(let underlyingError):
                 notification = NotificationView(message: "Failed to save data. Please try again later.", type: .error)
                 print("Firestore save error: \(underlyingError.localizedDescription)")
-
+                
             case .firestoreDataWasNotReceived(let underlyingError):
                 notification = NotificationView(message: "Failed to retrieve data. Please try again later.", type: .error)
                 print("Firestore receive error: \(underlyingError.localizedDescription)")
-
+                
             case .updateFailed(let underlyingError):
                 notification = NotificationView(message: "Failed to update data. Please try again later.", type: .error)
                 print("Update error: \(underlyingError.localizedDescription)")
-
+                
             case .downloadImageFailed(let underlyingError):
                 notification = NotificationView(message: "Failed to download image. Please try again later.", type: .error)
                 print("Image download error: \(underlyingError.localizedDescription)")
-
+                
             case .uploadImageFailed(let underlyingError):
                 notification = NotificationView(message: "Failed to upload image. Please try again later.", type: .error)
                 print("Image upload error: \(underlyingError.localizedDescription)")
-
+                
             case .authenticationFailed:
                 notification = NotificationView(message: "Authentication failed. Please check your credentials and try again.", type: .error)
                 
             case .registrationFailed:
                 notification = NotificationView(message: "Registration failed. Please check your credentials and try again.", type: .error)
-
+                
             case .userAlreadyExists:
                 notification = NotificationView(message: "User already exists. Please use a different email.", type: .warning)
-
+                
             case .userNotFound:
                 notification = NotificationView(message: "Authentication problem occurred. Please try again.", type: .warning)
-
+                
             case .promoCodeNotFound:
                 notification = NotificationView(message: "Promo code not found. Please check and try again.", type: .warning)
-
+                
             case .promoCodeExpired:
                 notification = NotificationView(message: "This promo code has expired.", type: .warning)
-
+                
             case .promoCodeLimitReached:
                 notification = NotificationView(message: "This promo code has reached its usage limit.", type: .warning)
             }
@@ -230,23 +230,34 @@ class NotificationView: UIView {
             
             switch coreDataError {
             case .fetchError(let underlyingError):
-                notification = NotificationView(message: "Failed to retrieve data. Please try again later.", type: .error)
+                notification = NotificationView(message: "Failed to retrieve data.", type: .error)
                 print("CoreData fetch error: \(underlyingError.localizedDescription)")
-
+                
             case .saveError(let underlyingError):
-                notification = NotificationView(message: "Failed to save data. Please try again later.", type: .error)
+                notification = NotificationView(message: "Failed to save data.", type: .error)
                 print("CoreData save error: \(underlyingError.localizedDescription)")
-
+                
             case .deleteError(let underlyingError):
-                notification = NotificationView(message: "Failed to delete data. Please try again later.", type: .error)
+                notification = NotificationView(message: "Failed to delete data.", type: .error)
                 print("CoreData delete error: \(underlyingError.localizedDescription)")
-
+                
             case .itemNotFound:
-                notification = NotificationView(message: "Item not found. Please check and try again.", type: .info)
-
+                notification = NotificationView(message: "Item not found. Please check and try again.", type: .warning)
+                
             case .itemAlreadyExists:
                 notification = NotificationView(message: "An item with that name already exists.", type: .warning)
             }
+            
+        } else if let menuManagerError = error as? MenuManagerError {
+            
+            switch menuManagerError {
+            case .failedToCheckMenuRelevance:
+                notification = NotificationView(message: "Failed to check if the current menu is up to date.", type: .error)
+                
+            case .failedToGetLatestMenu:
+                notification = NotificationView(message: "Failed to get an up to date version of the menu.", type: .error)
+            }
+            
         } else {
             notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
             print("Unknown error: \(error)")

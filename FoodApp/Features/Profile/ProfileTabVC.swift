@@ -79,7 +79,8 @@ final class ProfileTabVC: UIViewController {
             do {
                 self.user = try self.userManager.getUser()
             } catch {
-                // need handler
+                let notification = NotificationView(message: "A user authorization error occurred.", type: .error)
+                notification.show(in: self)
             }
         }
     }

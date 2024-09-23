@@ -407,7 +407,7 @@ final class MenuTabVC: UIViewController {
                     menu = try await MenuManager.shared.getLatestMenu()
                 }
             } catch {
-                // need handler
+                NotificationView.show(for: error, in: self)
             }
         }
     }
@@ -418,7 +418,7 @@ final class MenuTabVC: UIViewController {
                 self.menu = menu
             }
         } catch {
-            // need handler
+            NotificationView.show(for: error, in: self)
         }
     }
     

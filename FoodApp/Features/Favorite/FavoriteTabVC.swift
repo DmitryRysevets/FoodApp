@@ -85,7 +85,8 @@ final class FavoriteTabVC: UIViewController {
                 tableView.reloadData()
             }
         } catch {
-            // need handler
+            let notification = NotificationView(message: "Failed to load favorite dishes.", type: .error)
+            notification.show(in: self)
         }
     }
     
@@ -133,7 +134,8 @@ final class FavoriteTabVC: UIViewController {
             favoriteDishes.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
         } catch {
-            // need handler
+            let notification = NotificationView(message: "Failed to remove dish from favorites. Please try again.", type: .error)
+            notification.show(in: self)
         }
     }
 }

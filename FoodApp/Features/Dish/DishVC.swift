@@ -461,7 +461,7 @@ final class DishVC: UIViewController {
         do {
             relatedProducts = try CoreDataManager.shared.findSimilarDishes(to: dish)
         } catch {
-            // need handler
+            NotificationView.show(for: error, in: self)
         }
     }
     
@@ -794,13 +794,13 @@ final class DishVC: UIViewController {
             do {
                 try CoreDataManager.shared.setAsFavorite(by: dish.id)
             } catch {
-                // need handler
+                NotificationView.show(for: error, in: self)
             }
         } else {
             do {
                 try CoreDataManager.shared.deleteFromFavorite(by: dish.id)
             } catch {
-                // need handler
+                NotificationView.show(for: error, in: self)
             }
         }
     }
@@ -835,7 +835,7 @@ final class DishVC: UIViewController {
                 try CoreDataManager.shared.saveCartItem(dish: dish, quantity: quantity)
             }
         } catch {
-            // need handler
+            NotificationView.show(for: error, in: self)
         }
         
         UIView.animate(withDuration: 0.1, delay: 0.1, options: [], animations: {

@@ -261,7 +261,8 @@ final class CartTabVC: UIViewController {
         do {
             try CoreDataManager.shared.saveCart(cartContent)
         } catch {
-            // need handler
+            let notification = NotificationView(message: "Failed to save cart data.", type: .error)
+            notification.show(in: self)
         }
     }
     
@@ -276,7 +277,8 @@ final class CartTabVC: UIViewController {
                 updateTableViewHeight()
             }
         } catch {
-            // need handler
+            let notification = NotificationView(message: "Failed to check cart data.", type: .error)
+            notification.show(in: self)
         }
     }
     
@@ -466,7 +468,8 @@ final class CartTabVC: UIViewController {
             cartContent.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
         } catch {
-            // need handler
+            let notification = NotificationView(message: "Failed to remove dish from cart. Please try again.", type: .error)
+            notification.show(in: self)
         }
         
         UIView.animate(withDuration: 0.3) {

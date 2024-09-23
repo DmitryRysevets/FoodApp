@@ -181,7 +181,8 @@ final class DishCell: UICollectionViewCell {
         do {
             try CoreDataManager.shared.saveCartItem(dish: dishData, quantity: 1)
         } catch {
-            // need handler
+            let notification = NotificationView(message: "Failed to add dish to cart. Please try again.", type: .error)
+            notification.showGlobally()
         }
         
         UIView.animate(withDuration: 0.1, delay: 0.1, options: [], animations: {
@@ -197,13 +198,15 @@ final class DishCell: UICollectionViewCell {
             do {
                 try CoreDataManager.shared.setAsFavorite(by: dishData.id)
             } catch {
-                // need handler
+                let notification = NotificationView(message: "Failed to add dish to favorites. Please try again.", type: .error)
+                notification.showGlobally()
             }
         } else {
             do {
                 try CoreDataManager.shared.deleteFromFavorite(by: dishData.id)
             } catch {
-                // need handler
+                let notification = NotificationView(message: "Failed to remove dish from favorites. Please try again.", type: .error)
+                notification.showGlobally()
             }
         }
     }

@@ -25,7 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         do {
             try CoreDataManager.shared.saveContext()
         } catch {
-            // need handler
+            // need to log
         }
     }
 

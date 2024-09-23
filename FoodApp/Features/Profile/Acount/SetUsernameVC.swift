@@ -71,7 +71,8 @@ final class SetUsernameVC: UIViewController {
             let user = try UserManager.shared.getUser()
             usernameField.text = user?.displayName
         } catch {
-            // need handler
+            let notification = NotificationView(message: "A user authorization error occurred.", type: .error)
+            notification.show(in: self)
         }
     }
     

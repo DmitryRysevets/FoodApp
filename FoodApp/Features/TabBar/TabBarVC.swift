@@ -199,7 +199,7 @@ class TabBarVC: UIViewController {
         do {
             try CartStatusObserver.shared.observeCartStatus()
         } catch {
-            // need handler
+            NotificationView.show(for: error, in: self)
         }
     }
     

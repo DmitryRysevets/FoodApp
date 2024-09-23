@@ -958,14 +958,14 @@ extension PaymentVC: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if status == .denied {
-            let notification = NotificationView(message: "You have not given the app access to the location. You can change this in the iOS settings..", type: .warning, interval: 4)
-            notification.show(in: self.view)
+            let notification = NotificationView(message: "You have not given the app access to the location. You can change this in the iOS settings..", type: .error)
+            notification.show(in: self)
             print("Geolocation is denied")
         }
         
         if status == .restricted {
-            let notification = NotificationView(message: "The application is not authorized to access the location.", type: .warning, interval: 4)
-            notification.show(in: self.view)
+            let notification = NotificationView(message: "The application is not authorized to access the location.", type: .error)
+            notification.show(in: self)
             print("Geolocation is restricted")
         }
     }
