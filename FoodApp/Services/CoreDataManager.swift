@@ -18,7 +18,7 @@ enum CoreDataManagerError: Error {
 final class CoreDataManager {
     
     static let shared = CoreDataManager()
-
+    
     private init() {}
     
     // MARK: - Core Data stack
@@ -48,6 +48,22 @@ final class CoreDataManager {
         }
     }
     
+    func deleteEntityFromContext<EntityType: NSManagedObject>(_ entity: EntityType) throws {
+        
+        guard context.registeredObject(for: entity.objectID) != nil else {
+            throw CoreDataManagerError.itemNotFound
+        }
+        
+        context.delete(entity)
+        
+        do {
+            try saveContext()
+        } catch {
+            context.undo()
+            throw CoreDataManagerError.deleteError(error)
+        }
+    }
+
     // MARK: - Menu methods
     
     func fetchMenu() throws -> Menu? {
@@ -721,10 +737,6 @@ final class CoreDataManager {
         return order
     }
     
-    func saveOrder(_ order: OrderEntity) throws {
-        try saveContext()
-    }
-    
     func saveOrdersFromFirestore(_ ordersData: [[String: Any]]) throws {
         let context = persistentContainer.viewContext
 
@@ -783,8 +795,53 @@ final class CoreDataManager {
         try saveContext()
     }
     
-    func deleteOrderFromContext(_ order: OrderEntity) throws {
-        context.delete(order)
-        try saveContext()
+    // MARK: - Promo code methods
+    
+    func isActivePromoCodeAlreadyExists() -> Bool {
+        let fetchRequest: NSFetchRequest<PromoCodeEntity> = PromoCodeEntity.fetchRequest()
+        
+        do {
+            let promoCode = try context.fetch(fetchRequest)
+            return !promoCode.isEmpty
+        } catch {
+            print("Failed to fetch promo code: \(error)")
+            return false
+        }
     }
+    
+    func createPromoCode(from data: (discountPercentage: Int, freeDelivery: Bool, expirationDate: Date)) -> PromoCodeEntity {
+        let promoCode = PromoCodeEntity(context: context)
+        promoCode.discountPercentage = Int64(data.discountPercentage)
+        promoCode.freeDelivery = data.freeDelivery
+        promoCode.expirationDate = data.expirationDate
+        
+        return promoCode
+    }
+    
+    func fetchPromoCode() throws -> PromoCodeEntity? {
+        let request: NSFetchRequest<PromoCodeEntity> = PromoCodeEntity.fetchRequest()
+        
+        do {
+            let promoCodeData = try context.fetch(request)
+            return promoCodeData.first
+        } catch {
+            throw CoreDataManagerError.fetchError(error)
+        }
+    }
+    
+    func deletePromoCode() throws {
+        let request: NSFetchRequest<PromoCodeEntity> = PromoCodeEntity.fetchRequest()
+        
+        do {
+            if let promoCode = try context.fetch(request).first {
+                context.delete(promoCode)
+                try saveContext()
+            } else {
+                throw CoreDataManagerError.itemNotFound
+            }
+        } catch {
+            throw CoreDataManagerError.deleteError(error)
+        }
+    }
+    
 }

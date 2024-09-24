@@ -94,16 +94,18 @@ final class FirebaseManager {
         }
     }
     
-    func applyPromoCode(_ code: String) async throws -> (discountPercentage: Int, freeDelivery: Bool) {
-        try checkConnection()
-        
+    func applyPromoCode(_ code: String) async throws -> (discountPercentage: Int, freeDelivery: Bool, expirationDate: Date) {
         let promoCodeRef = firestore.collection("promoCodes").document(code)
         
         do {
             let promoCodeSnapshot = try await promoCodeRef.getDocument()
 
-            guard let data = promoCodeSnapshot.data() else {
+            guard promoCodeSnapshot.exists else {
                 throw FirebaseManagerError.promoCodeNotFound
+            }
+
+            guard let data = promoCodeSnapshot.data() else {
+                throw FirebaseManagerError.invalidData
             }
             
             guard let usageLimit = data["usageLimit"] as? Int,
@@ -130,11 +132,12 @@ final class FirebaseManager {
             let discountPercentage = data["discountPercent"] as? Int ?? 0
             let freeDelivery = data["freeDelivery"] as? Bool ?? false
             
-            return (discountPercentage, freeDelivery)
+            return (discountPercentage, freeDelivery, expirationDate)
         } catch {
             throw FirebaseManagerError.firestoreDataWasNotReceived(error)
         }
     }
+
     
     // MARK: - Menu methods
 

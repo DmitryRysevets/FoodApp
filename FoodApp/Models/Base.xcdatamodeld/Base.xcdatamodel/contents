@@ -71,6 +71,11 @@
         <attribute name="quantity" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <relationship name="order" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="OrderEntity" inverseName="orderItems" inverseEntity="OrderEntity"/>
     </entity>
+    <entity name="PromoCodeEntity" representedClassName="PromoCodeEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="discountPercentage" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="expirationDate" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="freeDelivery" attributeType="Boolean" usesScalarValueType="YES"/>
+    </entity>
     <entity name="UserEntity" representedClassName="UserEntity" syncable="YES" codeGenerationType="class">
         <attribute name="avatar" optional="YES" attributeType="Binary"/>
         <attribute name="avatarURL" optional="YES" attributeType="String"/>

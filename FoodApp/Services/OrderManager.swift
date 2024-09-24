@@ -20,9 +20,9 @@ final class OrderManager {
 
         do {
             try await firebaseManager.saveOrderToFirestore(order)
-            try coreDataManager.saveOrder(order)
+            try coreDataManager.saveContext()
         } catch {
-            try coreDataManager.deleteOrderFromContext(order)
+            try coreDataManager.deleteEntityFromContext(order)
             throw error
         }
     }
