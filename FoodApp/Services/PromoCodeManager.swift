@@ -8,6 +8,8 @@ import Foundation
 enum PromoCodeManagerError: Error {
     case activePromoCodeAlreadyExists
     case failedToSavePromoCode
+    case failedToDeletePromoCode
+    case promoCodeNotFound
 }
 
 final class PromoCodeManager {
@@ -38,16 +40,20 @@ final class PromoCodeManager {
         }
     }
     
-    func getPromoCode() -> PromoCodeEntity? {
+    func fetchPromoCode() throws -> PromoCodeEntity {
         do {
             return try coreDataManager.fetchPromoCode()
         } catch {
-            return nil
+            throw PromoCodeManagerError.promoCodeNotFound
         }
     }
     
     func deletePromoCode() throws {
-        try coreDataManager.deletePromoCode()
+        do {
+            try coreDataManager.deletePromoCode()
+        } catch {
+            throw PromoCodeManagerError.failedToDeletePromoCode
+        }
     }
     
 }

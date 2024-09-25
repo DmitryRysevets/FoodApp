@@ -818,12 +818,15 @@ final class CoreDataManager {
         return promoCode
     }
     
-    func fetchPromoCode() throws -> PromoCodeEntity? {
+    func fetchPromoCode() throws -> PromoCodeEntity {
         let request: NSFetchRequest<PromoCodeEntity> = PromoCodeEntity.fetchRequest()
         
         do {
-            let promoCodeData = try context.fetch(request)
-            return promoCodeData.first
+            if let promoCode = try context.fetch(request).first {
+                return promoCode
+            } else {
+                throw CoreDataManagerError.itemNotFound
+            }
         } catch {
             throw CoreDataManagerError.fetchError(error)
         }

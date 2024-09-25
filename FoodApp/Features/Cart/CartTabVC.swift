@@ -9,7 +9,7 @@ final class CartTabVC: UIViewController {
     
     lazy var cartContent: [CartItem] = [] {
         didSet {
-            calculateTheBill()
+            updateBill()
             
             if cartItemColors.count != cartContent.count {
                 cartItemColors = ColorManager.shared.getColors(cartContent.count)
@@ -26,6 +26,8 @@ final class CartTabVC: UIViewController {
     }
     
     private var cartItemColors: [UIColor] = []
+    
+    private var activePromoCode: PromoCodeEntity?
 
     private var productCost: Double = 0
     private var deliveryCharge: Double = 2.0
@@ -249,6 +251,7 @@ final class CartTabVC: UIViewController {
         setupNavBar()
         setupUI()
         setupConstraints()
+        checkPromoCode()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -267,20 +270,6 @@ final class CartTabVC: UIViewController {
     }
     
     // MARK: - Private methods
-    
-    private func checkCart() {
-        do {
-            let items = try CoreDataManager.shared.fetchCart()
-            if cartContent != items {
-                cartContent = items
-                tableView.reloadData()
-                updateTableViewHeight()
-            }
-        } catch {
-            let notification = NotificationView(message: "Failed to check cart data.", type: .error)
-            notification.show(in: self)
-        }
-    }
     
     private func setupNavBar() {
         title = "Cart"
@@ -412,43 +401,74 @@ final class CartTabVC: UIViewController {
         tableViewHeightConstraint?.constant = CGFloat(numberOfRows) * cellHeight
     }
     
+    private func checkCart() {
+        do {
+            let items = try CoreDataManager.shared.fetchCart()
+            if cartContent != items {
+                cartContent = items
+                tableView.reloadData()
+                updateTableViewHeight()
+            }
+        } catch {
+            let notification = NotificationView(message: "Failed to check cart data.", type: .error)
+            notification.show(in: self)
+        }
+    }
+    
+    private func checkPromoCode() {
+        do {
+            let promoCode = try PromoCodeManager.shared.fetchPromoCode()
+            
+            if promoCode.expirationDate! > Date() {
+                activePromoCode = promoCode
+                showDiscount()
+            } else {
+                let notification = NotificationView(message: "Your promo code has expired.", type: .warning)
+                notification.show(in: self)
+                
+                try PromoCodeManager.shared.deletePromoCode()
+            }
+            
+        } catch {
+            // PromoCodeManagerError.promoCodeNotFound
+            // PromoCodeManagerError.failedToDeletePromoCode
+        }
+    }
+    
     private func deletePromoCode() {
+        activePromoCode = nil
         deliveryCharge = 2
-        promoCodeDiscountLabel.alpha = 0
-        promoCodeDiscountValueLabel.alpha = 0
+        promoCodeDiscount = 0
         promoCodeDiscountValueLabel.text = ""
         deliveryChargeValueLabel.text = "$\(String(format: "%.2f", deliveryCharge))"
-        dividerTopAnchorConstraint?.constant = 13
+        
+        hideDiscount()
+        
+        do {
+            try PromoCodeManager.shared.deletePromoCode()
+        } catch {
+            print("An error occurred while trying to delete a promo code from storage: \(error)")
+        }
     }
     
-    private func applyPromoCode(discount discountPercent: Int, freeDelivery: Bool) {
-        let notification = NotificationView(message: "The promo code has been successfully applied.", type: .confirming, interval: 3)
-        notification.show(in: self)
-        
-        var totalDiscount = 0.0
-        
-        if freeDelivery {
-            totalDiscount = deliveryCharge
-            promoCodeDiscountValueLabel.text = "Free delivery"
-            deliveryChargeValueLabel.text = "$0.00"
-        } else {
-            totalDiscount = (productCost / 100 * Double(discountPercent) * 100).rounded() / 100
-            promoCodeDiscountValueLabel.text = "-$\(String(format: "%.2f", totalDiscount))"
+    private func updateBill() {
+        if let promoCode = activePromoCode {
+            var totalDiscount = 0.0
+            
+            if promoCode.freeDelivery {
+                totalDiscount = deliveryCharge
+                promoCodeDiscountValueLabel.text = "Free delivery"
+                deliveryChargeValueLabel.text = "$0.00"
+            } else {
+                totalDiscount = (productCost / 100 * Double(promoCode.discountPercentage) * 100).rounded() / 100
+                promoCodeDiscountValueLabel.text = "-$\(String(format: "%.2f", totalDiscount))"
+            }
+            
+            promoCodeDiscount = totalDiscount
         }
         
-        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 80, initialSpringVelocity: 0.5) {
-            self.promoCodeDiscountLabel.alpha = 1
-            self.promoCodeDiscountValueLabel.alpha = 1
-            self.dividerTopAnchorConstraint?.constant = 42
-            self.view.layoutIfNeeded()
-        }
-        
-        promoCodeDiscount = totalDiscount
-        calculateTheBill()
-    }
-    
-    private func calculateTheBill() {
         productCost = 0
+        
         for item in cartContent {
             productCost += Double(item.quantity) * item.dish.price
         }
@@ -494,6 +514,27 @@ final class CartTabVC: UIViewController {
         return orderItems
     }
     
+    private func showDiscountWithAnimation() {
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 80, initialSpringVelocity: 0.5) {
+            self.promoCodeDiscountLabel.alpha = 1
+            self.promoCodeDiscountValueLabel.alpha = 1
+            self.dividerTopAnchorConstraint?.constant = 42
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    private func showDiscount() {
+        promoCodeDiscountLabel.alpha = 1
+        promoCodeDiscountValueLabel.alpha = 1
+        dividerTopAnchorConstraint?.constant = 42
+    }
+    
+    private func hideDiscount() {
+        promoCodeDiscountLabel.alpha = 0
+        promoCodeDiscountValueLabel.alpha = 0
+        dividerTopAnchorConstraint?.constant = 13
+    }
+    
     // MARK: - ObjC methods
 
     @objc
@@ -513,10 +554,17 @@ final class CartTabVC: UIViewController {
         
         Task {
             do {
-                let result = try await FirebaseManager.shared.applyPromoCode(code)
-                applyPromoCode(discount: result.discountPercentage, freeDelivery: result.freeDelivery)
+                let promoCode = try await PromoCodeManager.shared.applyPromoCode(code)
+                activePromoCode = promoCode
+                updateBill()
+                showDiscountWithAnimation()
+                
                 promoCodeTextField.text = ""
                 promoCodeTextField.resignFirstResponder()
+                
+                let notification = NotificationView(message: "The promo code has been successfully applied.", type: .confirming, interval: 4)
+                notification.show(in: self)
+                
             } catch {
                 promoCodeTextField.text = ""
                 NotificationView.show(for: error, in: self)
