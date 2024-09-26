@@ -99,7 +99,7 @@ final class FirebaseManager {
         
         do {
             let promoCodeSnapshot = try await promoCodeRef.getDocument()
-
+            
             guard promoCodeSnapshot.exists else {
                 throw FirebaseManagerError.promoCodeNotFound
             }
@@ -107,18 +107,18 @@ final class FirebaseManager {
             guard let data = promoCodeSnapshot.data() else {
                 throw FirebaseManagerError.invalidData
             }
-            
+
             guard let usageLimit = data["usageLimit"] as? Int,
                   let usedCount = data["usedCount"] as? Int,
                   let expirationDate = (data["expirationDate"] as? Timestamp)?.dateValue() else {
                 throw FirebaseManagerError.invalidData
             }
-            
+
             let currentDate = Date()
             if expirationDate < currentDate {
                 throw FirebaseManagerError.promoCodeExpired
             }
-            
+
             if usedCount >= usageLimit {
                 throw FirebaseManagerError.promoCodeLimitReached
             }
@@ -131,12 +131,16 @@ final class FirebaseManager {
 
             let discountPercentage = data["discountPercent"] as? Int ?? 0
             let freeDelivery = data["freeDelivery"] as? Bool ?? false
-            
+
             return (discountPercentage, freeDelivery, expirationDate)
+
+        } catch let error as FirebaseManagerError {
+            throw error
         } catch {
             throw FirebaseManagerError.firestoreDataWasNotReceived(error)
         }
     }
+
 
     
     // MARK: - Menu methods

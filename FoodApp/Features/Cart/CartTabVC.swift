@@ -416,22 +416,23 @@ final class CartTabVC: UIViewController {
     }
     
     private func checkPromoCode() {
-        do {
-            let promoCode = try PromoCodeManager.shared.fetchPromoCode()
-            
-            if promoCode.expirationDate! > Date() {
-                activePromoCode = promoCode
-                showDiscount()
-            } else {
-                let notification = NotificationView(message: "Your promo code has expired.", type: .warning)
-                notification.show(in: self)
+        if PromoCodeManager.shared.isActivePromoInStorage() {
+            do {
+                let promoCode = try PromoCodeManager.shared.fetchPromoCode()
                 
-                try PromoCodeManager.shared.deletePromoCode()
+                if promoCode.expirationDate! > Date() {
+                    activePromoCode = promoCode
+                    showDiscount()
+                } else {
+                    let notification = NotificationView(message: "Your promo code has expired.", type: .warning)
+                    notification.show(in: self)
+                    
+                    try PromoCodeManager.shared.deletePromoCode()
+                }
+            } catch {
+                let notification = NotificationView(message: "An internal error occurred while processing a promo code.", type: .error)
+                notification.show(in: self)
             }
-            
-        } catch {
-            // PromoCodeManagerError.promoCodeNotFound
-            // PromoCodeManagerError.failedToDeletePromoCode
         }
     }
     

@@ -56,4 +56,8 @@ final class PromoCodeManager {
         }
     }
     
+    func isActivePromoInStorage() -> Bool {
+        coreDataManager.isActivePromoCodeAlreadyExists()
+    }
+    
 }

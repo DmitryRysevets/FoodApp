@@ -258,6 +258,16 @@ class NotificationView: UIView {
                 notification = NotificationView(message: "Failed to get an up to date version of the menu.", type: .error)
             }
             
+        } else if let promoCodeManagerError = error as? PromoCodeManagerError {
+            
+            switch promoCodeManagerError {
+            case .activePromoCodeAlreadyExists:
+                notification = NotificationView(message: "You have already activated one promo code. Only one promo code can be used at a time.", type: .error)
+
+            default:
+                notification = NotificationView(message: "An internal error occurred while processing a promo code.", type: .error)
+            }
+            
         } else {
             notification = NotificationView(message: "An unknown error occurred. Please try again later.", type: .error)
             print("Unknown error: \(error)")
