@@ -461,6 +461,7 @@ final class DishVC: UIViewController {
         do {
             relatedProducts = try CoreDataManager.shared.findSimilarDishes(to: dish)
         } catch {
+            ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to search for similar dishes in the storage."])
             NotificationView.show(for: error, in: self)
         }
     }
@@ -835,6 +836,7 @@ final class DishVC: UIViewController {
                 try CoreDataManager.shared.saveCartItem(dish: dish, quantity: quantity)
             }
         } catch {
+            ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to add a dish to the cart."])
             NotificationView.show(for: error, in: self)
         }
         

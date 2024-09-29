@@ -742,6 +742,7 @@ final class PaymentVC: UIViewController {
             do {
                 mapView.mapStyle = try GMSMapStyle(contentsOfFileURL: styleURL)
             } catch {
+                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Failed to load map style."])
                 print("Failed to load map style. \(error)")
             }
         }
@@ -795,6 +796,25 @@ final class PaymentVC: UIViewController {
     private func unsetWarningOnAddressSection() {
         mapSectionView.layer.borderWidth = 0
         mapSectionView.layer.borderColor = .none
+    }
+    
+    private func showPriceDetails() {
+        UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut]) {
+            self.priceDetailsView.alpha = 1
+            self.totalAmountLabelTopConstraint?.constant = 118
+            self.view.layoutIfNeeded()
+        }
+    }
+    
+    private func hidePriceDetails() {
+        UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut]) {
+            self.priceDetailsView.alpha = 0
+        }
+        
+        UIView.animate(withDuration: 0.3, delay: 0.2) {
+            self.totalAmountLabelTopConstraint?.constant = 14
+            self.view.layoutIfNeeded()
+        }
     }
     
     //MARK: - Objc methods
@@ -872,20 +892,9 @@ final class PaymentVC: UIViewController {
         seePriceDetailsButton.isSelected.toggle()
         
         if seePriceDetailsButton.isSelected {
-            UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut]) {
-                self.priceDetailsView.alpha = 1
-                self.totalAmountLabelTopConstraint?.constant = 118
-                self.view.layoutIfNeeded()
-            }
+            showPriceDetails()
         } else {
-            UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut]) {
-                self.priceDetailsView.alpha = 0
-            }
-            
-            UIView.animate(withDuration: 0.3, delay: 0.2) {
-                self.totalAmountLabelTopConstraint?.constant = 14
-                self.view.layoutIfNeeded()
-            }
+            hidePriceDetails()
         }
     }
     
@@ -904,10 +913,13 @@ final class PaymentVC: UIViewController {
 
         if orderIsValid() {
             guard let location = location else { return }
+
+            let orderID = UUID()
             
             Task {
                 do {
-                    try await OrderManager.shared.placeOrder(productCost: productCost,
+                    try await OrderManager.shared.placeOrder(orderID: orderID,
+                                                             productCost: productCost,
                                                              deliveryCharge: deliveryCharge,
                                                              promoCodeDiscount: promoCodeDiscount,
                                                              paidByCard: payByCardRadioButton.isSelected,
@@ -923,6 +935,7 @@ final class PaymentVC: UIViewController {
                     deletePromocodeHandler?()
                     navigationController?.popViewController(animated: true)
                 } catch {
+                    ErrorLogger.shared.logError(error, additionalInfo: ["OrderID": orderID, "UserID": UserManager.shared.getUserID()])
                     NotificationView.show(for: error, in: self)
                 }
             }

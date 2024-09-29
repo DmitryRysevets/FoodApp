@@ -21,7 +21,11 @@ final class UserManager {
         return Auth.auth().currentUser != nil
     }
     
-    func getUser() throws -> UserEntity? {
+    func getUserID() -> String {
+        Auth.auth().currentUser?.uid ?? "Guest"
+    }
+    
+    func getUserEntity() throws -> UserEntity? {
         return try coreDataManager.fetchUser()
     }
     

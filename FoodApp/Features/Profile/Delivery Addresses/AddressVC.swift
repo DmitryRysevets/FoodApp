@@ -257,8 +257,12 @@ final class AddressVC: UIViewController {
         let geocoder = CLGeocoder()
         geocoder.geocodeAddressString(address) { (placemarks, error) in
             if let error = error {
+                
+                let notification = NotificationView(message: "No coordinates were found for your address. Please check the entered data and try again.", type: .warning)
+                notification.show(in: self)
+                
                 print("Error geocoding address: \(error.localizedDescription)")
-                // here the user needs to be notified
+                
             } else if let placemark = placemarks?.first {
                 self.location = placemark.location
             }
@@ -269,6 +273,10 @@ final class AddressVC: UIViewController {
         let geocoder = CLGeocoder()
         geocoder.reverseGeocodeLocation(location) { (placemarks, error) in
             if let error = error {
+                
+                let notification = NotificationView(message: "No addresses were found at these coordinates.", type: .warning)
+                notification.show(in: self)
+                
                 print("Error reverse geocoding: \(error.localizedDescription)")
             } else if let placemark = placemarks?.first {
                 if let address = placemark.name {
@@ -329,6 +337,7 @@ final class AddressVC: UIViewController {
             do {
                 mapView.mapStyle = try GMSMapStyle(contentsOfFileURL: styleURL)
             } catch {
+                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Failed to load map style."])
                 print("Failed to load map style. \(error)")
             }
         }
@@ -397,7 +406,8 @@ final class AddressVC: UIViewController {
                                                              longitude: location.coordinate.longitude)
                     navigationController?.popViewController(animated: true)
                 } catch {
-                    // need warning
+                    let notification = NotificationView(message: "An error occurred while trying to update the address data. Please try again.", type: .error)
+                    notification.show(in: self)
                 }
             } else {
                 do {
@@ -408,7 +418,8 @@ final class AddressVC: UIViewController {
                                                            isDefaultAddress: defaultAddressCheckBox.isChecked)
                     navigationController?.popViewController(animated: true)
                 } catch {
-                    // need warning
+                    let notification = NotificationView(message: "An error occurred while trying to save the address. Please try again.", type: .error)
+                    notification.show(in: self)
                 }
             }
         }

@@ -226,6 +226,7 @@ final class ChangePasswordVC: UIViewController {
                 do {
                     try await UserManager.shared.updatePassword(currentPassword: olpPass, to: newPass)
                 } catch {
+                    ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to change user password."])
                     NotificationView.show(for: error, in: self)
                 }
             }

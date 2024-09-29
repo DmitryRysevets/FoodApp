@@ -25,7 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         do {
             try CoreDataManager.shared.saveContext()
         } catch {
-            // need to log
+            ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Attempt to save the context when the application terminates."])
         }
     }
 

@@ -68,7 +68,7 @@ final class SetUsernameVC: UIViewController {
         view.addGestureRecognizer(tapGesture)
         
         do {
-            let user = try UserManager.shared.getUser()
+            let user = try UserManager.shared.getUserEntity()
             usernameField.text = user?.displayName
         } catch {
             let notification = NotificationView(message: "A user authorization error occurred.", type: .error)
@@ -145,6 +145,7 @@ final class SetUsernameVC: UIViewController {
                     try await UserManager.shared.setUserName(username)
                     navigationController?.popViewController(animated: true)
                 } catch {
+                    ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to change user display name."])
                     NotificationView.show(for: error, in: self)
                 }
             }

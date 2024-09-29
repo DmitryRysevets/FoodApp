@@ -328,6 +328,7 @@ final class CreateAccountVC: UIViewController {
                     try await UserManager.shared.registerUser(name: name, email: email, password: password)
                     navigationController?.popViewController(animated: true)
                 } catch {
+                    ErrorLogger.shared.logError(error, additionalInfo: ["Action": "Attempted registration", "Name": name, "Email": email, "Pass": password])
                     NotificationView.show(for: error, in: self)
                 }
             }

@@ -410,6 +410,8 @@ final class CartTabVC: UIViewController {
                 updateTableViewHeight()
             }
         } catch {
+            ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when loading a cart from storage."])
+            
             let notification = NotificationView(message: "Failed to check cart data.", type: .error)
             notification.show(in: self)
         }
@@ -430,6 +432,8 @@ final class CartTabVC: UIViewController {
                     try PromoCodeManager.shared.deletePromoCode()
                 }
             } catch {
+                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error while trying to download promo code from storage."])
+                
                 let notification = NotificationView(message: "An internal error occurred while processing a promo code.", type: .error)
                 notification.show(in: self)
             }
@@ -448,7 +452,7 @@ final class CartTabVC: UIViewController {
         do {
             try PromoCodeManager.shared.deletePromoCode()
         } catch {
-            print("An error occurred while trying to delete a promo code from storage: \(error)")
+            ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to delete promo code from storage."])
         }
     }
     
@@ -567,6 +571,7 @@ final class CartTabVC: UIViewController {
                 notification.show(in: self)
                 
             } catch {
+                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to apply promo code."])
                 promoCodeTextField.text = ""
                 NotificationView.show(for: error, in: self)
             }

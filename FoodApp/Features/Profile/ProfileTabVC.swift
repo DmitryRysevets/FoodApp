@@ -77,7 +77,7 @@ final class ProfileTabVC: UIViewController {
             self.addressName = defaultAddress?.placeName
             self.cardName = CoreDataManager.shared.getPreferredCardName()
             do {
-                self.user = try self.userManager.getUser()
+                self.user = try self.userManager.getUserEntity()
             } catch {
                 let notification = NotificationView(message: "A user authorization error occurred.", type: .error)
                 notification.show(in: self)
@@ -217,7 +217,6 @@ extension ProfileTabVC: UITableViewDelegate, UITableViewDataSource {
         switch menuItems[indexPath.row] {
         case "Account":
             let vc = AccountVC()
-            print(Auth.auth().currentUser)
             vc.isUserLoggedIn = userManager.isUserLoggedIn()
             navigationController?.pushViewController(vc, animated: true)
         case "Delivery Addresses":
@@ -262,9 +261,11 @@ extension ProfileTabVC: UIImagePickerControllerDelegate, UINavigationControllerD
                 try await userManager.uploadUserAvatar(editedImage)
                 avatarImageView.image = editedImage
             } catch {
+                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Failed to upload avatar."])
+                print("Failed to upload avatar: \(error)")
+                
                 let notification = NotificationView(message: "There was an error adding an avatar to your account. Please try again later.", type: .warning, interval: 4)
                 notification.show(in: self.view)
-                print("Failed to upload avatar: \(error)")
             }
         }
     }

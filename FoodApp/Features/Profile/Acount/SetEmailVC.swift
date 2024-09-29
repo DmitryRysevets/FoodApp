@@ -160,6 +160,7 @@ final class SetEmailVC: UIViewController {
                     
                     navigationController?.popViewController(animated: true)
                 } catch {
+                    ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to update user email."])
                     NotificationView.show(for: error, in: self)
                 }
             }

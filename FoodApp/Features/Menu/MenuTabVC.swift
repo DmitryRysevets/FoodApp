@@ -407,6 +407,7 @@ final class MenuTabVC: UIViewController {
                     menu = try await MenuManager.shared.getLatestMenu()
                 }
             } catch {
+                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error in obtaining the actual menu."])
                 NotificationView.show(for: error, in: self)
             }
         }
@@ -418,6 +419,7 @@ final class MenuTabVC: UIViewController {
                 self.menu = menu
             }
         } catch {
+            ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when loading menus from storage."])
             NotificationView.show(for: error, in: self)
         }
     }

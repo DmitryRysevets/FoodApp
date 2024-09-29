@@ -152,6 +152,7 @@ final class ContactUsVC: UIViewController {
 
                     messageTextView.text = ""
                 } catch {
+                    ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to send a feedback message."])
                     NotificationView.show(for: error, in: self)
                 }
             }

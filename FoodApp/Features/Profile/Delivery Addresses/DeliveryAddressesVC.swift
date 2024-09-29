@@ -100,7 +100,7 @@ final class DeliveryAddressesVC: UIViewController {
             addresses = try CoreDataManager.shared.fetchAllAddresses()
             tableView.reloadData()
         } catch {
-            let notification = NotificationView(message: "An error occurred while loading the data. Please try again later.", type: .error, interval: 5)
+            let notification = NotificationView(message: "An error occurred while loading the data. Please try again later.", type: .error)
             notification.show(in: self)
         }
     }
@@ -164,7 +164,7 @@ final class DeliveryAddressesVC: UIViewController {
             addresses.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
         } catch {
-            let notification = NotificationView(message: "An error occurred while deleting the data. Please try again later.", type: .error, interval: 5)
+            let notification = NotificationView(message: "An error occurred while deleting the data. Please try again later.", type: .error)
             notification.show(in: self)
         }
     }
@@ -243,7 +243,7 @@ extension DeliveryAddressesVC: UITableViewDelegate, UITableViewDataSource {
                 tableView.reloadData()
                 navigationController?.popViewController(animated: true)
             } catch {
-                let notification = NotificationView(message: "An error occurred while working with the data. Please try again later.", type: .error, interval: 5)
+                let notification = NotificationView(message: "An error occurred during data processing. Please try again later.", type: .error)
                 notification.show(in: self)
             }
         }

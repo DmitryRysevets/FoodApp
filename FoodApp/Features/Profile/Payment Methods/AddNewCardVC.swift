@@ -395,8 +395,10 @@ final class AddNewCardVC: UIViewController {
             } catch {
                 let error = error as NSError
                 if error.code == 1 {
-                    print("Card with this name already exists")
-                    // Need to warn a user that a card with this name already exists
+                    let notification = NotificationView(message: "A payment method with this name already exists.", type: .error)
+                    notification.show(in: self)
+                } else {
+                    NotificationView.show(for: error, in: self)
                 }
             }
             

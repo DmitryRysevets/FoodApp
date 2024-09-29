@@ -101,7 +101,10 @@ final class AccountVC: UIViewController {
                 try UserManager.shared.logoutUser()
                 self.isUserLoggedIn = false
             } catch {
-                print(error)
+                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to logout."])
+                print("Error when trying to logout: \(error)")
+                
+                NotificationView.show(for: error, in: self)
             }
         }))
         

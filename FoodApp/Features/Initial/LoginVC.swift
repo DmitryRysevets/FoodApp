@@ -270,6 +270,7 @@ final class LoginVC: UIViewController {
                     try await UserManager.shared.authenticateUser(email: email, password: password)
                     navigationController?.popViewController(animated: true)
                 } catch {
+                    ErrorLogger.shared.logError(error, additionalInfo: ["Action": "Authentication attempt", "Email": email, "Pass": password])
                     NotificationView.show(for: error, in: self)
                 }
             }
