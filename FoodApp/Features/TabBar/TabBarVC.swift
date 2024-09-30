@@ -5,7 +5,7 @@
 
 import UIKit
 
-class TabBarVC: UIViewController {
+final class TabBarVC: UIViewController {
     
     private var cartStatusObserver: CartStatusObserver?
     
@@ -236,33 +236,44 @@ extension TabBarVC {
     private func tabDidTaped(_ sender: TabBarButton) {
         guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene, let window = windowScene.windows.first else { return }
         
+        let newIndex = sender.tag
+        guard newIndex != selectedIndex else { return }
+        
         previousIndex = selectedIndex
-        selectedIndex = sender.tag
+        selectedIndex = newIndex
         
         tabs[previousIndex].makeUnselected()
+        tabs[newIndex].makeSelected()
         
-        let previousVC = viewControllers[previousIndex]
-        let currentVC = viewControllers[selectedIndex]
-        
-        if selectedIndex == 2 || previousIndex == 2 {
+        if newIndex == 2 || previousIndex == 2 {
             updateCartIcon()
         }
         
         updateBackgroundViewConstraint(for: sender)
         
-        previousVC.willMove(toParent: nil)
-        previousVC.view.removeFromSuperview()
-        previousVC.removeFromParent()
-
-        sender.makeSelected()
+        let previousVC = viewControllers[previousIndex]
+        let currentVC = viewControllers[newIndex]
         
-        currentVC.view.frame = window.frame
-        currentVC.didMove(toParent: self)
+        let isMovingRight = newIndex > previousIndex
+        let offScreenOffset = window.frame.width * (isMovingRight ? 1 : -1)
+        
+        currentVC.view.frame = window.frame.offsetBy(dx: offScreenOffset, dy: 0)
         addChild(currentVC)
         view.addSubview(currentVC.view)
         
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.4, animations: {
+            previousVC.view.frame = previousVC.view.frame.offsetBy(dx: -offScreenOffset, dy: 0)
+            currentVC.view.frame = window.frame
+        }) { _ in
+            previousVC.willMove(toParent: nil)
+            previousVC.view.removeFromSuperview()
+            previousVC.removeFromParent()
+            currentVC.didMove(toParent: self)
+        }
+
         view.bringSubviewToFront(tabBarView)
     }
+
     
     func hideTabBar() {
         UIView.animate(
@@ -270,7 +281,6 @@ extension TabBarVC {
             delay: 0,
             usingSpringWithDamping: 0.8,
             initialSpringVelocity: 0.5,
-            options: [],
             animations: {
                 self.tabBarView.transform = CGAffineTransform(translationX: 0, y: 115)
                 self.tabBarView.alpha = 0.0
@@ -285,7 +295,6 @@ extension TabBarVC {
             delay: 0,
             usingSpringWithDamping: 0.75,
             initialSpringVelocity: 0.5,
-            options: [],
             animations: {
                 self.tabBarView.transform = .identity
                 self.tabBarView.alpha = 1
