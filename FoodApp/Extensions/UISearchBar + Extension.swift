@@ -6,7 +6,8 @@
 import UIKit
 
 extension UISearchBar {
-    func updateHeight(height: CGFloat, radius: CGFloat = 8.0) {
+    
+    func updateHeight(to height: CGFloat, radius: CGFloat = 8.0) {
         let image: UIImage? = UIImage.imageWithColor(color: UIColor.clear, size: CGSize(width: 1, height: height))
         setSearchFieldBackgroundImage(image, for: .normal)
         for subview in self.subviews {
@@ -38,39 +39,17 @@ extension UISearchBar {
         }
     }
     
-    func setSideImage(_ image: UIImage, imageSize: CGSize, padding: CGFloat = 0, tintColor: UIColor, side: sideOfSearchBar) {
-        let imageView = UIImageView()
-        imageView.image = image
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.widthAnchor.constraint(equalToConstant: imageSize.width).isActive = true
-        imageView.heightAnchor.constraint(equalToConstant: imageSize.height).isActive = true
-        imageView.tintColor = tintColor
+    func setPadding(_ padding: CGFloat, on side: sideOfSearchBar) {
+        let paddingView = UIView()
+        paddingView.translatesAutoresizingMaskIntoConstraints = false
+        paddingView.heightAnchor.constraint(equalToConstant: 1).isActive = true
+        paddingView.widthAnchor.constraint(equalToConstant: padding).isActive = true
         
-        if padding != 0 {
-            let stackView = UIStackView()
-            stackView.translatesAutoresizingMaskIntoConstraints = false
-            stackView.axis = .horizontal
-            stackView.alignment = .center
-            stackView.distribution = .fill
-            
-            let paddingView = UIView()
-            paddingView.translatesAutoresizingMaskIntoConstraints = false
-            paddingView.widthAnchor.constraint(equalToConstant: padding).isActive = true
-            paddingView.heightAnchor.constraint(equalToConstant: padding).isActive = true
-            
-            switch side {
-            case .right:
-                stackView.addArrangedSubview(imageView)
-                stackView.addArrangedSubview(paddingView)
-                searchTextField.rightView = stackView
-            case .left:
-                stackView.addArrangedSubview(paddingView)
-                stackView.addArrangedSubview(imageView)
-                searchTextField.leftView = stackView
-            }
-            
-        } else {
-            searchTextField.rightView = imageView
+        switch side {
+        case .right:
+            searchTextField.rightView = paddingView
+        case .left:
+            searchTextField.leftView = paddingView
         }
     }
     

@@ -20,7 +20,7 @@ final class MenuTabVC: UIViewController {
     
     private lazy var preloaderView = PreloaderView(frame: CGRect(x: 32, y: Int(view.center.y - 100), width: Int(view.frame.width - 64), height: 180))
     
-    // MARK: - Header props.
+    // MARK: - Header
     
     private var headerBottomPadding: Double = Constants.headerHeight - Constants.headerButtonSize
     
@@ -89,20 +89,41 @@ final class MenuTabVC: UIViewController {
         return button
     }()
     
-    // MARK: - Search bar props.
+    // MARK: - Search bar
     
     private lazy var searchBar: UISearchBar = {
         let searchBar = UISearchBar()
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         searchBar.searchTextField.backgroundColor = ColorManager.shared.headerElementsColor
         searchBar.searchTextField.borderStyle = .none
-        searchBar.updateHeight(height: 44, radius: 22)
         searchBar.tintColor = ColorManager.shared.orange
         searchBar.searchBarStyle = .minimal
         searchBar.placeholder = "Search"
-        searchBar.showsBookmarkButton = true
+        searchBar.setPlaceholderFont(.systemFont(ofSize: 14))
+        searchBar.updateHeight(to: 44, radius: 22)
+        searchBar.setPadding(32, on: .left)
+        searchBar.setPadding(44, on: .right)
         searchBar.delegate = self
         return searchBar
+    }()
+    
+    private lazy var magnifyingGlassImageView: UIImageView = {
+        let image = UIImage(named: "Magnifying-glass")
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        imageView.tintColor = ColorManager.shared.label
+        return imageView
+    }()
+    
+    private lazy var sortButton: UIButton = {
+        let button = UIButton()
+        let image = UIImage(named: "Sliders")
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.setImage(image, for: .normal)
+        button.tintColor = ColorManager.shared.label
+        button.addTarget(self, action: #selector(sortButtonTapped), for: .touchUpInside)
+        return button
     }()
     
     private var filteredBySearchDishes: [Dish] = []
@@ -110,7 +131,7 @@ final class MenuTabVC: UIViewController {
     private var isFilteredByTag = false
     private var isSearching = false
     
-    // MARK: - Collection view props.
+    // MARK: - Collection view
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -138,7 +159,7 @@ final class MenuTabVC: UIViewController {
         configureDataSource()
         applyInitialSnapshot()
         getMenuFromCoreData()
-        menuCheck()
+        checkMenu()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -150,7 +171,7 @@ final class MenuTabVC: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        setupSearchBar()
+        searchBar.searchTextField.rightViewMode = .always
     }
     
     // MARK: - Collection view methods
@@ -297,6 +318,9 @@ final class MenuTabVC: UIViewController {
         headerView.addSubview(deliveryAdressLabel)
         headerView.addSubview(notificationButton)
         headerView.addSubview(layoutButton)
+        
+        searchBar.addSubview(magnifyingGlassImageView)
+        searchBar.addSubview(sortButton)
     }
     
     private func setupConstraints() {
@@ -334,27 +358,21 @@ final class MenuTabVC: UIViewController {
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
             searchBar.heightAnchor.constraint(equalToConstant: 54),
             
+            magnifyingGlassImageView.widthAnchor.constraint(equalToConstant: 18),
+            magnifyingGlassImageView.heightAnchor.constraint(equalToConstant: 18),
+            magnifyingGlassImageView.centerYAnchor.constraint(equalTo: searchBar.centerYAnchor),
+            magnifyingGlassImageView.leadingAnchor.constraint(equalTo: searchBar.leadingAnchor, constant: 24),
+            
+            sortButton.widthAnchor.constraint(equalToConstant: 40),
+            sortButton.heightAnchor.constraint(equalToConstant: 40),
+            sortButton.centerYAnchor.constraint(equalTo: searchBar.centerYAnchor),
+            sortButton.trailingAnchor.constraint(equalTo: searchBar.trailingAnchor, constant: -14),
+            
             collectionView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
-    }
-    
-    private func setupSearchBar() {
-        searchBar.searchTextField.rightViewMode = .always
-        searchBar.setPlaceholderFont(.systemFont(ofSize: 14))
-        searchBar.setSideImage(UIImage(named: "Magnifying-glass")!,
-                               imageSize: CGSize(width: 18, height: 18),
-                               padding: 10,
-                               tintColor: ColorManager.shared.label,
-                               side: .left)
-        
-        searchBar.setSideImage(UIImage(named: "Sliders")!,
-                               imageSize: CGSize(width: 22, height: 25),
-                               padding: 10,
-                               tintColor: ColorManager.shared.label,
-                               side: .right)
     }
     
     private func hideTabBar() {
@@ -399,7 +417,7 @@ final class MenuTabVC: UIViewController {
         )
     }
     
-    private func menuCheck() {
+    private func checkMenu() {
         Task {
             do {
                 let menuUpdateIsNeeded = try await !MenuManager.shared.isLatestMenuDownloaded()
@@ -465,6 +483,11 @@ final class MenuTabVC: UIViewController {
         vc.modalTransitionStyle = .coverVertical
         vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true)
+    }
+    
+    @objc
+    private func sortButtonTapped() {
+        print(#function)
     }
 }
 
@@ -558,4 +581,12 @@ extension MenuTabVC: UISearchBarDelegate {
         isSearching = true
         applyFilteredSnapshot()
     }
+}
+
+enum SortType {
+    case none
+    case byPriceAscending
+    case byPriceDescending
+    case byNameAscending
+    case byNameDescending
 }
