@@ -130,6 +130,104 @@ final class MenuTabVC: UIViewController {
     private var filteredByTagDishes: [Dish] = []
     private var isFilteredByTag = false
     private var isSearching = false
+    private var sortType: SortType = .none
+    
+    // MARK: - Sort view
+    
+    enum SortType {
+        case none
+        case byPriceAscending
+        case byPriceDescending
+        case byNameAscending
+        case byNameDescending
+    }
+    
+    private lazy var sortView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.2)
+        view.layer.cornerRadius = 22
+        view.layer.opacity = 0
+        view.clipsToBounds = true
+        return view
+    }()
+    
+    private lazy var sortViewBlurEffect: UIVisualEffectView = {
+        let view = UIVisualEffectView()
+        let blur = UIBlurEffect(style: .regular)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.effect = blur
+        return view
+    }()
+    
+    private lazy var sortButtonsViewStack: UIStackView = {
+        let stack = UIStackView()
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        stack.axis = .vertical
+        stack.distribution = .fillProportionally
+        return stack
+    }()
+    
+    private lazy var unsortButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("none", for: .normal)
+        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
+        button.setTitleColor(ColorManager.shared.orange, for: .selected)
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
+        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchUpInside)
+        button.tag = 0
+        button.isSelected = true
+        return button
+    }()
+    
+    private lazy var sortingByPriceAscendingButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("  price ↑", for: .normal)
+        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
+        button.setTitleColor(ColorManager.shared.orange, for: .selected)
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
+        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchUpInside)
+        button.tag = 1
+        return button
+    }()
+    
+    private lazy var sortingByPriceDescendingButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("  price ↓", for: .normal)
+        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
+        button.setTitleColor(ColorManager.shared.orange, for: .selected)
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
+        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchUpInside)
+        button.tag = 2
+        return button
+    }()
+    
+    private lazy var sortingByNameAscendingButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("  name ↑", for: .normal)
+        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
+        button.setTitleColor(ColorManager.shared.orange, for: .selected)
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
+        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchUpInside)
+        button.tag = 3
+        return button
+    }()
+    
+    private lazy var sortingByNameDescendingButton: UIButton = {
+        let button = UIButton()
+        button.setTitle("  name ↓", for: .normal)
+        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
+        button.setTitleColor(ColorManager.shared.orange, for: .selected)
+        button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
+        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchUpInside)
+        button.tag = 4
+        return button
+    }()
     
     // MARK: - Collection view
     
@@ -160,6 +258,10 @@ final class MenuTabVC: UIViewController {
         applyInitialSnapshot()
         getMenuFromCoreData()
         checkMenu()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideAllElements))
+        tapGesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(tapGesture)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -311,6 +413,7 @@ final class MenuTabVC: UIViewController {
         view.addSubview(collectionView)
         view.addSubview(searchBar)
         view.addSubview(headerView)
+        view.addSubview(sortView)
         view.addSubview(preloaderView)
         
         headerView.addSubview(avatarImageView)
@@ -321,6 +424,19 @@ final class MenuTabVC: UIViewController {
         
         searchBar.addSubview(magnifyingGlassImageView)
         searchBar.addSubview(sortButton)
+        
+        sortView.addSubview(sortViewBlurEffect)
+        sortView.addSubview(sortButtonsViewStack)
+        
+        sortButtonsViewStack.addArrangedSubview(unsortButton)
+        sortButtonsViewStack.addArrangedSubview(createSeparatorView())
+        sortButtonsViewStack.addArrangedSubview(sortingByPriceAscendingButton)
+        sortButtonsViewStack.addArrangedSubview(createSeparatorView())
+        sortButtonsViewStack.addArrangedSubview(sortingByPriceDescendingButton)
+        sortButtonsViewStack.addArrangedSubview(createSeparatorView())
+        sortButtonsViewStack.addArrangedSubview(sortingByNameAscendingButton)
+        sortButtonsViewStack.addArrangedSubview(createSeparatorView())
+        sortButtonsViewStack.addArrangedSubview(sortingByNameDescendingButton)
     }
     
     private func setupConstraints() {
@@ -368,11 +484,46 @@ final class MenuTabVC: UIViewController {
             sortButton.centerYAnchor.constraint(equalTo: searchBar.centerYAnchor),
             sortButton.trailingAnchor.constraint(equalTo: searchBar.trailingAnchor, constant: -14),
             
+            sortView.topAnchor.constraint(equalTo: sortButton.bottomAnchor, constant: 16),
+            sortView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            sortView.widthAnchor.constraint(equalToConstant: 120),
+            sortView.heightAnchor.constraint(equalToConstant: 220),
+            
+            sortViewBlurEffect.topAnchor.constraint(equalTo: sortView.topAnchor),
+            sortViewBlurEffect.leadingAnchor.constraint(equalTo: sortView.leadingAnchor),
+            sortViewBlurEffect.trailingAnchor.constraint(equalTo: sortView.trailingAnchor),
+            sortViewBlurEffect.bottomAnchor.constraint(equalTo: sortView.bottomAnchor),
+            
+            sortButtonsViewStack.topAnchor.constraint(equalTo: sortView.topAnchor),
+            sortButtonsViewStack.leadingAnchor.constraint(equalTo: sortView.leadingAnchor),
+            sortButtonsViewStack.trailingAnchor.constraint(equalTo: sortView.trailingAnchor),
+            sortButtonsViewStack.bottomAnchor.constraint(equalTo: sortView.bottomAnchor),
+            
             collectionView.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+    }
+    
+    private func createSeparatorView() -> UIView {
+        let separator = UIView()
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        separator.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.4)
+        separator.heightAnchor.constraint(equalToConstant: 1).isActive = true
+        return separator
+    }
+    
+    private func hideSortView() {
+        UIView.animate(withDuration: 0.2) {
+            self.sortView.layer.opacity = 0
+        }
+    }
+    
+    private func showSortView() {
+        UIView.animate(withDuration: 0.2) {
+            self.sortView.layer.opacity = 1
+        }
     }
     
     private func hideTabBar() {
@@ -442,6 +593,10 @@ final class MenuTabVC: UIViewController {
         }
     }
     
+    private func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
     // MARK: - Internal methods
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -453,6 +608,7 @@ final class MenuTabVC: UIViewController {
         } else {
             if isTabBarVisible { hideTabBar() }
             if !isSearching { hideSearchBar() }
+            hideSortView()
         }
     }
     
@@ -487,7 +643,44 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func sortButtonTapped() {
-        print(#function)
+        showSortView()
+    }
+    
+    @objc
+    private func sortTypeButtonTapped(_ sender: UIButton) {
+        guard sender.isSelected == false else { return }
+        
+        sortButton.tintColor = ColorManager.shared.orange
+
+        [unsortButton, sortingByNameAscendingButton, sortingByNameDescendingButton, sortingByPriceAscendingButton, sortingByPriceDescendingButton].forEach { button in
+            button.isSelected = false
+        }
+        
+        switch sender.tag {
+        case 0: // none
+            sender.isSelected = true
+            sortButton.tintColor = ColorManager.shared.label
+        case 1: // price ↑
+            sender.isSelected = true
+            sortButton.isSelected = true
+        case 2: // price ↓
+            sender.isSelected = true
+            sortButton.isSelected = true
+        case 3: // name ↑
+            sender.isSelected = true
+            sortButton.isSelected = true
+        case 4: // name ↓
+            sender.isSelected = true
+            sortButton.isSelected = true
+        default:
+            break
+        }
+    }
+    
+    @objc
+    private func hideAllElements() {
+        dismissKeyboard()
+        hideSortView()
     }
 }
 
@@ -581,12 +774,4 @@ extension MenuTabVC: UISearchBarDelegate {
         isSearching = true
         applyFilteredSnapshot()
     }
-}
-
-enum SortType {
-    case none
-    case byPriceAscending
-    case byPriceDescending
-    case byNameAscending
-    case byNameDescending
 }

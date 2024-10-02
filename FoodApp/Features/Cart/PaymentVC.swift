@@ -297,10 +297,14 @@ final class PaymentVC: UIViewController {
     private lazy var seePriceDetailsButton: UIButton = {
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setTitle("See price details", for: .normal)
-        button.setTitle("Hide price details", for: .selected)
-        button.tintColor = ColorManager.shared.label
+        let normalTitle = NSAttributedString(string: "See price details",attributes: [.underlineStyle: NSUnderlineStyle.single.rawValue])
+        let selectedTitle = NSAttributedString(string: "Hide price details",attributes: [.underlineStyle: NSUnderlineStyle.single.rawValue])
+        button.setAttributedTitle(normalTitle, for: .normal)
+        button.setAttributedTitle(selectedTitle, for: .selected)
+        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.5), for: .highlighted)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 13, axis: [Constants.fontWeightAxis : 550])
+        button.contentHorizontalAlignment = .left
         button.addTarget(self, action: #selector(seePriceDetailsButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -360,7 +364,7 @@ final class PaymentVC: UIViewController {
     private lazy var promoCodeDiscountValueLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.textColor = ColorManager.shared.confirmingGreen
+        label.textColor = ColorManager.shared.labelGray
         label.font = .systemFont(ofSize: 16)
         label.text = "$\(String(format: "%.2f", promoCodeDiscount))"
         return label
@@ -417,8 +421,12 @@ final class PaymentVC: UIViewController {
         if deliveryCharge == promoCodeDiscount {
             deliveryChargeValueLabel.text = "$0.00"
             promoCodeDiscountValueLabel.text = "Free delivery"
-        } else if promoCodeDiscount.isZero {
+        }
+        
+        if promoCodeDiscount.isZero {
             promoCodeDiscountValueLabel.text = "-"
+        } else {
+            promoCodeDiscountValueLabel.textColor = ColorManager.shared.confirmingGreen
         }
     }
     
@@ -889,7 +897,10 @@ final class PaymentVC: UIViewController {
     
     @objc
     private func seePriceDetailsButtonTapped() {
-        seePriceDetailsButton.isSelected.toggle()
+        UIView.performWithoutAnimation {
+            seePriceDetailsButton.isSelected.toggle()
+            seePriceDetailsButton.layoutIfNeeded()
+        }
         
         if seePriceDetailsButton.isSelected {
             showPriceDetails()
