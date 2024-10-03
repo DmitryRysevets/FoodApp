@@ -147,8 +147,10 @@ final class MenuTabVC: UIViewController {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.2)
         view.layer.cornerRadius = 22
-        view.layer.opacity = 0
         view.clipsToBounds = true
+        view.alpha = 0
+        view.layer.anchorPoint = CGPoint(x: 0.5, y: 0)
+        view.transform = CGAffineTransform(scaleX: 1, y: 0.3)
         return view
     }()
     
@@ -175,7 +177,7 @@ final class MenuTabVC: UIViewController {
         button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
-        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
         button.tag = 0
         button.isSelected = true
         return button
@@ -188,7 +190,7 @@ final class MenuTabVC: UIViewController {
         button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
-        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
         button.tag = 1
         return button
     }()
@@ -200,7 +202,7 @@ final class MenuTabVC: UIViewController {
         button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
-        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
         button.tag = 2
         return button
     }()
@@ -212,7 +214,7 @@ final class MenuTabVC: UIViewController {
         button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
-        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
         button.tag = 3
         return button
     }()
@@ -224,7 +226,7 @@ final class MenuTabVC: UIViewController {
         button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
-        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
         button.tag = 4
         return button
     }()
@@ -484,7 +486,7 @@ final class MenuTabVC: UIViewController {
             sortButton.centerYAnchor.constraint(equalTo: searchBar.centerYAnchor),
             sortButton.trailingAnchor.constraint(equalTo: searchBar.trailingAnchor, constant: -14),
             
-            sortView.topAnchor.constraint(equalTo: sortButton.bottomAnchor, constant: 16),
+            sortView.topAnchor.constraint(equalTo: sortButton.bottomAnchor, constant: -92),
             sortView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             sortView.widthAnchor.constraint(equalToConstant: 120),
             sortView.heightAnchor.constraint(equalToConstant: 220),
@@ -515,14 +517,56 @@ final class MenuTabVC: UIViewController {
     }
     
     private func hideSortView() {
-        UIView.animate(withDuration: 0.2) {
-            self.sortView.layer.opacity = 0
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
+            self.sortView.transform = CGAffineTransform(scaleX: 1, y: 0.3)
+            self.sortView.alpha = 0
+            self.unsortButton.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
+            self.unsortButton.transform = CGAffineTransform(translationX: 0, y: -20)
+            self.unsortButton.alpha = 0
+            self.sortingByPriceAscendingButton.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
+            self.sortingByPriceAscendingButton.transform = CGAffineTransform(translationX: 0, y: -20)
+            self.sortingByPriceAscendingButton.alpha = 0
+            self.sortingByPriceDescendingButton.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
+            self.sortingByPriceDescendingButton.transform = CGAffineTransform(translationX: 0, y: -20)
+            self.sortingByPriceDescendingButton.alpha = 0
+            self.sortingByNameAscendingButton.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
+            self.sortingByNameAscendingButton.transform = CGAffineTransform(translationX: 0, y: -20)
+            self.sortingByNameAscendingButton.alpha = 0
+            self.sortingByNameDescendingButton.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
+            self.sortingByNameDescendingButton.transform = CGAffineTransform(translationX: 0, y: -20)
+            self.sortingByNameDescendingButton.alpha = 0
         }
     }
     
     private func showSortView() {
-        UIView.animate(withDuration: 0.2) {
-            self.sortView.layer.opacity = 1
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
+            self.sortView.transform = .identity
+            self.sortView.alpha = 1
+        }
+        
+        UIView.animate(withDuration: 0.1, delay: 0.05, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+            self.unsortButton.transform = .identity
+            self.unsortButton.alpha = 1
+        }
+        
+        UIView.animate(withDuration: 0.1, delay: 0.1, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+            self.sortingByPriceAscendingButton.transform = .identity
+            self.sortingByPriceAscendingButton.alpha = 1
+        }
+        
+        UIView.animate(withDuration: 0.1, delay: 0.15, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+            self.sortingByPriceDescendingButton.transform = .identity
+            self.sortingByPriceDescendingButton.alpha = 1
+        }
+        
+        UIView.animate(withDuration: 0.1, delay: 0.2, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+            self.sortingByNameAscendingButton.transform = .identity
+            self.sortingByNameAscendingButton.alpha = 1
+        }
+        
+        UIView.animate(withDuration: 0.1, delay: 0.25, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+            self.sortingByNameDescendingButton.transform = .identity
+            self.sortingByNameDescendingButton.alpha = 1
         }
     }
     
@@ -539,33 +583,17 @@ final class MenuTabVC: UIViewController {
     }
     
     private func hideSearchBar() {
-        UIView.animate(
-            withDuration: 0.5,
-            delay: 0,
-            usingSpringWithDamping: 0.8,
-            initialSpringVelocity: 0.5,
-            options: [],
-            animations: {
-                self.searchBar.transform = CGAffineTransform(translationX: 0, y: -40)
-                self.searchBar.alpha = 0.0
-            },
-            completion: nil
-        )
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+            self.searchBar.transform = CGAffineTransform(translationX: 0, y: -40)
+            self.searchBar.alpha = 0.0
+        }
     }
     
     private func showSearchBar() {
-        UIView.animate(
-            withDuration: 0.5,
-            delay: 0,
-            usingSpringWithDamping: 0.75,
-            initialSpringVelocity: 0.5,
-            options: [],
-            animations: {
-                self.searchBar.transform = .identity
-                self.searchBar.alpha = 1
-            },
-            completion: nil
-        )
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
+            self.searchBar.transform = .identity
+            self.searchBar.alpha = 1
+        }
     }
     
     private func checkMenu() {
