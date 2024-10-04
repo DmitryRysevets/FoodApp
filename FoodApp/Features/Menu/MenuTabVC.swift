@@ -174,7 +174,6 @@ final class MenuTabVC: UIViewController {
         let button = UIButton()
         button.setTitle("none", for: .normal)
         button.setTitleColor(ColorManager.shared.label, for: .normal)
-        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
         button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
@@ -187,7 +186,6 @@ final class MenuTabVC: UIViewController {
         let button = UIButton()
         button.setTitle("  price ↑", for: .normal)
         button.setTitleColor(ColorManager.shared.label, for: .normal)
-        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
         button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
@@ -199,7 +197,6 @@ final class MenuTabVC: UIViewController {
         let button = UIButton()
         button.setTitle("  price ↓", for: .normal)
         button.setTitleColor(ColorManager.shared.label, for: .normal)
-        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
         button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
@@ -211,7 +208,6 @@ final class MenuTabVC: UIViewController {
         let button = UIButton()
         button.setTitle("  name ↑", for: .normal)
         button.setTitleColor(ColorManager.shared.label, for: .normal)
-        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
         button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
@@ -223,7 +219,6 @@ final class MenuTabVC: UIViewController {
         let button = UIButton()
         button.setTitle("  name ↓", for: .normal)
         button.setTitleColor(ColorManager.shared.label, for: .normal)
-        button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.6), for: .highlighted)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
         button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
@@ -246,7 +241,7 @@ final class MenuTabVC: UIViewController {
     }()
     
     private var dataSource: UICollectionViewDiffableDataSource<Int, AnyHashable>!
-    private var baseSnapshot: NSDiffableDataSourceSnapshot<Int, AnyHashable>!
+    private var snapshot: NSDiffableDataSourceSnapshot<Int, AnyHashable>!
     private var nestedOffersSnapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
     private var nestedCategoriesSnapshot = NSDiffableDataSourceSnapshot<Int, String>()
     
@@ -306,7 +301,7 @@ final class MenuTabVC: UIViewController {
                 cell.isFavorite = dish.isFavorite
                 
                 cell.isFavoriteDidChange = { [weak self] isFavorite in
-                    self?.updateFavoriteStatus(for: dish.id, isFavorite: isFavorite)
+                    self?.updateFavoriteStatusLocally(for: dish.id, isFavorite: isFavorite)
                 }
                 
                 return cell
@@ -317,29 +312,38 @@ final class MenuTabVC: UIViewController {
     }
     
     private func applyInitialSnapshot() {
-        baseSnapshot = NSDiffableDataSourceSnapshot<Int, AnyHashable>()
-        baseSnapshot.appendSections([0, 1, 2])
+        snapshot = NSDiffableDataSourceSnapshot<Int, AnyHashable>()
+        snapshot.appendSections([0, 1, 2])
         
-        baseSnapshot.appendItems([menu.offersContainer], toSection: 0)
-        baseSnapshot.appendItems([menu.categoriesContainer], toSection: 1)
-        baseSnapshot.appendItems(menu.dishes, toSection: 2)
+        snapshot.appendItems([menu.offersContainer], toSection: 0)
+        snapshot.appendItems([menu.categoriesContainer], toSection: 1)
+        snapshot.appendItems(menu.dishes, toSection: 2)
     
-        dataSource.apply(baseSnapshot, animatingDifferences: true)
+        dataSource.apply(snapshot, animatingDifferences: true)
     }
     
     private func applyFilteredSnapshot() {
-        baseSnapshot.deleteItems(baseSnapshot.itemIdentifiers(inSection: 2))
+        snapshot.deleteItems(snapshot.itemIdentifiers(inSection: 2))
+        snapshot.appendItems(getFilteredDishes(), toSection: 2)
         
-        if isSearching {
-            baseSnapshot.appendItems(filteredBySearchDishes, toSection: 2)
-        } else if isFilteredByTag {
-            baseSnapshot.appendItems(filteredByTagDishes, toSection: 2)
-        } else {
-            baseSnapshot.appendItems(menu.dishes, toSection: 2)
-        }
-    
-        dataSource.apply(baseSnapshot, animatingDifferences: true)
+        dataSource.apply(snapshot, animatingDifferences: true)
     }
+    
+    private func createOffersSnapshot() -> NSDiffableDataSourceSnapshot<Int, Offer> {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(menu.offersContainer.offers, toSection: 0)
+        return snapshot
+    }
+    
+    private func createCategoriesSnapshot() -> NSDiffableDataSourceSnapshot<Int, String> {
+        var snapshot = NSDiffableDataSourceSnapshot<Int, String>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(menu.categoriesContainer.categories, toSection: 0)
+        return snapshot
+    }
+    
+    // MARK: - Menu methods
     
     private func updateMenu() {
         if dishColors.count != menu.dishes.count {
@@ -357,18 +361,43 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    private func createOffersSnapshot() -> NSDiffableDataSourceSnapshot<Int, Offer> {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
-        snapshot.appendSections([0])
-        snapshot.appendItems(menu.offersContainer.offers, toSection: 0)
-        return snapshot
+    private func checkMenu() {
+        Task {
+            do {
+                let menuUpdateIsNeeded = try await !MenuManager.shared.isLatestMenuDownloaded()
+                if menuUpdateIsNeeded {
+                    menu = try await MenuManager.shared.getLatestMenu()
+                }
+            } catch {
+                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error in obtaining the actual menu."])
+                NotificationView.show(for: error, in: self)
+            }
+        }
     }
     
-    private func createCategoriesSnapshot() -> NSDiffableDataSourceSnapshot<Int, String> {
-        var snapshot = NSDiffableDataSourceSnapshot<Int, String>()
-        snapshot.appendSections([0])
-        snapshot.appendItems(menu.categoriesContainer.categories, toSection: 0)
-        return snapshot
+    private func getMenuFromCoreData() {
+        do {
+            if let menu = try CoreDataManager.shared.fetchMenu() {
+                self.menu = menu
+            }
+        } catch {
+            ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when loading menus from storage."])
+            NotificationView.show(for: error, in: self)
+        }
+    }
+    
+    private func getFilteredDishes() -> [Dish] {
+        var filteredDishes: [Dish] = []
+        
+        if isSearching {
+            filteredDishes = filteredBySearchDishes
+        } else if isFilteredByTag {
+            filteredDishes = filteredByTagDishes
+        } else {
+            filteredDishes = menu.dishes
+        }
+        
+        return filteredDishes
     }
     
     private func filterDishes(by tag: String) {
@@ -393,7 +422,7 @@ final class MenuTabVC: UIViewController {
         return menu.dishes[index]
     }
     
-    private func updateFavoriteStatus(for id: String, isFavorite: Bool) {
+    private func updateFavoriteStatusLocally(for id: String, isFavorite: Bool) {
         
         if let index = menu.dishes.firstIndex(where: { $0.id == id }) {
             menu.dishes[index].isFavorite = isFavorite
@@ -596,36 +625,11 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    private func checkMenu() {
-        Task {
-            do {
-                let menuUpdateIsNeeded = try await !MenuManager.shared.isLatestMenuDownloaded()
-                if menuUpdateIsNeeded {
-                    menu = try await MenuManager.shared.getLatestMenu()
-                }
-            } catch {
-                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error in obtaining the actual menu."])
-                NotificationView.show(for: error, in: self)
-            }
-        }
-    }
-    
-    private func getMenuFromCoreData() {
-        do {
-            if let menu = try CoreDataManager.shared.fetchMenu() {
-                self.menu = menu
-            }
-        } catch {
-            ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when loading menus from storage."])
-            NotificationView.show(for: error, in: self)
-        }
-    }
-    
     private func dismissKeyboard() {
         view.endEditing(true)
     }
     
-    // MARK: - Internal methods
+    // MARK: - scrollViewDidScroll
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let translation = scrollView.panGestureRecognizer.translation(in: scrollView.superview)
@@ -678,28 +682,28 @@ final class MenuTabVC: UIViewController {
     private func sortTypeButtonTapped(_ sender: UIButton) {
         guard sender.isSelected == false else { return }
         
-        sortButton.tintColor = ColorManager.shared.orange
-
+        if sender.tag == 0 {
+            sortButton.tintColor = ColorManager.shared.label
+        } else {
+            sortButton.tintColor = ColorManager.shared.orange
+        }
+        
         [unsortButton, sortingByNameAscendingButton, sortingByNameDescendingButton, sortingByPriceAscendingButton, sortingByPriceDescendingButton].forEach { button in
             button.isSelected = false
         }
+        sender.isSelected = true
         
         switch sender.tag {
         case 0: // none
-            sender.isSelected = true
-            sortButton.tintColor = ColorManager.shared.label
+            sortType = .none
         case 1: // price ↑
-            sender.isSelected = true
-            sortButton.isSelected = true
+            sortType = .byPriceAscending
         case 2: // price ↓
-            sender.isSelected = true
-            sortButton.isSelected = true
+            sortType = .byPriceDescending
         case 3: // name ↑
-            sender.isSelected = true
-            sortButton.isSelected = true
+            sortType = .byNameAscending
         case 4: // name ↓
-            sender.isSelected = true
-            sortButton.isSelected = true
+            sortType = .byNameDescending
         default:
             break
         }
