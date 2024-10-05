@@ -126,10 +126,11 @@ final class MenuTabVC: UIViewController {
         return button
     }()
     
-    private var filteredBySearchDishes: [Dish] = []
-    private var filteredByTagDishes: [Dish] = []
+    private var filteredDishes: [Dish] = []
     private var isFilteredByTag = false
     private var isSearching = false
+    private var activeTag = "All"
+    private var searchString = ""
     private var sortType: SortType = .none
     
     // MARK: - Sort view
@@ -287,7 +288,10 @@ final class MenuTabVC: UIViewController {
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoriesContainerCell.id, for: indexPath) as? CategoriesContainerCell
                 else { fatalError("Unable deque CategoriesContainerCell") }
                 cell.tagSwitchHandler = { [weak self] tag in
-                    self?.filterDishes(by: tag)
+                    if self?.activeTag != tag {
+                        self?.activeTag = tag
+                        self?.filterDishes()
+                    }
                 }
                 cell.categoriesSnapshot = self.nestedCategoriesSnapshot
                 return cell
@@ -296,7 +300,7 @@ final class MenuTabVC: UIViewController {
                 else { fatalError("Unable deque DishCell") }
                 cell.customShapeView.fillColor = self.dishColors[indexPath.item]
                 
-                let dish = self.getDish(at: indexPath.item)
+                let dish = self.filteredDishes[indexPath.item]
                 cell.dishData = dish
                 cell.isFavorite = dish.isFavorite
                 
@@ -324,8 +328,7 @@ final class MenuTabVC: UIViewController {
     
     private func applyFilteredSnapshot() {
         snapshot.deleteItems(snapshot.itemIdentifiers(inSection: 2))
-        snapshot.appendItems(getFilteredDishes(), toSection: 2)
-        
+        snapshot.appendItems(filteredDishes, toSection: 2)
         dataSource.apply(snapshot, animatingDifferences: true)
     }
     
@@ -357,7 +360,7 @@ final class MenuTabVC: UIViewController {
             nestedOffersSnapshot = createOffersSnapshot()
             nestedCategoriesSnapshot = createCategoriesSnapshot()
             
-            applyFilteredSnapshot()
+            filterDishes()
         }
     }
     
@@ -386,40 +389,48 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    private func getFilteredDishes() -> [Dish] {
-        var filteredDishes: [Dish] = []
+    private func filterDishes() {
+        var dishesToFilter = menu.dishes
+        
+        if activeTag == "All" {
+            isFilteredByTag = false
+        } else {
+            isFilteredByTag = true
+        }
         
         if isSearching {
-            filteredDishes = filteredBySearchDishes
+            var dishesToSort = dishesToFilter.filter { $0.name.lowercased().contains(searchString.lowercased()) }
+            filteredDishes = sortDishes(dishesToSort)
+            
         } else if isFilteredByTag {
-            filteredDishes = filteredByTagDishes
+            var dishesToSort  = dishesToFilter.filter { $0.tags.contains(activeTag) }
+            filteredDishes = sortDishes(dishesToSort)
+            
         } else {
-            filteredDishes = menu.dishes
+            var dishesToSort = dishesToFilter
+            filteredDishes = sortDishes(dishesToSort)
         }
         
-        return filteredDishes
-    }
-    
-    private func filterDishes(by tag: String) {
-        if tag != "All" {
-            filteredByTagDishes = menu.dishes.filter { $0.tags.contains(tag) }
-            isFilteredByTag = true
-        } else {
-            isFilteredByTag = false
-        }
         applyFilteredSnapshot()
     }
     
-    private func getDish(at index: Int) -> Dish {
-        if isSearching {
-            return filteredBySearchDishes[index]
+    private func sortDishes(_ dishes: [Dish]) -> [Dish] {
+        var dishesToSort = dishes
+        
+        switch sortType {
+        case .none:
+            return dishesToSort
+        case .byPriceAscending:
+            dishesToSort.sort { $0.price < $1.price }
+        case .byPriceDescending:
+            dishesToSort.sort { $0.price > $1.price }
+        case .byNameAscending:
+            dishesToSort.sort { $0.name.lowercased() < $1.name.lowercased() }
+        case .byNameDescending:
+            dishesToSort.sort { $0.name.lowercased() > $1.name.lowercased() }
         }
         
-        if isFilteredByTag {
-            return filteredByTagDishes[index]
-        }
-        
-        return menu.dishes[index]
+        return dishesToSort
     }
     
     private func updateFavoriteStatusLocally(for id: String, isFavorite: Bool) {
@@ -428,12 +439,8 @@ final class MenuTabVC: UIViewController {
             menu.dishes[index].isFavorite = isFavorite
         }
 
-        if isSearching, let index = filteredBySearchDishes.firstIndex(where: { $0.id == id }) {
-            filteredBySearchDishes[index].isFavorite = isFavorite
-        }
-
-        if isFilteredByTag, let index = filteredByTagDishes.firstIndex(where: { $0.id == id }) {
-            filteredByTagDishes[index].isFavorite = isFavorite
+        if let index = filteredDishes.firstIndex(where: { $0.id == id }) {
+            filteredDishes[index].isFavorite = isFavorite
         }
     }
     
@@ -654,14 +661,10 @@ final class MenuTabVC: UIViewController {
     @objc
     private func notificationButtonTaped() {
         // for testing
-        do {
-            try CoreDataManager.shared.deleteMenu()
-            try CoreDataManager.shared.clearCart()
-            CoreDataManager.shared.deleteCurrentMenuVersion()
-            menu = Menu()
-        } catch {
-            print("menu delete error: \(error)")
-        }
+        print("is searching: \(isSearching)")
+        print("is filtered by teg: \(isFilteredByTag)")
+        print("current sort: \(sortType)")
+        print("- - - - - - - - -")
     }
     
     @objc
@@ -707,6 +710,8 @@ final class MenuTabVC: UIViewController {
         default:
             break
         }
+        
+        filterDishes()
     }
     
     @objc
@@ -721,28 +726,20 @@ final class MenuTabVC: UIViewController {
 extension MenuTabVC: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let chosenDish: Dish
+        let selectedDish = filteredDishes[indexPath.item]
         let cell = collectionView.cellForItem(at: indexPath) as? DishCell
         let color = cell?.customShapeView.fillColor ?? ColorManager.shared.green
         
-        if isSearching {
-            chosenDish = filteredBySearchDishes[indexPath.item]
-        } else if isFilteredByTag {
-            chosenDish = filteredByTagDishes[indexPath.item]
-        } else {
-            chosenDish = menu.dishes[indexPath.item]
+        let dishVC = DishVC(dish: selectedDish, color: color)
+        
+        dishVC.isFavoriteDidChange = { [weak self] isFavorite in
+            self?.updateFavoriteStatusLocally(for: selectedDish.id, isFavorite: isFavorite)
         }
         
-        let dishPage = DishVC(dish: chosenDish, color: color)
+        dishVC.modalTransitionStyle = .coverVertical
+        dishVC.modalPresentationStyle = .fullScreen
         
-        dishPage.isFavoriteDidChange = { [weak self] isFavorite in
-            self?.menu.dishes[indexPath.item].isFavorite = isFavorite
-        }
-        
-        dishPage.modalTransitionStyle = .coverVertical
-        dishPage.modalPresentationStyle = .fullScreen
-        
-        present(dishPage, animated: true)
+        present(dishVC, animated: true)
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -796,14 +793,15 @@ extension MenuTabVC: UICollectionViewDelegateFlowLayout {
 extension MenuTabVC: UISearchBarDelegate {
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        searchString = searchText
+        
         if searchText.isEmpty {
             isSearching = false
-            applyFilteredSnapshot()
+            filterDishes()
             return
         }
         
-        filteredBySearchDishes = menu.dishes.filter { $0.name.lowercased().contains(searchText.lowercased()) }
         isSearching = true
-        applyFilteredSnapshot()
+        filterDishes()
     }
 }
