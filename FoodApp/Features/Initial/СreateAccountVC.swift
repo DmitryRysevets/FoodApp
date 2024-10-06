@@ -329,11 +329,11 @@ final class CreateAccountVC: UIViewController {
                     navigationController?.popViewController(animated: true)
                 } catch {
                     ErrorLogger.shared.logError(error, additionalInfo: ["Action": "Attempted registration", "Name": name, "Email": email, "Pass": password])
-                    NotificationView.show(for: error, in: self)
+                    UserNotification.show(for: error, in: self)
                 }
             }
         } else {
-            let notification = NotificationView(message: "Please fill in all fields.", type: .warning, interval: 3)
+            let notification = UserNotification(message: "Please fill in all fields.", type: .warning, interval: 3)
             notification.show(in: self.view)
         }
     }

@@ -264,7 +264,7 @@ final class CartTabVC: UIViewController {
         do {
             try CoreDataManager.shared.saveCart(cartContent)
         } catch {
-            let notification = NotificationView(message: "Failed to save cart data.", type: .error)
+            let notification = UserNotification(message: "Failed to save cart data.", type: .error)
             notification.show(in: self)
         }
     }
@@ -412,7 +412,7 @@ final class CartTabVC: UIViewController {
         } catch {
             ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when loading a cart from storage."])
             
-            let notification = NotificationView(message: "Failed to check cart data.", type: .error)
+            let notification = UserNotification(message: "Failed to check cart data.", type: .error)
             notification.show(in: self)
         }
     }
@@ -426,7 +426,7 @@ final class CartTabVC: UIViewController {
                     activePromoCode = promoCode
                     showDiscount()
                 } else {
-                    let notification = NotificationView(message: "Your promo code has expired.", type: .warning)
+                    let notification = UserNotification(message: "Your promo code has expired.", type: .warning)
                     notification.show(in: self)
                     
                     try PromoCodeManager.shared.deletePromoCode()
@@ -434,7 +434,7 @@ final class CartTabVC: UIViewController {
             } catch {
                 ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error while trying to download promo code from storage."])
                 
-                let notification = NotificationView(message: "An internal error occurred while processing a promo code.", type: .error)
+                let notification = UserNotification(message: "An internal error occurred while processing a promo code.", type: .error)
                 notification.show(in: self)
             }
         }
@@ -493,7 +493,7 @@ final class CartTabVC: UIViewController {
             cartContent.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
         } catch {
-            let notification = NotificationView(message: "Failed to remove dish from cart. Please try again.", type: .error)
+            let notification = UserNotification(message: "Failed to remove dish from cart. Please try again.", type: .error)
             notification.show(in: self)
         }
         
@@ -567,13 +567,13 @@ final class CartTabVC: UIViewController {
                 promoCodeTextField.text = ""
                 promoCodeTextField.resignFirstResponder()
                 
-                let notification = NotificationView(message: "The promo code has been successfully applied.", type: .confirming, interval: 4)
+                let notification = UserNotification(message: "The promo code has been successfully applied.", type: .confirming, interval: 4)
                 notification.show(in: self)
                 
             } catch {
                 ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to apply promo code."])
                 promoCodeTextField.text = ""
-                NotificationView.show(for: error, in: self)
+                UserNotification.show(for: error, in: self)
             }
         }
     }

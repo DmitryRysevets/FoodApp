@@ -79,7 +79,7 @@ final class ProfileTabVC: UIViewController {
             do {
                 self.user = try self.userManager.getUserEntity()
             } catch {
-                let notification = NotificationView(message: "A user authorization error occurred.", type: .error)
+                let notification = UserNotification(message: "A user authorization error occurred.", type: .error)
                 notification.show(in: self)
             }
         }
@@ -264,7 +264,7 @@ extension ProfileTabVC: UIImagePickerControllerDelegate, UINavigationControllerD
                 ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Failed to upload avatar."])
                 print("Failed to upload avatar: \(error)")
                 
-                let notification = NotificationView(message: "There was an error adding an avatar to your account. Please try again later.", type: .warning, interval: 4)
+                let notification = UserNotification(message: "There was an error adding an avatar to your account. Please try again later.", type: .warning, interval: 4)
                 notification.show(in: self.view)
             }
         }

@@ -18,6 +18,8 @@ final class MenuTabVC: UIViewController {
     private var isMenuReceived = false
     private var isTabBarVisible = true
     
+    private var notifications = ["Some", "new", "notification", "here"]
+    
     private lazy var preloaderView = PreloaderView(frame: CGRect(x: 32, y: Int(view.center.y - 100), width: Int(view.frame.width - 64), height: 180))
     
     // MARK: - Header
@@ -69,9 +71,11 @@ final class MenuTabVC: UIViewController {
     
     private lazy var notificationButton: UIButton = {
         let button = UIButton()
-        let image = UIImage(named: "GotNotification")
+        let noNotificationImage = UIImage(named: "Notification")
+        let gotNotificationImage = UIImage(named: "GotNotification")
+        button.setImage(noNotificationImage, for: .normal)
+        button.setImage(gotNotificationImage, for: .selected)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.setImage(image, for: .normal)
         button.backgroundColor = ColorManager.shared.headerElementsColor
         button.layer.cornerRadius = Constants.headerButtonSize / 2
         button.addTarget(self, action: #selector(notificationButtonTaped), for: .touchUpInside)
@@ -227,6 +231,37 @@ final class MenuTabVC: UIViewController {
         return button
     }()
     
+    // MARK: - Notification view
+    
+    private lazy var notificationView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.15)
+        view.layer.cornerRadius = 22
+        view.clipsToBounds = true
+        view.alpha = 0
+        return view
+    }()
+    
+    private lazy var notificationViewBlurEffect: UIVisualEffectView = {
+        let view = UIVisualEffectView()
+        let blur = UIBlurEffect(style: .regular)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.effect = blur
+        return view
+    }()
+    
+    private lazy var notificationTableView: UITableView = {
+        let table = UITableView()
+        table.translatesAutoresizingMaskIntoConstraints = false
+        table.backgroundColor = .clear
+        table.separatorStyle = .none
+        table.register(NotificationCell.self, forCellReuseIdentifier: NotificationCell.id)
+        table.dataSource = self
+        table.delegate = self
+        return table
+    }()
+    
     // MARK: - Collection view
     
     private lazy var collectionView: UICollectionView = {
@@ -326,6 +361,16 @@ final class MenuTabVC: UIViewController {
         dataSource.apply(snapshot, animatingDifferences: true)
     }
     
+    private func applyNestedContainers() {
+        snapshot.deleteItems(snapshot.itemIdentifiers(inSection: 0))
+        snapshot.deleteItems(snapshot.itemIdentifiers(inSection: 1))
+            
+        snapshot.appendItems([menu.offersContainer], toSection: 0)
+        snapshot.appendItems([menu.categoriesContainer], toSection: 1)
+        
+        dataSource.apply(snapshot, animatingDifferences: true)
+    }
+    
     private func applyFilteredSnapshot() {
         snapshot.deleteItems(snapshot.itemIdentifiers(inSection: 2))
         snapshot.appendItems(filteredDishes, toSection: 2)
@@ -360,6 +405,8 @@ final class MenuTabVC: UIViewController {
             nestedOffersSnapshot = createOffersSnapshot()
             nestedCategoriesSnapshot = createCategoriesSnapshot()
             
+            applyNestedContainers()
+            
             filterDishes()
         }
     }
@@ -373,7 +420,7 @@ final class MenuTabVC: UIViewController {
                 }
             } catch {
                 ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error in obtaining the actual menu."])
-                NotificationView.show(for: error, in: self)
+                UserNotification.show(for: error, in: self)
             }
         }
     }
@@ -385,12 +432,12 @@ final class MenuTabVC: UIViewController {
             }
         } catch {
             ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when loading menus from storage."])
-            NotificationView.show(for: error, in: self)
+            UserNotification.show(for: error, in: self)
         }
     }
     
     private func filterDishes() {
-        var dishesToFilter = menu.dishes
+        let dishesToFilter = menu.dishes
         
         if activeTag == "All" {
             isFilteredByTag = false
@@ -399,15 +446,15 @@ final class MenuTabVC: UIViewController {
         }
         
         if isSearching {
-            var dishesToSort = dishesToFilter.filter { $0.name.lowercased().contains(searchString.lowercased()) }
+            let dishesToSort = dishesToFilter.filter { $0.name.lowercased().contains(searchString.lowercased()) }
             filteredDishes = sortDishes(dishesToSort)
             
         } else if isFilteredByTag {
-            var dishesToSort  = dishesToFilter.filter { $0.tags.contains(activeTag) }
+            let dishesToSort  = dishesToFilter.filter { $0.tags.contains(activeTag) }
             filteredDishes = sortDishes(dishesToSort)
             
         } else {
-            var dishesToSort = dishesToFilter
+            let dishesToSort = dishesToFilter
             filteredDishes = sortDishes(dishesToSort)
         }
         
@@ -451,6 +498,7 @@ final class MenuTabVC: UIViewController {
         view.addSubview(collectionView)
         view.addSubview(searchBar)
         view.addSubview(headerView)
+        view.addSubview(notificationView)
         view.addSubview(sortView)
         view.addSubview(preloaderView)
         
@@ -459,6 +507,9 @@ final class MenuTabVC: UIViewController {
         headerView.addSubview(deliveryAdressLabel)
         headerView.addSubview(notificationButton)
         headerView.addSubview(layoutButton)
+        
+        notificationView.addSubview(notificationViewBlurEffect)
+        notificationView.addSubview(notificationTableView)
         
         searchBar.addSubview(magnifyingGlassImageView)
         searchBar.addSubview(sortButton)
@@ -507,6 +558,19 @@ final class MenuTabVC: UIViewController {
             deliveryAdressLabel.trailingAnchor.constraint(equalTo: notificationButton.leadingAnchor, constant: -10),
             deliveryAdressLabel.heightAnchor.constraint(equalToConstant: 30),
             
+            notificationView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 16),
+            notificationView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
+            notificationView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
+            notificationView.heightAnchor.constraint(equalToConstant: 160),
+            notificationViewBlurEffect.topAnchor.constraint(equalTo: notificationView.topAnchor),
+            notificationViewBlurEffect.leadingAnchor.constraint(equalTo: notificationView.leadingAnchor),
+            notificationViewBlurEffect.trailingAnchor.constraint(equalTo: notificationView.trailingAnchor),
+            notificationViewBlurEffect.bottomAnchor.constraint(equalTo: notificationView.bottomAnchor),
+            notificationTableView.topAnchor.constraint(equalTo: notificationView.topAnchor),
+            notificationTableView.leadingAnchor.constraint(equalTo: notificationView.leadingAnchor),
+            notificationTableView.trailingAnchor.constraint(equalTo: notificationView.trailingAnchor),
+            notificationTableView.bottomAnchor.constraint(equalTo: notificationView.bottomAnchor),
+            
             searchBar.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
@@ -526,12 +590,10 @@ final class MenuTabVC: UIViewController {
             sortView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             sortView.widthAnchor.constraint(equalToConstant: 120),
             sortView.heightAnchor.constraint(equalToConstant: 220),
-            
             sortViewBlurEffect.topAnchor.constraint(equalTo: sortView.topAnchor),
             sortViewBlurEffect.leadingAnchor.constraint(equalTo: sortView.leadingAnchor),
             sortViewBlurEffect.trailingAnchor.constraint(equalTo: sortView.trailingAnchor),
             sortViewBlurEffect.bottomAnchor.constraint(equalTo: sortView.bottomAnchor),
-            
             sortButtonsViewStack.topAnchor.constraint(equalTo: sortView.topAnchor),
             sortButtonsViewStack.leadingAnchor.constraint(equalTo: sortView.leadingAnchor),
             sortButtonsViewStack.trailingAnchor.constraint(equalTo: sortView.trailingAnchor),
@@ -575,7 +637,7 @@ final class MenuTabVC: UIViewController {
     }
     
     private func showSortView() {
-        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
             self.sortView.transform = .identity
             self.sortView.alpha = 1
         }
@@ -660,11 +722,13 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func notificationButtonTaped() {
-        // for testing
-        print("is searching: \(isSearching)")
-        print("is filtered by teg: \(isFilteredByTag)")
-        print("current sort: \(sortType)")
-        print("- - - - - - - - -")
+        notificationButton.isSelected.toggle()
+        if notificationButton.isSelected {
+            notificationView.alpha = 1
+        } else {
+            notificationView.alpha = 0
+        }
+            
     }
     
     @objc
@@ -786,6 +850,44 @@ extension MenuTabVC: UICollectionViewDelegateFlowLayout {
         return 16
     }
     
+}
+
+// MARK: - UITableViewDelegate
+
+extension MenuTabVC: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        notifications.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: NotificationCell.id, for: indexPath) as! NotificationCell
+        
+        cell.backgroundColor = .clear
+        cell.selectionStyle = .none
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        40
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+
+    }
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        cell.contentView.subviews.forEach { subview in
+            if subview is SeparatorView {
+                subview.removeFromSuperview()
+            }
+        }
+
+        if indexPath.row != tableView.numberOfRows(inSection: indexPath.section) {
+            let separatorHeight: CGFloat = 1.0
+            let separator = SeparatorView(frame: CGRect(x: 16, y: cell.contentView.frame.size.height - separatorHeight, width: cell.contentView.frame.size.width - 32, height: separatorHeight))
+            cell.contentView.addSubview(separator)
+        }
+    }
 }
 
 // MARK: - UISearchBarDelegate

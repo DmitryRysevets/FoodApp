@@ -127,7 +127,7 @@ final class SetPhoneNumberVC: UIViewController {
                 try CoreDataManager.shared.savePhoneNumber(phoneNumber)
                 phoneNumberField.isInWarning = false
             } catch {
-                let notification = NotificationView(message: "An error occurred while saving data. Please try again later.", type: .error, interval: 5)
+                let notification = UserNotification(message: "An error occurred while saving data. Please try again later.", type: .error, interval: 5)
                 notification.show(in: self)
             }
         } else {

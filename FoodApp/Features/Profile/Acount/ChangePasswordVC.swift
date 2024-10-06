@@ -227,11 +227,11 @@ final class ChangePasswordVC: UIViewController {
                     try await UserManager.shared.updatePassword(currentPassword: olpPass, to: newPass)
                 } catch {
                     ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to change user password."])
-                    NotificationView.show(for: error, in: self)
+                    UserNotification.show(for: error, in: self)
                 }
             }
         } else {
-            let notification = NotificationView(message: "Please fill in all fields.", type: .warning, interval: 3)
+            let notification = UserNotification(message: "Please fill in all fields.", type: .warning, interval: 3)
             notification.show(in: self)
         }
     }

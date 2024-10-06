@@ -71,7 +71,7 @@ final class SetUsernameVC: UIViewController {
             let user = try UserManager.shared.getUserEntity()
             usernameField.text = user?.displayName
         } catch {
-            let notification = NotificationView(message: "A user authorization error occurred.", type: .error)
+            let notification = UserNotification(message: "A user authorization error occurred.", type: .error)
             notification.show(in: self)
         }
     }
@@ -146,7 +146,7 @@ final class SetUsernameVC: UIViewController {
                     navigationController?.popViewController(animated: true)
                 } catch {
                     ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to change user display name."])
-                    NotificationView.show(for: error, in: self)
+                    UserNotification.show(for: error, in: self)
                 }
             }
         }

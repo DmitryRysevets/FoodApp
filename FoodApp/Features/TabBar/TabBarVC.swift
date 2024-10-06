@@ -200,7 +200,7 @@ final class TabBarVC: UIViewController {
             try CartStatusObserver.shared.observeCartStatus()
         } catch {
             ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to run the cart fullness monitor."])
-            NotificationView.show(for: error, in: self)
+            UserNotification.show(for: error, in: self)
         }
     }
     

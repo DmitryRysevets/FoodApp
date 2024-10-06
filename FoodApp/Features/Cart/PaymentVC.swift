@@ -767,7 +767,7 @@ final class PaymentVC: UIViewController {
         }
 
         if location == nil {
-            let notification = NotificationView(message: "No geolocation detected. Please provide your current location or select an address for delivery.", type: .warning, interval: 4)
+            let notification = UserNotification(message: "No geolocation detected. Please provide your current location or select an address for delivery.", type: .warning, interval: 4)
             notification.show(in: self.view)
             
             setWarningOnAddressSection()
@@ -947,7 +947,7 @@ final class PaymentVC: UIViewController {
                     navigationController?.popViewController(animated: true)
                 } catch {
                     ErrorLogger.shared.logError(error, additionalInfo: ["OrderID": orderID, "UserID": UserManager.shared.getUserID()])
-                    NotificationView.show(for: error, in: self)
+                    UserNotification.show(for: error, in: self)
                 }
             }
         }
@@ -982,13 +982,13 @@ extension PaymentVC: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if status == .denied {
-            let notification = NotificationView(message: "You have not given the app access to the location. You can change this in the iOS settings..", type: .error)
+            let notification = UserNotification(message: "You have not given the app access to the location. You can change this in the iOS settings..", type: .error)
             notification.show(in: self)
             print("Geolocation is denied")
         }
         
         if status == .restricted {
-            let notification = NotificationView(message: "The application is not authorized to access the location.", type: .error)
+            let notification = UserNotification(message: "The application is not authorized to access the location.", type: .error)
             notification.show(in: self)
             print("Geolocation is restricted")
         }

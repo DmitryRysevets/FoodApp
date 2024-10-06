@@ -462,7 +462,7 @@ final class DishVC: UIViewController {
             relatedProducts = try CoreDataManager.shared.findSimilarDishes(to: dish)
         } catch {
             ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to search for similar dishes in the storage."])
-            NotificationView.show(for: error, in: self)
+            UserNotification.show(for: error, in: self)
         }
     }
     
@@ -795,13 +795,13 @@ final class DishVC: UIViewController {
             do {
                 try CoreDataManager.shared.setAsFavorite(by: dish.id)
             } catch {
-                NotificationView.show(for: error, in: self)
+                UserNotification.show(for: error, in: self)
             }
         } else {
             do {
                 try CoreDataManager.shared.deleteFromFavorite(by: dish.id)
             } catch {
-                NotificationView.show(for: error, in: self)
+                UserNotification.show(for: error, in: self)
             }
         }
     }
@@ -837,7 +837,7 @@ final class DishVC: UIViewController {
             }
         } catch {
             ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to add a dish to the cart."])
-            NotificationView.show(for: error, in: self)
+            UserNotification.show(for: error, in: self)
         }
         
         UIView.animate(withDuration: 0.1, delay: 0.1, options: [], animations: {

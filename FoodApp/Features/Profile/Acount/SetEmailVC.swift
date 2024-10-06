@@ -155,17 +155,17 @@ final class SetEmailVC: UIViewController {
                 do {
                     try await UserManager.shared.updateEmail(to: email, withPassword: password)
                     
-                    let notification = NotificationView(message: "A verification message has been sent to your new email. Please confirm your new email.", type: .confirming, interval: 5)
+                    let notification = UserNotification(message: "A verification message has been sent to your new email. Please confirm your new email.", type: .confirming, interval: 5)
                     notification.show(in: self)
                     
                     navigationController?.popViewController(animated: true)
                 } catch {
                     ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to update user email."])
-                    NotificationView.show(for: error, in: self)
+                    UserNotification.show(for: error, in: self)
                 }
             }
         } else {
-            let notification = NotificationView(message: "Please fill in all fields.", type: .warning, interval: 3)
+            let notification = UserNotification(message: "Please fill in all fields.", type: .warning, interval: 3)
             notification.show(in: self)
         }
     }

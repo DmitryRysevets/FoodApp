@@ -258,7 +258,7 @@ final class AddressVC: UIViewController {
         geocoder.geocodeAddressString(address) { (placemarks, error) in
             if let error = error {
                 
-                let notification = NotificationView(message: "No coordinates were found for your address. Please check the entered data and try again.", type: .warning)
+                let notification = UserNotification(message: "No coordinates were found for your address. Please check the entered data and try again.", type: .warning)
                 notification.show(in: self)
                 
                 print("Error geocoding address: \(error.localizedDescription)")
@@ -274,7 +274,7 @@ final class AddressVC: UIViewController {
         geocoder.reverseGeocodeLocation(location) { (placemarks, error) in
             if let error = error {
                 
-                let notification = NotificationView(message: "No addresses were found at these coordinates.", type: .warning)
+                let notification = UserNotification(message: "No addresses were found at these coordinates.", type: .warning)
                 notification.show(in: self)
                 
                 print("Error reverse geocoding: \(error.localizedDescription)")
@@ -406,7 +406,7 @@ final class AddressVC: UIViewController {
                                                              longitude: location.coordinate.longitude)
                     navigationController?.popViewController(animated: true)
                 } catch {
-                    let notification = NotificationView(message: "An error occurred while trying to update the address data. Please try again.", type: .error)
+                    let notification = UserNotification(message: "An error occurred while trying to update the address data. Please try again.", type: .error)
                     notification.show(in: self)
                 }
             } else {
@@ -418,7 +418,7 @@ final class AddressVC: UIViewController {
                                                            isDefaultAddress: defaultAddressCheckBox.isChecked)
                     navigationController?.popViewController(animated: true)
                 } catch {
-                    let notification = NotificationView(message: "An error occurred while trying to save the address. Please try again.", type: .error)
+                    let notification = UserNotification(message: "An error occurred while trying to save the address. Please try again.", type: .error)
                     notification.show(in: self)
                 }
             }
@@ -445,13 +445,13 @@ extension AddressVC: CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
         if status == .denied {
-            let notification = NotificationView(message: "You have not given the app access to the location. You can change this in the iOS settings..", type: .error)
+            let notification = UserNotification(message: "You have not given the app access to the location. You can change this in the iOS settings..", type: .error)
             notification.show(in: self)
             print("Geolocation is denied")
         }
         
         if status == .restricted {
-            let notification = NotificationView(message: "The application is not authorized to access the location.", type: .error)
+            let notification = UserNotification(message: "The application is not authorized to access the location.", type: .error)
             notification.show(in: self)
             print("Geolocation is restricted")
         }

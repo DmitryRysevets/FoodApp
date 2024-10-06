@@ -133,7 +133,7 @@ final class ContactUsVC: UIViewController {
         let message = messageTextView.text.trimmingCharacters(in: .whitespacesAndNewlines)
                 
         if message.isEmpty {
-            let notification = NotificationView(message: """
+            let notification = UserNotification(message: """
                 Empty Message
                 Please enter a message before sending
             """, type: .warning, interval: 3)
@@ -144,7 +144,7 @@ final class ContactUsVC: UIViewController {
                 do {
                     try await FirebaseManager.shared.sendFeedback(message: message)
                     
-                    let notification = NotificationView(message: """
+                    let notification = UserNotification(message: """
                         Message Sent
                         Thank you for your feedback
                     """, type: .confirming, interval: 3)
@@ -153,7 +153,7 @@ final class ContactUsVC: UIViewController {
                     messageTextView.text = ""
                 } catch {
                     ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to send a feedback message."])
-                    NotificationView.show(for: error, in: self)
+                    UserNotification.show(for: error, in: self)
                 }
             }
             

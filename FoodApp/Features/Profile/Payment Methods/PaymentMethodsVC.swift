@@ -110,7 +110,7 @@ final class PaymentMethodsVC: UIViewController {
             cards = try CoreDataManager.shared.fetchAllCards()
             tableView.reloadData()
         } catch {
-            let notification = NotificationView(message: "An error occurred loading payment cards.", type: .error)
+            let notification = UserNotification(message: "An error occurred loading payment cards.", type: .error)
             notification.show(in: self)
         }
     }
@@ -178,7 +178,7 @@ final class PaymentMethodsVC: UIViewController {
             cards.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
         } catch {
-            let notification = NotificationView(message: "A payment card deletion error occurred. Please try again.", type: .error)
+            let notification = UserNotification(message: "A payment card deletion error occurred. Please try again.", type: .error)
             notification.show(in: self)
         }
     }
@@ -288,7 +288,7 @@ extension PaymentMethodsVC: UITableViewDelegate, UITableViewDataSource {
                 tableView.reloadData()
                 navigationController?.popViewController(animated: true)
             } catch {
-                let notification = NotificationView(message: "An error occurred when trying to set the payment card as a preferred payment method.", type: .error)
+                let notification = UserNotification(message: "An error occurred when trying to set the payment card as a preferred payment method.", type: .error)
                 notification.show(in: self)
             }
         }

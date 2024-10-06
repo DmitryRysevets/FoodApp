@@ -62,7 +62,7 @@ final class OrderHistoryVC: UIViewController {
         } catch {
             ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to load order history from storage."])
             
-            let notification = NotificationView(message: "An error occurred while loading the data. Please try again later.", type: .error, interval: 5)
+            let notification = UserNotification(message: "An error occurred while loading the data. Please try again later.", type: .error, interval: 5)
             notification.show(in: self)
         }
         
