@@ -22,6 +22,13 @@ final class MenuTabVC: UIViewController {
     
     private lazy var preloaderView = PreloaderView(frame: CGRect(x: 32, y: Int(view.center.y - 100), width: Int(view.frame.width - 64), height: 180))
     
+    private lazy var backgroundTapGestureRecognizer: UITapGestureRecognizer = {
+        let gr = UITapGestureRecognizer(target: self, action: #selector(hideAllElements))
+        gr.cancelsTouchesInView = true
+        gr.delegate = self
+        return gr
+    }()
+    
     // MARK: - Header
     
     private var headerBottomPadding: Double = Constants.headerHeight - Constants.headerButtonSize
@@ -240,6 +247,8 @@ final class MenuTabVC: UIViewController {
         view.layer.cornerRadius = 22
         view.clipsToBounds = true
         view.alpha = 0
+        view.layer.anchorPoint = CGPoint(x: 0.5, y: 0)
+        view.transform = CGAffineTransform(scaleX: 1, y: 0.3)
         return view
     }()
     
@@ -292,9 +301,7 @@ final class MenuTabVC: UIViewController {
         getMenuFromCoreData()
         checkMenu()
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideAllElements))
-        tapGesture.cancelsTouchesInView = false
-        view.addGestureRecognizer(tapGesture)
+        setKeyboardWillShowObserver()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -498,9 +505,9 @@ final class MenuTabVC: UIViewController {
         view.addSubview(collectionView)
         view.addSubview(searchBar)
         view.addSubview(headerView)
-        view.addSubview(notificationView)
-        view.addSubview(sortView)
         view.addSubview(preloaderView)
+        view.addSubview(sortView)
+        view.addSubview(notificationView)
         
         headerView.addSubview(avatarImageView)
         headerView.addSubview(pinImageView)
@@ -558,7 +565,7 @@ final class MenuTabVC: UIViewController {
             deliveryAdressLabel.trailingAnchor.constraint(equalTo: notificationButton.leadingAnchor, constant: -10),
             deliveryAdressLabel.heightAnchor.constraint(equalToConstant: 30),
             
-            notificationView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 16),
+            notificationView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -75),
             notificationView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
             notificationView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
             notificationView.heightAnchor.constraint(equalToConstant: 160),
@@ -614,6 +621,21 @@ final class MenuTabVC: UIViewController {
         return separator
     }
     
+    private func hideNotificationView() {
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
+            self.notificationView.transform = CGAffineTransform(scaleX: 1, y: 0.3)
+            self.notificationView.alpha = 0
+        }
+    }
+    
+    private func showNotificationView() {
+        view.addGestureRecognizer(backgroundTapGestureRecognizer)
+        UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
+            self.notificationView.transform = .identity
+            self.notificationView.alpha = 1
+        }
+    }
+    
     private func hideSortView() {
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
             self.sortView.transform = CGAffineTransform(scaleX: 1, y: 0.3)
@@ -637,6 +659,7 @@ final class MenuTabVC: UIViewController {
     }
     
     private func showSortView() {
+        view.addGestureRecognizer(backgroundTapGestureRecognizer)
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
             self.sortView.transform = .identity
             self.sortView.alpha = 1
@@ -694,6 +717,10 @@ final class MenuTabVC: UIViewController {
         }
     }
     
+    private func setKeyboardWillShowObserver() {
+        NotificationCenter.default.addObserver(self,selector: #selector(handleKeyboardWillShow),name: UIResponder.keyboardWillShowNotification, object: nil)
+    }
+    
     private func dismissKeyboard() {
         view.endEditing(true)
     }
@@ -709,7 +736,7 @@ final class MenuTabVC: UIViewController {
         } else {
             if isTabBarVisible { hideTabBar() }
             if !isSearching { hideSearchBar() }
-            hideSortView()
+            hideAllElements()
         }
     }
     
@@ -722,13 +749,7 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func notificationButtonTaped() {
-        notificationButton.isSelected.toggle()
-        if notificationButton.isSelected {
-            notificationView.alpha = 1
-        } else {
-            notificationView.alpha = 0
-        }
-            
+        showNotificationView()
     }
     
     @objc
@@ -747,7 +768,10 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func sortTypeButtonTapped(_ sender: UIButton) {
-        guard sender.isSelected == false else { return }
+        guard sender.isSelected == false else {
+            hideSortView()
+            return
+        }
         
         if sender.tag == 0 {
             sortButton.tintColor = ColorManager.shared.label
@@ -775,14 +799,24 @@ final class MenuTabVC: UIViewController {
             break
         }
         
+        hideSortView()
+
         filterDishes()
     }
     
     @objc
+    private func handleKeyboardWillShow() {
+        view.addGestureRecognizer(backgroundTapGestureRecognizer)
+    }
+    
+    @objc
     private func hideAllElements() {
+        view.removeGestureRecognizer(backgroundTapGestureRecognizer)
         dismissKeyboard()
         hideSortView()
+        hideNotificationView()
     }
+    
 }
 
 // MARK: - UICollectionViewDelegate
@@ -905,5 +939,24 @@ extension MenuTabVC: UISearchBarDelegate {
         
         isSearching = true
         filterDishes()
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension MenuTabVC: UIGestureRecognizerDelegate {
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        if notificationView.frame.contains(touch.location(in: view)) {
+            return false
+        } else if sortView.frame.contains(touch.location(in: view)) {
+            return false
+        }
+        
+        return true
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
 }
