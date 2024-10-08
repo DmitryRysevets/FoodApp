@@ -18,7 +18,9 @@ final class MenuTabVC: UIViewController {
     private var isMenuReceived = false
     private var isTabBarVisible = true
     
-    private var notifications = ["Some", "new", "notification", "here"]
+    private var notifications = ["Your order has been accepted.", "Your order is ready and waiting to be delivered.", "Your order is on its way.", "Your order has been successfully delivered. Thank you."]
+    
+    private var notificationTableViewHeightConstraint: NSLayoutConstraint?
     
     private lazy var preloaderView = PreloaderView(frame: CGRect(x: 32, y: Int(view.center.y - 100), width: Int(view.frame.width - 64), height: 180))
     
@@ -157,12 +159,11 @@ final class MenuTabVC: UIViewController {
     private lazy var sortView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.2)
+        view.backgroundColor = ColorManager.shared.translucentBackground
         view.layer.cornerRadius = 22
         view.clipsToBounds = true
         view.alpha = 0
-        view.layer.anchorPoint = CGPoint(x: 0.5, y: 0)
-        view.transform = CGAffineTransform(scaleX: 1, y: 0.3)
+        view.transform = CGAffineTransform(translationX: 0, y: -40)
         return view
     }()
     
@@ -185,7 +186,7 @@ final class MenuTabVC: UIViewController {
     private lazy var unsortButton: UIButton = {
         let button = UIButton()
         button.setTitle("none", for: .normal)
-        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(.white, for: .normal)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
         button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
@@ -197,7 +198,7 @@ final class MenuTabVC: UIViewController {
     private lazy var sortingByPriceAscendingButton: UIButton = {
         let button = UIButton()
         button.setTitle("  price ↑", for: .normal)
-        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(.white, for: .normal)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
         button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
@@ -208,7 +209,7 @@ final class MenuTabVC: UIViewController {
     private lazy var sortingByPriceDescendingButton: UIButton = {
         let button = UIButton()
         button.setTitle("  price ↓", for: .normal)
-        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(.white, for: .normal)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
         button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
@@ -219,7 +220,7 @@ final class MenuTabVC: UIViewController {
     private lazy var sortingByNameAscendingButton: UIButton = {
         let button = UIButton()
         button.setTitle("  name ↑", for: .normal)
-        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(.white, for: .normal)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
         button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
@@ -230,7 +231,7 @@ final class MenuTabVC: UIViewController {
     private lazy var sortingByNameDescendingButton: UIButton = {
         let button = UIButton()
         button.setTitle("  name ↓", for: .normal)
-        button.setTitleColor(ColorManager.shared.label, for: .normal)
+        button.setTitleColor(.white, for: .normal)
         button.setTitleColor(ColorManager.shared.orange, for: .selected)
         button.titleLabel?.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 500])
         button.addTarget(self, action: #selector(sortTypeButtonTapped), for: .touchDown)
@@ -243,12 +244,11 @@ final class MenuTabVC: UIViewController {
     private lazy var notificationView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.15)
-        view.layer.cornerRadius = 22
+        view.backgroundColor = ColorManager.shared.translucentBackground
+        view.layer.cornerRadius = 24
         view.clipsToBounds = true
         view.alpha = 0
-        view.layer.anchorPoint = CGPoint(x: 0.5, y: 0)
-        view.transform = CGAffineTransform(scaleX: 1, y: 0.3)
+        view.transform = CGAffineTransform(translationX: 0, y: -40)
         return view
     }()
     
@@ -265,6 +265,8 @@ final class MenuTabVC: UIViewController {
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = .clear
         table.separatorStyle = .none
+        table.allowsSelection = false
+        table.isScrollEnabled = false
         table.register(NotificationCell.self, forCellReuseIdentifier: NotificationCell.id)
         table.dataSource = self
         table.delegate = self
@@ -565,10 +567,9 @@ final class MenuTabVC: UIViewController {
             deliveryAdressLabel.trailingAnchor.constraint(equalTo: notificationButton.leadingAnchor, constant: -10),
             deliveryAdressLabel.heightAnchor.constraint(equalToConstant: 30),
             
-            notificationView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -75),
-            notificationView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
-            notificationView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
-            notificationView.heightAnchor.constraint(equalToConstant: 160),
+            notificationView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 4),
+            notificationView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            notificationView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
             notificationViewBlurEffect.topAnchor.constraint(equalTo: notificationView.topAnchor),
             notificationViewBlurEffect.leadingAnchor.constraint(equalTo: notificationView.leadingAnchor),
             notificationViewBlurEffect.trailingAnchor.constraint(equalTo: notificationView.trailingAnchor),
@@ -593,7 +594,7 @@ final class MenuTabVC: UIViewController {
             sortButton.centerYAnchor.constraint(equalTo: searchBar.centerYAnchor),
             sortButton.trailingAnchor.constraint(equalTo: searchBar.trailingAnchor, constant: -14),
             
-            sortView.topAnchor.constraint(equalTo: sortButton.bottomAnchor, constant: -92),
+            sortView.topAnchor.constraint(equalTo: sortButton.bottomAnchor, constant: 8),
             sortView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             sortView.widthAnchor.constraint(equalToConstant: 120),
             sortView.heightAnchor.constraint(equalToConstant: 220),
@@ -611,6 +612,9 @@ final class MenuTabVC: UIViewController {
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+        
+        notificationTableViewHeightConstraint = notificationTableView.heightAnchor.constraint(equalToConstant: 0)
+        notificationTableViewHeightConstraint?.isActive = true
     }
     
     private func createSeparatorView() -> UIView {
@@ -623,13 +627,14 @@ final class MenuTabVC: UIViewController {
     
     private func hideNotificationView() {
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
-            self.notificationView.transform = CGAffineTransform(scaleX: 1, y: 0.3)
+            self.notificationView.transform = CGAffineTransform(translationX: 0, y: -40)
             self.notificationView.alpha = 0
         }
     }
     
     private func showNotificationView() {
         view.addGestureRecognizer(backgroundTapGestureRecognizer)
+        updateTableViewHeight()
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
             self.notificationView.transform = .identity
             self.notificationView.alpha = 1
@@ -638,23 +643,8 @@ final class MenuTabVC: UIViewController {
     
     private func hideSortView() {
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
-            self.sortView.transform = CGAffineTransform(scaleX: 1, y: 0.3)
+            self.sortView.transform = CGAffineTransform(translationX: 0, y: -40)
             self.sortView.alpha = 0
-            self.unsortButton.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
-            self.unsortButton.transform = CGAffineTransform(translationX: 0, y: -20)
-            self.unsortButton.alpha = 0
-            self.sortingByPriceAscendingButton.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
-            self.sortingByPriceAscendingButton.transform = CGAffineTransform(translationX: 0, y: -20)
-            self.sortingByPriceAscendingButton.alpha = 0
-            self.sortingByPriceDescendingButton.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
-            self.sortingByPriceDescendingButton.transform = CGAffineTransform(translationX: 0, y: -20)
-            self.sortingByPriceDescendingButton.alpha = 0
-            self.sortingByNameAscendingButton.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
-            self.sortingByNameAscendingButton.transform = CGAffineTransform(translationX: 0, y: -20)
-            self.sortingByNameAscendingButton.alpha = 0
-            self.sortingByNameDescendingButton.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
-            self.sortingByNameDescendingButton.transform = CGAffineTransform(translationX: 0, y: -20)
-            self.sortingByNameDescendingButton.alpha = 0
         }
     }
     
@@ -663,31 +653,6 @@ final class MenuTabVC: UIViewController {
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
             self.sortView.transform = .identity
             self.sortView.alpha = 1
-        }
-        
-        UIView.animate(withDuration: 0.1, delay: 0.05, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
-            self.unsortButton.transform = .identity
-            self.unsortButton.alpha = 1
-        }
-        
-        UIView.animate(withDuration: 0.1, delay: 0.1, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
-            self.sortingByPriceAscendingButton.transform = .identity
-            self.sortingByPriceAscendingButton.alpha = 1
-        }
-        
-        UIView.animate(withDuration: 0.1, delay: 0.15, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
-            self.sortingByPriceDescendingButton.transform = .identity
-            self.sortingByPriceDescendingButton.alpha = 1
-        }
-        
-        UIView.animate(withDuration: 0.1, delay: 0.2, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
-            self.sortingByNameAscendingButton.transform = .identity
-            self.sortingByNameAscendingButton.alpha = 1
-        }
-        
-        UIView.animate(withDuration: 0.1, delay: 0.25, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
-            self.sortingByNameDescendingButton.transform = .identity
-            self.sortingByNameDescendingButton.alpha = 1
         }
     }
     
@@ -717,6 +682,12 @@ final class MenuTabVC: UIViewController {
         }
     }
     
+    private func updateTableViewHeight() {
+        let numberOfRows = notificationTableView.numberOfRows(inSection: 0)
+        let cellHeight: CGFloat = 48
+        notificationTableViewHeightConstraint?.constant = CGFloat(numberOfRows) * cellHeight
+    }
+    
     private func setKeyboardWillShowObserver() {
         NotificationCenter.default.addObserver(self,selector: #selector(handleKeyboardWillShow),name: UIResponder.keyboardWillShowNotification, object: nil)
     }
@@ -728,15 +699,17 @@ final class MenuTabVC: UIViewController {
     // MARK: - scrollViewDidScroll
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let translation = scrollView.panGestureRecognizer.translation(in: scrollView.superview)
-        if translation.y == 0 { return }
-        if translation.y > 0 {
-            if !isTabBarVisible { showTabBar() }
-            if !isSearching { showSearchBar() }
-        } else {
-            if isTabBarVisible { hideTabBar() }
-            if !isSearching { hideSearchBar() }
-            hideAllElements()
+        if scrollView === collectionView {
+            let translation = scrollView.panGestureRecognizer.translation(in: scrollView.superview)
+            if translation.y == 0 { return }
+            if translation.y > 0 {
+                if !isTabBarVisible { showTabBar() }
+                if !isSearching { showSearchBar() }
+            } else {
+                if isTabBarVisible { hideTabBar() }
+                if !isSearching { hideSearchBar() }
+                hideAllElements()
+            }
         }
     }
     
@@ -896,13 +869,13 @@ extension MenuTabVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: NotificationCell.id, for: indexPath) as! NotificationCell
         
-        cell.backgroundColor = .clear
-        cell.selectionStyle = .none
+        cell.message = notifications[indexPath.row]
+        
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        40
+        48
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -916,9 +889,9 @@ extension MenuTabVC: UITableViewDelegate, UITableViewDataSource {
             }
         }
 
-        if indexPath.row != tableView.numberOfRows(inSection: indexPath.section) {
+        if indexPath.row != tableView.numberOfRows(inSection: indexPath.section) - 1 {
             let separatorHeight: CGFloat = 1.0
-            let separator = SeparatorView(frame: CGRect(x: 16, y: cell.contentView.frame.size.height - separatorHeight, width: cell.contentView.frame.size.width - 32, height: separatorHeight))
+            let separator = SeparatorView(frame: CGRect(x: 0, y: cell.contentView.frame.size.height - separatorHeight, width: cell.contentView.frame.size.width, height: separatorHeight))
             cell.contentView.addSubview(separator)
         }
     }

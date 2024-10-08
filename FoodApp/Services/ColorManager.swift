@@ -37,7 +37,7 @@ final class ColorManager {
             : UIColor(red: 0.96, green: 0.96, blue: 0.96, alpha: 1)
     }
     
-    let tabBarBackground = UIColor { (traitCollection: UITraitCollection) -> UIColor in
+    let translucentBackground = UIColor { (traitCollection: UITraitCollection) -> UIColor in
         return traitCollection.userInterfaceStyle == .dark
             ? UIColor.white.withAlphaComponent(0.4)
             : UIColor(red: 0.13, green: 0.13, blue: 0.13, alpha: 0.4)
@@ -355,7 +355,7 @@ enum AppColor {
         case .headerElementsColor:
             return ColorManager.shared.headerElementsColor.resolvedColor(with: traitCollection)
         case .tabBarBackground:
-            return ColorManager.shared.tabBarBackground.resolvedColor(with: traitCollection)
+            return ColorManager.shared.translucentBackground.resolvedColor(with: traitCollection)
         case .regularButtonColor:
             return ColorManager.shared.regularButtonColor.resolvedColor(with: traitCollection)
         case .offerCellBorderSecondaryColor:

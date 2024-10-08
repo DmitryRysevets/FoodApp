@@ -377,7 +377,7 @@ final class DishVC: UIViewController {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.cornerRadius = orderBarHeight / 2
-        view.backgroundColor = ColorManager.shared.tabBarBackground
+        view.backgroundColor = ColorManager.shared.translucentBackground
         view.layer.shadowColor = UIColor.black.cgColor
         view.layer.shadowOpacity = 0.2
         view.layer.shadowOffset = CGSize(width: 0, height: 10)
