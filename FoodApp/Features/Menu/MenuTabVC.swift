@@ -18,6 +18,8 @@ final class MenuTabVC: UIViewController {
     private var isMenuReceived = false
     private var isTabBarVisible = true
     
+    private let notificationCellHeight: Double = 48
+    
     private var notifications = ["Your order has been accepted.", "Your order is ready and waiting to be delivered.", "Your order is on its way.", "Your order has been successfully delivered. Thank you."]
     
     private var notificationTableViewHeightConstraint: NSLayoutConstraint?
@@ -243,6 +245,9 @@ final class MenuTabVC: UIViewController {
     
     private lazy var notificationView: UIView = {
         let view = UIView()
+        let swipeUpGesture = UISwipeGestureRecognizer(target: self, action: #selector(notificationViewSwipeUpHandler))
+        swipeUpGesture.direction = .up
+        view.addGestureRecognizer(swipeUpGesture)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = ColorManager.shared.translucentBackground
         view.layer.cornerRadius = 24
@@ -277,14 +282,14 @@ final class MenuTabVC: UIViewController {
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collection.translatesAutoresizingMaskIntoConstraints = false
-        collection.register(OffersContainerCell.self, forCellWithReuseIdentifier: OffersContainerCell.id)
-        collection.register(CategoriesContainerCell.self, forCellWithReuseIdentifier: CategoriesContainerCell.id)
-        collection.register(DishCell.self, forCellWithReuseIdentifier: DishCell.id)
-        collection.delegate = self
-        collection.backgroundColor = ColorManager.shared.background
-        return collection
+        let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.register(OffersContainerCell.self, forCellWithReuseIdentifier: OffersContainerCell.id)
+        view.register(CategoriesContainerCell.self, forCellWithReuseIdentifier: CategoriesContainerCell.id)
+        view.register(DishCell.self, forCellWithReuseIdentifier: DishCell.id)
+        view.delegate = self
+        view.backgroundColor = ColorManager.shared.background
+        return view
     }()
     
     private var dataSource: UICollectionViewDiffableDataSource<Int, AnyHashable>!
@@ -377,6 +382,12 @@ final class MenuTabVC: UIViewController {
         snapshot.appendItems([menu.offersContainer], toSection: 0)
         snapshot.appendItems([menu.categoriesContainer], toSection: 1)
         
+        dataSource.apply(snapshot, animatingDifferences: true)
+    }
+    
+    private func deleteNestedContainers() {
+        snapshot.deleteItems(snapshot.itemIdentifiers(inSection: 0))
+        snapshot.deleteItems(snapshot.itemIdentifiers(inSection: 1))
         dataSource.apply(snapshot, animatingDifferences: true)
     }
     
@@ -568,8 +579,8 @@ final class MenuTabVC: UIViewController {
             deliveryAdressLabel.heightAnchor.constraint(equalToConstant: 30),
             
             notificationView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 4),
-            notificationView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
-            notificationView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            notificationView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
+            notificationView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
             notificationViewBlurEffect.topAnchor.constraint(equalTo: notificationView.topAnchor),
             notificationViewBlurEffect.leadingAnchor.constraint(equalTo: notificationView.leadingAnchor),
             notificationViewBlurEffect.trailingAnchor.constraint(equalTo: notificationView.trailingAnchor),
@@ -684,8 +695,7 @@ final class MenuTabVC: UIViewController {
     
     private func updateTableViewHeight() {
         let numberOfRows = notificationTableView.numberOfRows(inSection: 0)
-        let cellHeight: CGFloat = 48
-        notificationTableViewHeightConstraint?.constant = CGFloat(numberOfRows) * cellHeight
+        notificationTableViewHeightConstraint?.constant = CGFloat(numberOfRows) * notificationCellHeight
     }
     
     private func setKeyboardWillShowObserver() {
@@ -708,8 +718,14 @@ final class MenuTabVC: UIViewController {
             } else {
                 if isTabBarVisible { hideTabBar() }
                 if !isSearching { hideSearchBar() }
-                hideAllElements()
+                dismissKeyboard()
+                hideSortView()
             }
+        }
+        
+        if scrollView.contentOffset.y <= 0 {
+            if !isTabBarVisible { showTabBar() }
+            if !isSearching { showSearchBar() }
         }
     }
     
@@ -780,6 +796,11 @@ final class MenuTabVC: UIViewController {
     @objc
     private func handleKeyboardWillShow() {
         view.addGestureRecognizer(backgroundTapGestureRecognizer)
+    }
+    
+    @objc
+    private func notificationViewSwipeUpHandler() {
+        hideNotificationView()
     }
     
     @objc
@@ -863,19 +884,27 @@ extension MenuTabVC: UICollectionViewDelegateFlowLayout {
 
 extension MenuTabVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        notifications.count
+        if notifications.count == 0 {
+            return 1
+        }
+        
+        return notifications.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: NotificationCell.id, for: indexPath) as! NotificationCell
         
-        cell.message = notifications[indexPath.row]
+        if notifications.count == 0 {
+            cell.message = "You don't have any notifications yet."
+        } else {
+            cell.message = notifications[indexPath.row]
+        }
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        48
+        notificationCellHeight
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -906,11 +935,13 @@ extension MenuTabVC: UISearchBarDelegate {
         
         if searchText.isEmpty {
             isSearching = false
+            applyNestedContainers()
             filterDishes()
             return
         }
         
         isSearching = true
+        deleteNestedContainers()
         filterDishes()
     }
 }

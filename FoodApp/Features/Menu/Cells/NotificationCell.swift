@@ -21,6 +21,7 @@ class NotificationCell: UITableViewCell {
         label.font = UIFont(name: "Raleway", size: 14)
         label.textColor = .white
         label.numberOfLines = 1
+        label.textAlignment = .center
         return label
     }()
     
