@@ -24,9 +24,11 @@ final class CartTabVC: UIViewController {
             }
         }
     }
+
+    private let cartCellHeight: CGFloat = 110
     
     private var cartItemColors: [UIColor] = []
-    
+        
     private var activePromoCode: PromoCodeEntity?
 
     private var productCost: Double = 0
@@ -397,8 +399,7 @@ final class CartTabVC: UIViewController {
     
     private func updateTableViewHeight() {
         let numberOfRows = tableView.numberOfRows(inSection: 0)
-        let cellHeight: CGFloat = 110
-        tableViewHeightConstraint?.constant = CGFloat(numberOfRows) * cellHeight
+        tableViewHeightConstraint?.constant = CGFloat(numberOfRows) * cartCellHeight
     }
     
     private func checkCart() {
@@ -623,7 +624,7 @@ extension CartTabVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        110
+        cartCellHeight
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {

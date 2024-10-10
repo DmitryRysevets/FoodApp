@@ -69,22 +69,22 @@ final class CoreDataManager {
     func fetchMenu() throws -> Menu? {
         let fetchRequestDishes: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
         let fetchRequestOffers: NSFetchRequest<OfferEntity> = OfferEntity.fetchRequest()
-        let fetchRequestCategories: NSFetchRequest<CategoriesContainerEntity> = CategoriesContainerEntity.fetchRequest()
+        let fetchRequestTags: NSFetchRequest<TagsContainerEntity> = TagsContainerEntity.fetchRequest()
         
         do {
             let dishEntities = try context.fetch(fetchRequestDishes)
             let offerEntities = try context.fetch(fetchRequestOffers)
-            let categoriesContainerEntities = try context.fetch(fetchRequestCategories)
+            let tagsContainerEntities = try context.fetch(fetchRequestTags)
             
             let dishes = dishEntities.map { Dish(from: $0) }
             let offers = offerEntities.map { Offer(from: $0) }
-            let categories = (categoriesContainerEntities.first?.categories as? [String]) ?? []
+            let tags = (tagsContainerEntities.first?.tags as? [String]) ?? []
             
-            if dishes.isEmpty && offers.isEmpty && categories.isEmpty {
+            if dishes.isEmpty && offers.isEmpty && tags.isEmpty {
                 return nil
             }
             
-            return Menu(offers: offers, dishes: dishes, categories: categories)
+            return Menu(offers: offers, dishes: dishes, tags: tags)
             
         } catch {
             throw CoreDataManagerError.fetchError(error)
@@ -118,8 +118,8 @@ final class CoreDataManager {
             offerEntity.update(with: offer)
         }
         
-        let categoriesContainerEntity = CategoriesContainerEntity(context: context)
-        categoriesContainerEntity.categories = menu.categoriesContainer.categories as NSObject
+        let tagsContainerEntity = TagsContainerEntity(context: context)
+        tagsContainerEntity.tags = menu.tagsContainer.tags as NSObject
         
         // Save menu version
         let fetchRequest: NSFetchRequest<MenuVersion> = MenuVersion.fetchRequest()
@@ -145,16 +145,16 @@ final class CoreDataManager {
     func deleteMenu() throws {
         let fetchRequestDishes: NSFetchRequest<NSFetchRequestResult> = DishEntity.fetchRequest()
         let fetchRequestOffers: NSFetchRequest<NSFetchRequestResult> = OfferEntity.fetchRequest()
-        let fetchRequestCategories: NSFetchRequest<NSFetchRequestResult> = CategoriesContainerEntity.fetchRequest()
+        let fetchRequestTags: NSFetchRequest<NSFetchRequestResult> = TagsContainerEntity.fetchRequest()
         
         let batchDeleteRequestDishes = NSBatchDeleteRequest(fetchRequest: fetchRequestDishes)
         let batchDeleteRequestOffers = NSBatchDeleteRequest(fetchRequest: fetchRequestOffers)
-        let batchDeleteRequestCategories = NSBatchDeleteRequest(fetchRequest: fetchRequestCategories)
+        let batchDeleteRequestTags = NSBatchDeleteRequest(fetchRequest: fetchRequestTags)
         
         do {
             try context.execute(batchDeleteRequestDishes)
             try context.execute(batchDeleteRequestOffers)
-            try context.execute(batchDeleteRequestCategories)
+            try context.execute(batchDeleteRequestTags)
         } catch {
             throw CoreDataManagerError.deleteError(error)
         }

@@ -177,7 +177,7 @@ final class FirebaseManager {
         }
         
         var menu = Menu(offers: offers, dishes: dishes)
-        menu.categoriesContainer.categories.insert("All", at: 0)
+        menu.tagsContainer.tags.insert("All", at: 0)
 
         return menu
     }

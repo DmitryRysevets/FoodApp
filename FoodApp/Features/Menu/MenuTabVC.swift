@@ -18,7 +18,7 @@ final class MenuTabVC: UIViewController {
     private var isMenuReceived = false
     private var isTabBarVisible = true
     
-    private let notificationCellHeight: Double = 48
+    private let notificationCellHeight: CGFloat = 48
     
     private var notifications = ["Your order has been accepted.", "Your order is ready and waiting to be delivered.", "Your order is on its way.", "Your order has been successfully delivered. Thank you."]
     
@@ -285,7 +285,7 @@ final class MenuTabVC: UIViewController {
         let view = UICollectionView(frame: .zero, collectionViewLayout: layout)
         view.translatesAutoresizingMaskIntoConstraints = false
         view.register(OffersContainerCell.self, forCellWithReuseIdentifier: OffersContainerCell.id)
-        view.register(CategoriesContainerCell.self, forCellWithReuseIdentifier: CategoriesContainerCell.id)
+        view.register(TagsContainerCell.self, forCellWithReuseIdentifier: TagsContainerCell.id)
         view.register(DishCell.self, forCellWithReuseIdentifier: DishCell.id)
         view.delegate = self
         view.backgroundColor = ColorManager.shared.background
@@ -295,7 +295,7 @@ final class MenuTabVC: UIViewController {
     private var dataSource: UICollectionViewDiffableDataSource<Int, AnyHashable>!
     private var snapshot: NSDiffableDataSourceSnapshot<Int, AnyHashable>!
     private var nestedOffersSnapshot = NSDiffableDataSourceSnapshot<Int, Offer>()
-    private var nestedCategoriesSnapshot = NSDiffableDataSourceSnapshot<Int, String>()
+    private var nestedTagsSnapshot = NSDiffableDataSourceSnapshot<Int, String>()
     
     // MARK: - Lifecycle methods
     
@@ -334,15 +334,15 @@ final class MenuTabVC: UIViewController {
                 cell.offersSnapshot = self.nestedOffersSnapshot
                 return cell
             case 1:
-                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoriesContainerCell.id, for: indexPath) as? CategoriesContainerCell
-                else { fatalError("Unable deque CategoriesContainerCell") }
+                guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TagsContainerCell.id, for: indexPath) as? TagsContainerCell
+                else { fatalError("Unable deque TagsContainerCell") }
                 cell.tagSwitchHandler = { [weak self] tag in
                     if self?.activeTag != tag {
                         self?.activeTag = tag
                         self?.filterDishes()
                     }
                 }
-                cell.categoriesSnapshot = self.nestedCategoriesSnapshot
+                cell.tagsSnapshot = self.nestedTagsSnapshot
                 return cell
             case 2:
                 guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: DishCell.id, for: indexPath) as? DishCell
@@ -369,7 +369,7 @@ final class MenuTabVC: UIViewController {
         snapshot.appendSections([0, 1, 2])
         
         snapshot.appendItems([menu.offersContainer], toSection: 0)
-        snapshot.appendItems([menu.categoriesContainer], toSection: 1)
+        snapshot.appendItems([menu.tagsContainer], toSection: 1)
         snapshot.appendItems(menu.dishes, toSection: 2)
     
         dataSource.apply(snapshot, animatingDifferences: true)
@@ -380,7 +380,7 @@ final class MenuTabVC: UIViewController {
         snapshot.deleteItems(snapshot.itemIdentifiers(inSection: 1))
             
         snapshot.appendItems([menu.offersContainer], toSection: 0)
-        snapshot.appendItems([menu.categoriesContainer], toSection: 1)
+        snapshot.appendItems([menu.tagsContainer], toSection: 1)
         
         dataSource.apply(snapshot, animatingDifferences: true)
     }
@@ -404,10 +404,10 @@ final class MenuTabVC: UIViewController {
         return snapshot
     }
     
-    private func createCategoriesSnapshot() -> NSDiffableDataSourceSnapshot<Int, String> {
+    private func createTagsSnapshot() -> NSDiffableDataSourceSnapshot<Int, String> {
         var snapshot = NSDiffableDataSourceSnapshot<Int, String>()
         snapshot.appendSections([0])
-        snapshot.appendItems(menu.categoriesContainer.categories, toSection: 0)
+        snapshot.appendItems(menu.tagsContainer.tags, toSection: 0)
         return snapshot
     }
     
@@ -423,7 +423,7 @@ final class MenuTabVC: UIViewController {
             preloaderView.isHidden = true
             
             nestedOffersSnapshot = createOffersSnapshot()
-            nestedCategoriesSnapshot = createCategoriesSnapshot()
+            nestedTagsSnapshot = createTagsSnapshot()
             
             applyNestedContainers()
             

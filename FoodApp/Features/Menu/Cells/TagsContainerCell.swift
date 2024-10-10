@@ -1,23 +1,23 @@
 //
-//  CategoriesContainerCell.swift
+//  TagsContainerCell.swift
 //  FoodApp
 //
 
 import UIKit
 
-final class CategoriesContainerCell: UICollectionViewCell {
-    static let id = "CategoriesContainerCell"
+final class TagsContainerCell: UICollectionViewCell {
+    static let id = "TagsContainerCell"
     
-    var categoriesSnapshot = NSDiffableDataSourceSnapshot<Int, String>() {
+    var tagsSnapshot = NSDiffableDataSourceSnapshot<Int, String>() {
         didSet {
             selectedStates = []
-            categoriesSnapshot.itemIdentifiers.forEach { _ in
+            tagsSnapshot.itemIdentifiers.forEach { _ in
                 selectedStates.append(false)
             }
             if !selectedStates.isEmpty {
                 selectedStates[0] = true
             }
-            dataSource.apply(categoriesSnapshot, animatingDifferences: true)
+            dataSource.apply(tagsSnapshot, animatingDifferences: true)
         }
     }
     
@@ -31,7 +31,7 @@ final class CategoriesContainerCell: UICollectionViewCell {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
         let collection = UICollectionView(frame: .zero, collectionViewLayout: layout)
-        collection.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.id)
+        collection.register(TagCell.self, forCellWithReuseIdentifier: TagCell.id)
         collection.showsHorizontalScrollIndicator = false
         collection.backgroundColor = .clear
         collection.delegate = self
@@ -56,11 +56,11 @@ final class CategoriesContainerCell: UICollectionViewCell {
     private func configureDataSource() {
         dataSource = UICollectionViewDiffableDataSource<Int, String>(collectionView: collectionView) { collectionView, indexPath, item in
             
-            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.id, for: indexPath) as? CategoryCell 
-            else { fatalError("Unable deque CategoryCell") }
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TagCell.id, for: indexPath) as? TagCell 
+            else { fatalError("Unable deque TagCell") }
             
-            cell.category.setTitle(item, for: .normal)
-            cell.category.frame = cell.bounds
+            cell.tagButton.setTitle(item, for: .normal)
+            cell.tagButton.frame = cell.bounds
             
             if self.selectedStates[indexPath.item] {
                 cell.setSelected()
@@ -68,8 +68,8 @@ final class CategoriesContainerCell: UICollectionViewCell {
                 cell.setUnselected()
             }
             
-            cell.categoryDidTapped = { [weak self] tag in
-                self?.unselectAllCategories()
+            cell.tagDidTapped = { [weak self] tag in
+                self?.unselectAllTags()
                 self?.selectedStates[indexPath.item] = true
                 self?.tagSwitchHandler?(tag)
                 collectionView.reloadData()
@@ -78,10 +78,10 @@ final class CategoriesContainerCell: UICollectionViewCell {
             return cell
         }
         
-        dataSource.apply(categoriesSnapshot, animatingDifferences: true)
+        dataSource.apply(tagsSnapshot, animatingDifferences: true)
     }
     
-    private func unselectAllCategories() {
+    private func unselectAllTags() {
         for index in 0..<selectedStates.count {
             selectedStates[index] = false
         }
@@ -89,16 +89,16 @@ final class CategoriesContainerCell: UICollectionViewCell {
     
 }
 
-extension CategoriesContainerCell: UICollectionViewDelegate {
+extension TagsContainerCell: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
 
     }
 }
 
-extension CategoriesContainerCell: UICollectionViewDelegateFlowLayout {
+extension TagsContainerCell: UICollectionViewDelegateFlowLayout {
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let title = categoriesSnapshot.itemIdentifiers[indexPath.item]
+        let title = tagsSnapshot.itemIdentifiers[indexPath.item]
         let font = UIFont(name: "Raleway", size: 14)!
         let titleWidth = NSString(string: title).width(withFont: font)
         return CGSize(width: titleWidth + 32, height: 30)
