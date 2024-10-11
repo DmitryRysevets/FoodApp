@@ -87,7 +87,7 @@ final class TabBarVC: UIViewController {
     
     private var activeTabBackgroundViewCenterXConstraint: NSLayoutConstraint?
     
-    private var navBarIsVisible = true
+    private var tabBarIsVisible = true
     
     private var cartIsEmpty = true {
         didSet {
@@ -276,52 +276,37 @@ extension TabBarVC {
 
     
     func hideTabBar() {
-        UIView.animate(
-            withDuration: 0.5,
-            delay: 0,
-            usingSpringWithDamping: 0.8,
-            initialSpringVelocity: 0.5,
-            animations: {
-                self.tabBarView.transform = CGAffineTransform(translationX: 0, y: 115)
-                self.tabBarView.alpha = 0.0
-            },
-            completion: nil
-        )
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+            self.tabBarView.transform = CGAffineTransform(translationX: 0, y: 115)
+            self.tabBarView.alpha = 0
+        }
+        tabBarIsVisible = false
     }
     
     func showTabBar() {
-        UIView.animate(
-            withDuration: 0.5,
-            delay: 0,
-            usingSpringWithDamping: 0.75,
-            initialSpringVelocity: 0.5,
-            animations: {
-                self.tabBarView.transform = .identity
-                self.tabBarView.alpha = 1
-            },
-            completion: nil
-        )
+        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
+            self.tabBarView.transform = .identity
+            self.tabBarView.alpha = 1
+        }
+        tabBarIsVisible = true
     }
 
 }
 
 // MARK: - UINavigationControllerDelegate
+
 extension TabBarVC: UINavigationControllerDelegate {
     
     func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
         let isRootVC = viewController === navigationController.viewControllers.first
-        if navigationController === TabBarVC.profileNavVC || navigationController === TabBarVC.cartNavVC {
-            if isRootVC {
-                if !navBarIsVisible {
-                    showTabBar()
-                    navBarIsVisible = true
-                }
-            } else {
-                if navBarIsVisible {
-                    hideTabBar()
-                    navBarIsVisible = false
-                }
+        
+        if isRootVC {
+            showTabBar()
+        } else {
+            if tabBarIsVisible {
+                hideTabBar()
             }
         }
     }
+    
 }

@@ -17,12 +17,12 @@ final class MenuTabVC: UIViewController {
     
     private var isMenuReceived = false
     private var isTabBarVisible = true
+        
+    private var messages: [String] = []
+//    private var messages = ["Your order has been accepted.", "Your order is ready and waiting to be delivered.", "Your order is on its way.", "Your order has been successfully delivered. Thank you."]
     
-    private let notificationCellHeight: CGFloat = 48
-    
-    private var notifications = ["Your order has been accepted.", "Your order is ready and waiting to be delivered.", "Your order is on its way.", "Your order has been successfully delivered. Thank you."]
-    
-    private var notificationTableViewHeightConstraint: NSLayoutConstraint?
+    private let messageCellHeight: CGFloat = 64
+    private var messagesTableViewHeightConstraint: NSLayoutConstraint?
     
     private lazy var preloaderView = PreloaderView(frame: CGRect(x: 32, y: Int(view.center.y - 100), width: Int(view.frame.width - 64), height: 180))
     
@@ -72,24 +72,28 @@ final class MenuTabVC: UIViewController {
     private lazy var deliveryAdressLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = "Dhaka, Bangladesh"
+        label.text = "Set delivery address"
         label.font = UIFont(name: "Raleway", size: 14)
         label.textColor = ColorManager.shared.label
         label.textAlignment = .left
         label.numberOfLines = 1
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(deliveryAdressLabelTapped))
+        label.addGestureRecognizer(tapGesture)
+        label.isUserInteractionEnabled = true
         return label
     }()
     
-    private lazy var notificationButton: UIButton = {
+    private lazy var messagesButton: UIButton = {
         let button = UIButton()
-        let noNotificationImage = UIImage(named: "Notification")
-        let gotNotificationImage = UIImage(named: "GotNotification")
-        button.setImage(noNotificationImage, for: .normal)
-        button.setImage(gotNotificationImage, for: .selected)
+        let messagesImage = UIImage(named: "Messages")
+        let haveNewMessagesImage = UIImage(named: "HaveNewMessages")
+        button.setImage(messagesImage, for: .normal)
+        button.setImage(haveNewMessagesImage, for: .selected)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = ColorManager.shared.headerElementsColor
         button.layer.cornerRadius = Constants.headerButtonSize / 2
-        button.addTarget(self, action: #selector(notificationButtonTaped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(messagesButtonTaped), for: .touchUpInside)
         return button
     }()
     
@@ -241,11 +245,11 @@ final class MenuTabVC: UIViewController {
         return button
     }()
     
-    // MARK: - Notification view
+    // MARK: - Messages view
     
-    private lazy var notificationView: UIView = {
+    private lazy var messagesView: UIView = {
         let view = UIView()
-        let swipeUpGesture = UISwipeGestureRecognizer(target: self, action: #selector(notificationViewSwipeUpHandler))
+        let swipeUpGesture = UISwipeGestureRecognizer(target: self, action: #selector(messagesViewSwipeUpHandler))
         swipeUpGesture.direction = .up
         view.addGestureRecognizer(swipeUpGesture)
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -257,7 +261,7 @@ final class MenuTabVC: UIViewController {
         return view
     }()
     
-    private lazy var notificationViewBlurEffect: UIVisualEffectView = {
+    private lazy var messagesViewBlurEffect: UIVisualEffectView = {
         let view = UIVisualEffectView()
         let blur = UIBlurEffect(style: .regular)
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -265,14 +269,14 @@ final class MenuTabVC: UIViewController {
         return view
     }()
     
-    private lazy var notificationTableView: UITableView = {
+    private lazy var messagesTableView: UITableView = {
         let table = UITableView()
         table.translatesAutoresizingMaskIntoConstraints = false
         table.backgroundColor = .clear
         table.separatorStyle = .none
         table.allowsSelection = false
         table.isScrollEnabled = false
-        table.register(NotificationCell.self, forCellReuseIdentifier: NotificationCell.id)
+        table.register(MessageCell.self, forCellReuseIdentifier: MessageCell.id)
         table.dataSource = self
         table.delegate = self
         return table
@@ -316,10 +320,16 @@ final class MenuTabVC: UIViewController {
         if !isMenuReceived {
             preloaderView.startLoadingAnimation()
         }
+        
+        DispatchQueue.main.async {
+            self.avatarImageView.image = UserManager.shared.getUserAvatar()
+            if let defaultAddress = CoreDataManager.shared.getDefaultAddress() {
+                self.deliveryAdressLabel.text = defaultAddress.placeName
+            }
+        }
     }
     
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+    override func viewDidLayoutSubviews() {
         searchBar.searchTextField.rightViewMode = .always
     }
     
@@ -520,16 +530,16 @@ final class MenuTabVC: UIViewController {
         view.addSubview(headerView)
         view.addSubview(preloaderView)
         view.addSubview(sortView)
-        view.addSubview(notificationView)
+        view.addSubview(messagesView)
         
         headerView.addSubview(avatarImageView)
         headerView.addSubview(pinImageView)
         headerView.addSubview(deliveryAdressLabel)
-        headerView.addSubview(notificationButton)
+        headerView.addSubview(messagesButton)
         headerView.addSubview(layoutButton)
         
-        notificationView.addSubview(notificationViewBlurEffect)
-        notificationView.addSubview(notificationTableView)
+        messagesView.addSubview(messagesViewBlurEffect)
+        messagesView.addSubview(messagesTableView)
         
         searchBar.addSubview(magnifyingGlassImageView)
         searchBar.addSubview(sortButton)
@@ -569,26 +579,26 @@ final class MenuTabVC: UIViewController {
             layoutButton.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             layoutButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -headerBottomPadding),
             layoutButton.widthAnchor.constraint(equalTo: layoutButton.heightAnchor),
-            notificationButton.topAnchor.constraint(equalTo: headerView.topAnchor),
-            notificationButton.trailingAnchor.constraint(equalTo: layoutButton.leadingAnchor, constant: -10),
-            notificationButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -headerBottomPadding),
-            notificationButton.widthAnchor.constraint(equalTo: notificationButton.heightAnchor),
+            messagesButton.topAnchor.constraint(equalTo: headerView.topAnchor),
+            messagesButton.trailingAnchor.constraint(equalTo: layoutButton.leadingAnchor, constant: -10),
+            messagesButton.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -headerBottomPadding),
+            messagesButton.widthAnchor.constraint(equalTo: messagesButton.heightAnchor),
             deliveryAdressLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor, constant: -headerBottomPadding / 2),
             deliveryAdressLabel.leadingAnchor.constraint(equalTo: pinImageView.trailingAnchor, constant: 6),
-            deliveryAdressLabel.trailingAnchor.constraint(equalTo: notificationButton.leadingAnchor, constant: -10),
+            deliveryAdressLabel.trailingAnchor.constraint(equalTo: messagesButton.leadingAnchor, constant: -10),
             deliveryAdressLabel.heightAnchor.constraint(equalToConstant: 30),
             
-            notificationView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 4),
-            notificationView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
-            notificationView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
-            notificationViewBlurEffect.topAnchor.constraint(equalTo: notificationView.topAnchor),
-            notificationViewBlurEffect.leadingAnchor.constraint(equalTo: notificationView.leadingAnchor),
-            notificationViewBlurEffect.trailingAnchor.constraint(equalTo: notificationView.trailingAnchor),
-            notificationViewBlurEffect.bottomAnchor.constraint(equalTo: notificationView.bottomAnchor),
-            notificationTableView.topAnchor.constraint(equalTo: notificationView.topAnchor),
-            notificationTableView.leadingAnchor.constraint(equalTo: notificationView.leadingAnchor),
-            notificationTableView.trailingAnchor.constraint(equalTo: notificationView.trailingAnchor),
-            notificationTableView.bottomAnchor.constraint(equalTo: notificationView.bottomAnchor),
+            messagesView.topAnchor.constraint(equalTo: headerView.bottomAnchor, constant: 4),
+            messagesView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
+            messagesView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -8),
+            messagesViewBlurEffect.topAnchor.constraint(equalTo: messagesView.topAnchor),
+            messagesViewBlurEffect.leadingAnchor.constraint(equalTo: messagesView.leadingAnchor),
+            messagesViewBlurEffect.trailingAnchor.constraint(equalTo: messagesView.trailingAnchor),
+            messagesViewBlurEffect.bottomAnchor.constraint(equalTo: messagesView.bottomAnchor),
+            messagesTableView.topAnchor.constraint(equalTo: messagesView.topAnchor),
+            messagesTableView.leadingAnchor.constraint(equalTo: messagesView.leadingAnchor),
+            messagesTableView.trailingAnchor.constraint(equalTo: messagesView.trailingAnchor),
+            messagesTableView.bottomAnchor.constraint(equalTo: messagesView.bottomAnchor),
             
             searchBar.topAnchor.constraint(equalTo: headerView.bottomAnchor),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 8),
@@ -624,8 +634,8 @@ final class MenuTabVC: UIViewController {
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
         
-        notificationTableViewHeightConstraint = notificationTableView.heightAnchor.constraint(equalToConstant: 0)
-        notificationTableViewHeightConstraint?.isActive = true
+        messagesTableViewHeightConstraint = messagesTableView.heightAnchor.constraint(equalToConstant: 0)
+        messagesTableViewHeightConstraint?.isActive = true
     }
     
     private func createSeparatorView() -> UIView {
@@ -636,19 +646,19 @@ final class MenuTabVC: UIViewController {
         return separator
     }
     
-    private func hideNotificationView() {
+    private func hideMessagesView() {
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
-            self.notificationView.transform = CGAffineTransform(translationX: 0, y: -40)
-            self.notificationView.alpha = 0
+            self.messagesView.transform = CGAffineTransform(translationX: 0, y: -40)
+            self.messagesView.alpha = 0
         }
     }
     
-    private func showNotificationView() {
+    private func showMessagesView() {
         view.addGestureRecognizer(backgroundTapGestureRecognizer)
-        updateTableViewHeight()
+        updateMessagesTableViewHeight()
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
-            self.notificationView.transform = .identity
-            self.notificationView.alpha = 1
+            self.messagesView.transform = .identity
+            self.messagesView.alpha = 1
         }
     }
     
@@ -693,9 +703,9 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    private func updateTableViewHeight() {
-        let numberOfRows = notificationTableView.numberOfRows(inSection: 0)
-        notificationTableViewHeightConstraint?.constant = CGFloat(numberOfRows) * notificationCellHeight
+    private func updateMessagesTableViewHeight() {
+        let numberOfRows = messagesTableView.numberOfRows(inSection: 0)
+        messagesTableViewHeightConstraint?.constant = CGFloat(numberOfRows) * messageCellHeight
     }
     
     private func setKeyboardWillShowObserver() {
@@ -737,8 +747,13 @@ final class MenuTabVC: UIViewController {
     }
     
     @objc
-    private func notificationButtonTaped() {
-        showNotificationView()
+    private func deliveryAdressLabelTapped() {
+        
+    }
+    
+    @objc
+    private func messagesButtonTaped() {
+        showMessagesView()
     }
     
     @objc
@@ -799,8 +814,8 @@ final class MenuTabVC: UIViewController {
     }
     
     @objc
-    private func notificationViewSwipeUpHandler() {
-        hideNotificationView()
+    private func messagesViewSwipeUpHandler() {
+        hideMessagesView()
     }
     
     @objc
@@ -808,7 +823,7 @@ final class MenuTabVC: UIViewController {
         view.removeGestureRecognizer(backgroundTapGestureRecognizer)
         dismissKeyboard()
         hideSortView()
-        hideNotificationView()
+        hideMessagesView()
     }
     
 }
@@ -884,27 +899,27 @@ extension MenuTabVC: UICollectionViewDelegateFlowLayout {
 
 extension MenuTabVC: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if notifications.count == 0 {
+        if messages.count == 0 {
             return 1
         }
         
-        return notifications.count
+        return messages.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: NotificationCell.id, for: indexPath) as! NotificationCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: MessageCell.id, for: indexPath) as! MessageCell
         
-        if notifications.count == 0 {
-            cell.message = "You don't have any notifications yet."
+        if messages.count == 0 {
+            cell.setAsNoMessagesCell()
         } else {
-            cell.message = notifications[indexPath.row]
+            cell.message = messages[indexPath.row]
         }
         
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        notificationCellHeight
+        messageCellHeight
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -951,7 +966,7 @@ extension MenuTabVC: UISearchBarDelegate {
 extension MenuTabVC: UIGestureRecognizerDelegate {
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-        if notificationView.frame.contains(touch.location(in: view)) {
+        if messagesView.frame.contains(touch.location(in: view)) {
             return false
         } else if sortView.frame.contains(touch.location(in: view)) {
             return false

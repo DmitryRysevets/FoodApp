@@ -8,7 +8,7 @@ import FirebaseAuth
 
 final class LoginVC: UIViewController {
     
-    private lazy var isModal = navigationController?.presentingViewController?.presentedViewController == navigationController
+    private lazy var isOpenedModally = navigationController?.presentingViewController?.presentedViewController == navigationController
     
     private lazy var backButtonView: NavigationBarButtonView = {
         let view = NavigationBarButtonView()
@@ -128,12 +128,13 @@ final class LoginVC: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupNavBar()
         setupUI()
         setupConstraints()
         
-        if isModal {
+        if isOpenedModally {
             prepareForAnimations()
+        } else {
+            setupNavBar()
         }
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
@@ -143,7 +144,7 @@ final class LoginVC: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        if isModal {
+        if isOpenedModally {
             startAnimations()
         }
     }
@@ -268,7 +269,11 @@ final class LoginVC: UIViewController {
             Task {
                 do {
                     try await UserManager.shared.authenticateUser(email: email, password: password)
-                    navigationController?.popViewController(animated: true)
+                    if isOpenedModally {
+                        // need handler
+                    } else {
+                        navigationController?.popToRootViewController(animated: true)
+                    }
                 } catch {
                     ErrorLogger.shared.logError(error, additionalInfo: ["Action": "Authentication attempt", "Email": email, "Pass": password])
                     UserNotification.show(for: error, in: self)
@@ -314,6 +319,7 @@ final class LoginVC: UIViewController {
         UIView.animate(withDuration: 0.05, delay: 0.05, options: [], animations: {
             self.loginButton.transform = CGAffineTransform.identity
         }, completion: nil)
+        
         authenticateUser()
     }
     

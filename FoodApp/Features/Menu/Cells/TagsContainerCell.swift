@@ -14,9 +14,7 @@ final class TagsContainerCell: UICollectionViewCell {
             tagsSnapshot.itemIdentifiers.forEach { _ in
                 selectedStates.append(false)
             }
-            if !selectedStates.isEmpty {
-                selectedStates[0] = true
-            }
+            selectedStates[activeTagIndex] = true
             dataSource.apply(tagsSnapshot, animatingDifferences: true)
         }
     }
@@ -25,7 +23,7 @@ final class TagsContainerCell: UICollectionViewCell {
     
     private var dataSource: UICollectionViewDiffableDataSource<Int, String>!
     private var selectedStates: [Bool] = []
-    
+    private var activeTagIndex = 0
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
@@ -69,16 +67,21 @@ final class TagsContainerCell: UICollectionViewCell {
             }
             
             cell.tagDidTapped = { [weak self] tag in
-                self?.unselectAllTags()
-                self?.selectedStates[indexPath.item] = true
+                self?.setTagLocallySelected(at: indexPath.item)
                 self?.tagSwitchHandler?(tag)
-                collectionView.reloadData()
             }
             
             return cell
         }
         
         dataSource.apply(tagsSnapshot, animatingDifferences: true)
+    }
+    
+    private func setTagLocallySelected(at index: Int) {
+        activeTagIndex = index
+        unselectAllTags()
+        selectedStates[activeTagIndex] = true
+        collectionView.reloadData()
     }
     
     private func unselectAllTags() {
