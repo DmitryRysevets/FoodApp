@@ -272,7 +272,7 @@ final class LoginVC: UIViewController {
                     if isOpenedModally {
                         // need handler
                     } else {
-                        navigationController?.popToRootViewController(animated: true)
+                        navigationController?.popViewController(animated: true)
                     }
                 } catch {
                     ErrorLogger.shared.logError(error, additionalInfo: ["Action": "Authentication attempt", "Email": email, "Pass": password])
