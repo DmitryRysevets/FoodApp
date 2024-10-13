@@ -19,7 +19,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         FirebaseApp.configure()
         registerForPushNotifications(application)
+        
         Messaging.messaging().delegate = self
+        UNUserNotificationCenter.current().delegate = self
         
         return true
     }
@@ -64,5 +66,23 @@ extension AppDelegate: MessagingDelegate {
         guard let token = fcmToken else { return }
         print("FCM Token: \(token)")
         // need to save token
+    }
+}
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        
+        completionHandler([.banner, .sound, .badge])
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void) {
+        
+        let userInfo = response.notification.request.content.userInfo
+        print("Notification received with info: \(userInfo)")
+        
+        completionHandler()
     }
 }
