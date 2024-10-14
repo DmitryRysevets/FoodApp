@@ -27,7 +27,8 @@ final class CoreDataManager {
         let container = NSPersistentContainer(name: "Base")
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
-                fatalError("Unresolved error \(error), \(error.userInfo)")
+                print("Unresolved error \(error), \(error.userInfo)")
+                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Attempt to load the persistent container."])
             }
         })
         return container
@@ -38,7 +39,6 @@ final class CoreDataManager {
     }
     
     func saveContext() throws {
-        let context = persistentContainer.viewContext
         if context.hasChanges {
             do {
                 try context.save()
@@ -64,7 +64,7 @@ final class CoreDataManager {
         }
     }
 
-    // MARK: - Menu methods
+    // MARK: - Menu
     
     func fetchMenu() throws -> Menu? {
         let fetchRequestDishes: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
@@ -198,7 +198,7 @@ final class CoreDataManager {
         }
     }
     
-    // MARK: - Favorite methods
+    // MARK: - Favorites
     
     func fetchFavorites() throws -> [Dish] {
         let fetchRequest: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
@@ -248,7 +248,7 @@ final class CoreDataManager {
         try saveContext()
     }
     
-    // MARK: - Cart methods
+    // MARK: - Cart
     
     func saveCartItem(dish: Dish, quantity: Int) throws {
         let fetchRequest: NSFetchRequest<CartItemEntity> = CartItemEntity.fetchRequest()
@@ -359,7 +359,7 @@ final class CoreDataManager {
         }
     }
     
-    // MARK: - Dish methods
+    // MARK: - Dishes
     
     func findSimilarDishes(to dish: Dish, limit: Int = 3) throws -> [Dish] {
         let fetchRequest: NSFetchRequest<DishEntity> = DishEntity.fetchRequest()
@@ -398,7 +398,7 @@ final class CoreDataManager {
         }
     }
     
-    // MARK: - Payment card methods
+    // MARK: - Payment cards
     
     func fetchAllCards() throws -> [CardEntity] {
         let fetchRequest: NSFetchRequest<CardEntity> = CardEntity.fetchRequest()
@@ -503,7 +503,7 @@ final class CoreDataManager {
         }
     }
     
-    // MARK: - Delivery address methods
+    // MARK: - Delivery addresses
     
     func fetchAllAddresses() throws -> [AddressEntity] {
         let fetchRequest: NSFetchRequest<AddressEntity> = AddressEntity.fetchRequest()
@@ -629,7 +629,7 @@ final class CoreDataManager {
         }
     }
     
-    // MARK: - User data methods
+    // MARK: - User
     
     func saveUser(_ user: User) throws {
         let userEntity = UserEntity(context: context)
@@ -713,7 +713,7 @@ final class CoreDataManager {
     }
 
     
-    // MARK: - Orders methods
+    // MARK: - Orders
     
     func createOrder(orderID: UUID = UUID(), productCost: Double, deliveryCharge: Double, promoCodeDiscount: Double, orderDate: Date = Date(), paidByCard: Bool, address: String, latitude: Double, longitude: Double, orderComments: String?, phone: String?, status: String = "Pending", orderItems: [OrderItemEntity]) -> OrderEntity {
         let order = OrderEntity(context: context)
@@ -795,7 +795,7 @@ final class CoreDataManager {
         try saveContext()
     }
     
-    // MARK: - Promo code methods
+    // MARK: - Promo codes
     
     func isActivePromoCodeAlreadyExists() -> Bool {
         let fetchRequest: NSFetchRequest<PromoCodeEntity> = PromoCodeEntity.fetchRequest()
@@ -847,4 +847,90 @@ final class CoreDataManager {
         }
     }
     
+    // MARK: - Messages
+    
+    func saveMessage(id: String, title: String, body: String, date: Date, isRead: Bool = false) throws {
+        let fetchRequest: NSFetchRequest<MessageEntity> = MessageEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id)
+
+        do {
+            let existingMessages = try context.fetch(fetchRequest)
+            if !existingMessages.isEmpty {
+                throw CoreDataManagerError.itemAlreadyExists
+            }
+
+            let message = MessageEntity(context: context)
+            message.id = id
+            message.title = title
+            message.body = body
+            message.date = date
+            message.isRead = isRead
+
+            try saveContext()
+
+        } catch {
+            throw CoreDataManagerError.saveError(error)
+        }
+    }
+    
+    func deleteMessage(byId id: String) throws {
+        let fetchRequest: NSFetchRequest<MessageEntity> = MessageEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id)
+
+        do {
+            let messages = try context.fetch(fetchRequest)
+            if let messageToDelete = messages.first {
+                try deleteEntityFromContext(messageToDelete)
+            } else {
+                throw CoreDataManagerError.itemNotFound
+            }
+
+        } catch {
+            throw CoreDataManagerError.fetchError(error)
+        }
+    }
+    
+    func fetchAllMessages() throws -> [MessageEntity] {
+        let fetchRequest: NSFetchRequest<MessageEntity> = MessageEntity.fetchRequest()
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+
+        do {
+            let messages = try context.fetch(fetchRequest)
+            return messages
+        } catch {
+            throw CoreDataManagerError.fetchError(error)
+        }
+    }
+    
+    func fetchUnreadMessages() throws -> [MessageEntity] {
+        let fetchRequest: NSFetchRequest<MessageEntity> = MessageEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "isRead == %@", NSNumber(value: false))
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+
+        do {
+            let messages = try context.fetch(fetchRequest)
+            return messages
+        } catch {
+            throw CoreDataManagerError.fetchError(error)
+        }
+    }
+    
+    func markMessageAsRead(byId id: String) throws {
+        let fetchRequest: NSFetchRequest<MessageEntity> = MessageEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id)
+
+        do {
+            let messages = try context.fetch(fetchRequest)
+            if let message = messages.first {
+                message.isRead = true
+                try saveContext()
+            } else {
+                throw CoreDataManagerError.itemNotFound
+            }
+        } catch {
+            throw CoreDataManagerError.fetchError(error)
+        }
+    }
+    
 }
+

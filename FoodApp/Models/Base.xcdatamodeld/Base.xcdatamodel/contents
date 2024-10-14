@@ -40,8 +40,11 @@
         <attribute name="version" optional="YES" attributeType="String"/>
     </entity>
     <entity name="MessageEntity" representedClassName="MessageEntity" syncable="YES" codeGenerationType="class">
+        <attribute name="body" attributeType="String"/>
         <attribute name="date" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="text" attributeType="String"/>
+        <attribute name="id" attributeType="String"/>
+        <attribute name="isRead" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="title" attributeType="String"/>
     </entity>
     <entity name="OfferEntity" representedClassName="OfferEntity" syncable="YES" codeGenerationType="class">
         <attribute name="amount" attributeType="String"/>
