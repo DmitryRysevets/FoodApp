@@ -14,7 +14,11 @@ final class TagsContainerCell: UICollectionViewCell {
             tagsSnapshot.itemIdentifiers.forEach { _ in
                 selectedStates.append(false)
             }
-            selectedStates[activeTagIndex] = true
+            
+            if !selectedStates.isEmpty {
+                selectedStates[activeTagIndex] = true
+            }
+            
             dataSource.apply(tagsSnapshot, animatingDifferences: true)
         }
     }

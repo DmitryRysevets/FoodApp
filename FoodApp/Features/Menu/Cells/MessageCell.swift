@@ -8,12 +8,25 @@ import UIKit
 class MessageCell: UITableViewCell {
     static let id = "MessageCell"
 
-    var message = "" {
+    var message: MessageEntity! {
         didSet {
-            messageLabel.text = message
+            titleLabel.text = message.title
+            messageLabel.text = message.body
+            
+            if let date = message.date {
+                timeLabel.text = dateFormatter.string(from: date)
+            }
+            
             setupUI()
         }
     }
+    
+    let dateFormatter: DateFormatter = {
+        let formater = DateFormatter()
+        formater.dateFormat = "E HH:mm"
+        formater.locale = Locale(identifier: "en_US")
+        return formater
+    }()
     
     private lazy var timeLabel: UILabel = {
         let label = UILabel()
@@ -21,6 +34,16 @@ class MessageCell: UITableViewCell {
         label.font = .systemFont(ofSize: 12, weight: .regular)
         label.textColor = .white
         label.text = "Mon 14:33"
+        return label
+    }()
+    
+    private lazy var titleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 650])
+        label.textColor = .white
+        label.numberOfLines = 1
+        label.text = "Title"
         return label
     }()
     
@@ -35,13 +58,17 @@ class MessageCell: UITableViewCell {
     
     private func setupUI() {
         backgroundColor = .clear
+        addSubview(titleLabel)
         addSubview(timeLabel)
         addSubview(messageLabel)
         
         NSLayoutConstraint.activate([
-            timeLabel.topAnchor.constraint(equalTo: topAnchor, constant: 14),
-            timeLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            messageLabel.topAnchor.constraint(equalTo: timeLabel.bottomAnchor, constant: 4),
+            titleLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+            titleLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: timeLabel.leadingAnchor, constant: -16),
+            timeLabel.topAnchor.constraint(equalTo: topAnchor, constant: 12),
+            timeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
+            messageLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
             messageLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             messageLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16)
         ])

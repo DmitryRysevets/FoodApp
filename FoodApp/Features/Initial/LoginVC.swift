@@ -330,6 +330,13 @@ final class LoginVC: UIViewController {
     
     @objc
     private func guestButtonTapped() {
+        do {
+            try CoreDataManager.shared.saveMessage(id: UUID().uuidString, title: "Guest", body: "You can register or login in the settings.", date: Date())
+            try CoreDataManager.shared.saveMessage(id: UUID().uuidString, title: "Welcome", body: "We are happy to have a new user.", date: Date())
+        } catch {
+            print("An error occurred while saving the welcome message.")
+        }
+        
         navigationController?.popViewController(animated: true)
         dismiss(animated: true)
     }

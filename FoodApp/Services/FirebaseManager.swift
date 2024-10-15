@@ -140,32 +140,6 @@ final class FirebaseManager {
             throw FirebaseManagerError.firestoreDataWasNotReceived(error)
         }
     }
-
-    func saveNotificationToken(_ token: String) async throws {
-        try checkConnection()
-        
-        let userID: String
-        if let currentUser = auth.currentUser {
-            userID = currentUser.uid
-        } else {
-            userID = "guest"
-        }
-        
-        let tokenDocument = firestore.collection("userTokens").document(userID)
-        
-        let tokenData: [String: Any] = [
-            "token": token,
-            "date": Timestamp(date: Date())
-        ]
-        
-        do {
-            try await tokenDocument.setData(tokenData, merge: true)
-            print("Notification token saved successfully")
-        } catch {
-            throw FirebaseManagerError.firestoreDataWasNotSaved(error)
-        }
-    }
-
     
     // MARK: - Menu methods
 

@@ -9,7 +9,13 @@ final class MenuTabVC: UIViewController {
     
     private var menu = Menu() {
         didSet {
-            self.updateMenu()
+            updateMenu()
+        }
+    }
+    
+    private var messages: [MessageEntity] = [] {
+        didSet {
+            messagesTableView.reloadData()
         }
     }
     
@@ -17,9 +23,6 @@ final class MenuTabVC: UIViewController {
     
     private var isMenuReceived = false
     private var isTabBarVisible = true
-        
-    private var messages: [String] = []
-//    private var messages = ["Your order has been accepted.", "Your order is ready and waiting to be delivered.", "Your order is on its way.", "Your order has been successfully delivered. Thank you."]
     
     private let messageCellHeight: CGFloat = 64
     private var messagesTableViewHeightConstraint: NSLayoutConstraint?
@@ -322,6 +325,12 @@ final class MenuTabVC: UIViewController {
         }
         
         DispatchQueue.main.async {
+            do {
+                self.messages = try CoreDataManager.shared.fetchAllMessages()
+            } catch {
+                let notification = UserNotification(message: "An error occurred when loading notifications.", type: .error)
+                notification.show(in: self)
+            }
             self.avatarImageView.image = UserManager.shared.getUserAvatar()
             if let defaultAddress = CoreDataManager.shared.getDefaultAddress() {
                 self.deliveryAdressLabel.text = defaultAddress.placeName
@@ -715,6 +724,21 @@ final class MenuTabVC: UIViewController {
     private func dismissKeyboard() {
         view.endEditing(true)
     }
+
+    private func deleteMessage(at indexPath: IndexPath) {
+        do {
+            try CoreDataManager.shared.deleteMessage(byId: messages[indexPath.row].id!)
+            messages.remove(at: indexPath.row)
+            messagesTableView.deleteRows(at: [indexPath], with: .automatic)
+            
+            UIView.animate(withDuration: 0.3) {
+                self.updateMessagesTableViewHeight()
+                self.view.layoutIfNeeded()
+            }
+        } catch {
+            UserNotification.show(for: error, in: self)
+        }
+    }
     
     // MARK: - scrollViewDidScroll
     
@@ -938,6 +962,27 @@ extension MenuTabVC: UITableViewDelegate, UITableViewDataSource {
             let separator = SeparatorView(frame: CGRect(x: 0, y: cell.contentView.frame.size.height - separatorHeight, width: cell.contentView.frame.size.width, height: separatorHeight))
             cell.contentView.addSubview(separator)
         }
+    }
+    
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: nil) { [weak self] (_, _, completionHandler) in
+            self?.deleteMessage(at: indexPath)
+            completionHandler(true)
+        }
+        
+        if let trashImage = UIImage(systemName: "trash") {
+            let size = CGSize(width: 20, height: 24)
+            let renderer = UIGraphicsImageRenderer(size: size)
+            let tintedImage = renderer.image { context in
+                trashImage.withTintColor(ColorManager.shared.warningRed).draw(in: CGRect(origin: .zero, size: size))
+            }
+            deleteAction.image = tintedImage
+        }
+        
+        deleteAction.backgroundColor = UIColor.clear
+
+        let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
+        return configuration
     }
 }
 
