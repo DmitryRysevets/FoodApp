@@ -13,11 +13,7 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    private var messages: [MessageEntity] = [] {
-        didSet {
-            messagesTableView.reloadData()
-        }
-    }
+    private var messages: [MessageEntity] = []
     
     private var dishColors: [UIColor] = []
     
@@ -280,6 +276,7 @@ final class MenuTabVC: UIViewController {
         table.allowsSelection = false
         table.isScrollEnabled = false
         table.register(MessageCell.self, forCellReuseIdentifier: MessageCell.id)
+        table.register(NoMessagesCell.self, forCellReuseIdentifier: NoMessagesCell.id)
         table.dataSource = self
         table.delegate = self
         return table
@@ -327,11 +324,20 @@ final class MenuTabVC: UIViewController {
         DispatchQueue.main.async {
             do {
                 self.messages = try CoreDataManager.shared.fetchAllMessages()
+                self.messagesTableView.reloadData()
             } catch {
                 let notification = UserNotification(message: "An error occurred when loading notifications.", type: .error)
                 notification.show(in: self)
             }
+            
+            if CoreDataManager.shared.hasUnreadMessages() {
+                self.messagesButton.isSelected = true
+            } else {
+                self.messagesButton.isSelected = false
+            }
+
             self.avatarImageView.image = UserManager.shared.getUserAvatar()
+            
             if let defaultAddress = CoreDataManager.shared.getDefaultAddress() {
                 self.deliveryAdressLabel.text = defaultAddress.placeName
             }
@@ -340,6 +346,11 @@ final class MenuTabVC: UIViewController {
     
     override func viewDidLayoutSubviews() {
         searchBar.searchTextField.rightViewMode = .always
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        hideAllElements()
     }
     
     // MARK: - Collection view methods
@@ -729,7 +740,12 @@ final class MenuTabVC: UIViewController {
         do {
             try CoreDataManager.shared.deleteMessage(byId: messages[indexPath.row].id!)
             messages.remove(at: indexPath.row)
-            messagesTableView.deleteRows(at: [indexPath], with: .automatic)
+            
+            if messages.count > 1 {
+                messagesTableView.deleteRows(at: [indexPath], with: .automatic)
+            } else {
+                messagesTableView.reloadData()
+            }
             
             UIView.animate(withDuration: 0.3) {
                 self.updateMessagesTableViewHeight()
@@ -737,6 +753,19 @@ final class MenuTabVC: UIViewController {
             }
         } catch {
             UserNotification.show(for: error, in: self)
+        }
+    }
+    
+    private func setAllMessagesAsRead() {
+        do {
+            try CoreDataManager.shared.setAllMessagesAsRead()
+            
+            for message in messages {
+                message.isRead = true
+            }
+        } catch {
+            ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to change the status of all messages to 'read'."])
+            print("\(#function) error")
         }
     }
     
@@ -777,6 +806,10 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func messagesButtonTaped() {
+        if messagesButton.isSelected {
+            setAllMessagesAsRead()
+            messagesButton.isSelected = false
+        }
         showMessagesView()
     }
     
@@ -922,23 +955,20 @@ extension MenuTabVC: UICollectionViewDelegateFlowLayout {
 // MARK: - UITableViewDelegate
 
 extension MenuTabVC: UITableViewDelegate, UITableViewDataSource {
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if messages.count == 0 {
-            return 1
-        }
-        
-        return messages.count
+        messages.isEmpty ? 1 : messages.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: MessageCell.id, for: indexPath) as! MessageCell
-        
-        if messages.count == 0 {
-            cell.setAsNoMessagesCell()
-        } else {
-            cell.message = messages[indexPath.row]
+        if messages.isEmpty {
+            let cell = tableView.dequeueReusableCell(withIdentifier: NoMessagesCell.id, for: indexPath) as! NoMessagesCell
+            cell.setupCell()
+            return cell
         }
-        
+
+        let cell = tableView.dequeueReusableCell(withIdentifier: MessageCell.id, for: indexPath) as! MessageCell
+        cell.message = messages[indexPath.row]
         return cell
     }
     
@@ -965,6 +995,8 @@ extension MenuTabVC: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        if messages.isEmpty { return nil }
+        
         let deleteAction = UIContextualAction(style: .destructive, title: nil) { [weak self] (_, _, completionHandler) in
             self?.deleteMessage(at: indexPath)
             completionHandler(true)

@@ -932,5 +932,36 @@ final class CoreDataManager {
         }
     }
     
+    func setAllMessagesAsRead() throws {
+        let fetchRequest: NSFetchRequest<MessageEntity> = MessageEntity.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "isRead == NO")
+            
+            do {
+                let unreadMessages = try context.fetch(fetchRequest)
+                
+                for message in unreadMessages {
+                    message.isRead = true
+                }
+                
+                try saveContext()
+            } catch {
+                throw CoreDataManagerError.fetchError(error)
+            }
+    }
+    
+    func hasUnreadMessages() -> Bool {
+        let fetchRequest: NSFetchRequest<MessageEntity> = MessageEntity.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "isRead == NO")
+        fetchRequest.fetchLimit = 1
+
+        do {
+            let count = try context.count(for: fetchRequest)
+            return count > 0
+        } catch {
+            print("Request execution error: \(error)")
+            return false
+        }
+    }
+    
 }
 

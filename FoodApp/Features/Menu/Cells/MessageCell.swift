@@ -33,7 +33,6 @@ class MessageCell: UITableViewCell {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.font = .systemFont(ofSize: 12, weight: .regular)
         label.textColor = .white
-        label.text = "Mon 14:33"
         return label
     }()
     
@@ -43,7 +42,6 @@ class MessageCell: UITableViewCell {
         label.font = UIFont.getVariableVersion(of: "Raleway", size: 15, axis: [Constants.fontWeightAxis : 650])
         label.textColor = .white
         label.numberOfLines = 1
-        label.text = "Title"
         return label
     }()
     
@@ -71,18 +69,6 @@ class MessageCell: UITableViewCell {
             messageLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
             messageLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             messageLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16)
-        ])
-    }
-    
-    func setAsNoMessagesCell() {
-        backgroundColor = .clear
-        addSubview(messageLabel)
-        
-        messageLabel.text = "You don't have any messages yet"
-        
-        NSLayoutConstraint.activate([
-            messageLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            messageLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
     }
 }
