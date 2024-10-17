@@ -149,6 +149,14 @@ final class LoginVC: UIViewController {
         }
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        if !isOpenedModally {
+            emailField.becomeFirstResponder()
+        }
+    }
+    
     // MARK: - Private methods
     
     private func setupNavBar() {
@@ -171,13 +179,15 @@ final class LoginVC: UIViewController {
         view.addSubview(passwordLabel)
         view.addSubview(passwordField)
         view.addSubview(loginButton)
-        view.addSubview(createAccountView)
-        view.addSubview(continueAsGuestView)
         
-        createAccountView.addSubview(dontHaveAccountLabel)
-        createAccountView.addSubview(createAccountButton)
-        continueAsGuestView.addSubview(orContinueAsLabel)
-        continueAsGuestView.addSubview(guestButton)
+        if isOpenedModally {
+            view.addSubview(createAccountView)
+            view.addSubview(continueAsGuestView)
+            createAccountView.addSubview(dontHaveAccountLabel)
+            createAccountView.addSubview(createAccountButton)
+            continueAsGuestView.addSubview(orContinueAsLabel)
+            continueAsGuestView.addSubview(guestButton)
+        }
     }
     
     private func setupConstraints() {
@@ -200,26 +210,30 @@ final class LoginVC: UIViewController {
             loginButton.topAnchor.constraint(equalTo: passwordField.bottomAnchor, constant: 80),
             loginButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
             loginButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
-            loginButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight),
-            
-            createAccountView.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
-            createAccountView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            createAccountView.leadingAnchor.constraint(equalTo: dontHaveAccountLabel.leadingAnchor),
-            createAccountView.trailingAnchor.constraint(equalTo: createAccountButton.trailingAnchor),
-            createAccountView.bottomAnchor.constraint(equalTo: createAccountButton.bottomAnchor),
-            createAccountButton.topAnchor.constraint(equalTo: createAccountView.topAnchor),
-            createAccountButton.leadingAnchor.constraint(equalTo: dontHaveAccountLabel.trailingAnchor, constant: 4),
-            dontHaveAccountLabel.centerYAnchor.constraint(equalTo: createAccountButton.centerYAnchor),
-            
-            continueAsGuestView.topAnchor.constraint(equalTo: createAccountView.bottomAnchor, constant: 8),
-            continueAsGuestView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            continueAsGuestView.leadingAnchor.constraint(equalTo: orContinueAsLabel.leadingAnchor),
-            continueAsGuestView.trailingAnchor.constraint(equalTo: guestButton.trailingAnchor),
-            continueAsGuestView.bottomAnchor.constraint(equalTo: guestButton.bottomAnchor),
-            guestButton.topAnchor.constraint(equalTo: continueAsGuestView.topAnchor),
-            guestButton.leadingAnchor.constraint(equalTo: orContinueAsLabel.trailingAnchor, constant: 4),
-            orContinueAsLabel.centerYAnchor.constraint(equalTo: guestButton.centerYAnchor)
+            loginButton.heightAnchor.constraint(equalToConstant: Constants.regularButtonHeight)
         ])
+        
+        if isOpenedModally {
+            NSLayoutConstraint.activate([
+                createAccountView.topAnchor.constraint(equalTo: loginButton.bottomAnchor, constant: 20),
+                createAccountView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                createAccountView.leadingAnchor.constraint(equalTo: dontHaveAccountLabel.leadingAnchor),
+                createAccountView.trailingAnchor.constraint(equalTo: createAccountButton.trailingAnchor),
+                createAccountView.bottomAnchor.constraint(equalTo: createAccountButton.bottomAnchor),
+                createAccountButton.topAnchor.constraint(equalTo: createAccountView.topAnchor),
+                createAccountButton.leadingAnchor.constraint(equalTo: dontHaveAccountLabel.trailingAnchor, constant: 4),
+                dontHaveAccountLabel.centerYAnchor.constraint(equalTo: createAccountButton.centerYAnchor),
+                
+                continueAsGuestView.topAnchor.constraint(equalTo: createAccountView.bottomAnchor, constant: 8),
+                continueAsGuestView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                continueAsGuestView.leadingAnchor.constraint(equalTo: orContinueAsLabel.leadingAnchor),
+                continueAsGuestView.trailingAnchor.constraint(equalTo: guestButton.trailingAnchor),
+                continueAsGuestView.bottomAnchor.constraint(equalTo: guestButton.bottomAnchor),
+                guestButton.topAnchor.constraint(equalTo: continueAsGuestView.topAnchor),
+                guestButton.leadingAnchor.constraint(equalTo: orContinueAsLabel.trailingAnchor, constant: 4),
+                orContinueAsLabel.centerYAnchor.constraint(equalTo: guestButton.centerYAnchor)
+            ])
+        }
     }
     
     private func prepareForAnimations() {
