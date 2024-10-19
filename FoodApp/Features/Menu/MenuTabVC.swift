@@ -9,7 +9,7 @@ final class MenuTabVC: UIViewController {
     
     private var menu = Menu() {
         didSet {
-            updateMenu()
+            updateCollectionView()
         }
     }
     
@@ -317,30 +317,16 @@ final class MenuTabVC: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
+        
         if !isMenuReceived {
             preloaderView.startLoadingAnimation()
         }
         
-        DispatchQueue.main.async {
-            do {
-                self.messages = try CoreDataManager.shared.fetchAllMessages()
-                self.messagesTableView.reloadData()
-            } catch {
-                let notification = UserNotification(message: "An error occurred when loading notifications.", type: .error)
-                notification.show(in: self)
-            }
-            
-            if CoreDataManager.shared.hasUnreadMessages() {
-                self.messagesButton.isSelected = true
-            } else {
-                self.messagesButton.isSelected = false
-            }
-
-            self.avatarImageView.image = UserManager.shared.getUserAvatar()
-            
-            if let defaultAddress = CoreDataManager.shared.getDefaultAddress() {
-                self.deliveryAdressLabel.text = defaultAddress.placeName
-            }
+        DispatchQueue.main.async { [weak self] in
+            self?.loadMessages()
+            self?.checkUnreadMessages()
+            self?.updateAvatar()
+            self?.updateDeliveryAddress()
         }
     }
     
@@ -443,7 +429,7 @@ final class MenuTabVC: UIViewController {
     
     // MARK: - Menu methods
     
-    private func updateMenu() {
+    private func updateCollectionView() {
         if dishColors.count != menu.dishes.count {
             dishColors = ColorManager.shared.getColors(menu.dishes.count)
         }
@@ -464,15 +450,22 @@ final class MenuTabVC: UIViewController {
     private func checkMenu() {
         Task {
             do {
-                let menuUpdateIsNeeded = try await !MenuManager.shared.isLatestMenuDownloaded()
-                if menuUpdateIsNeeded {
-                    menu = try await MenuManager.shared.getLatestMenu()
+                if try await isMenuUpdateNeeded() {
+                    try await updateMenu()
                 }
             } catch {
                 ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error in obtaining the actual menu."])
                 UserNotification.show(for: error, in: self)
             }
         }
+    }
+
+    private func isMenuUpdateNeeded() async throws -> Bool {
+        return try await !MenuManager.shared.isLatestMenuDownloaded()
+    }
+
+    private func updateMenu() async throws {
+        menu = try await MenuManager.shared.getLatestMenu()
     }
     
     private func getMenuFromCoreData() {
@@ -664,6 +657,30 @@ final class MenuTabVC: UIViewController {
         separator.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.4)
         separator.heightAnchor.constraint(equalToConstant: 1).isActive = true
         return separator
+    }
+    
+    private func loadMessages() {
+        do {
+            messages = try CoreDataManager.shared.fetchAllMessages()
+            messagesTableView.reloadData()
+        } catch {
+            let notification = UserNotification(message: "An error occurred when loading notifications.", type: .error)
+            notification.show(in: self)
+        }
+    }
+
+    private func checkUnreadMessages() {
+        messagesButton.isSelected = CoreDataManager.shared.hasUnreadMessages()
+    }
+
+    private func updateAvatar() {
+        avatarImageView.image = UserManager.shared.getUserAvatar()
+    }
+
+    private func updateDeliveryAddress() {
+        if let defaultAddress = CoreDataManager.shared.getDefaultAddress() {
+            deliveryAdressLabel.text = defaultAddress.placeName
+        }
     }
     
     private func hideMessagesView() {
