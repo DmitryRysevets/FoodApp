@@ -195,6 +195,25 @@ final class FirebaseManager {
         return version
     }
     
+    func observeMenuVersionChanges(completion: @escaping (Result<String, Error>) -> Void) {
+        let documentRef = firestore.collection("versions").document("latest")
+        
+        documentRef.addSnapshotListener { snapshot, error in
+            if let error = error {
+                completion(.failure(FirebaseManagerError.firestoreDataWasNotReceived(error)))
+                return
+            }
+            
+            guard let data = snapshot?.data(),
+                  let latestVersion = data["menu"] as? String else {
+                completion(.failure(FirebaseManagerError.invalidData))
+                return
+            }
+            
+            completion(.success(latestVersion))
+        }
+    }
+    
     // MARK: - User methods
 
     func authenticateUser(email: String, password: String) async throws -> User {

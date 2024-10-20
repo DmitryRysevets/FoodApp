@@ -17,6 +17,8 @@ final class MenuTabVC: UIViewController {
     
     private var dishColors: [UIColor] = []
     
+    private var observerRetryTimer: Timer?
+    
     private var isMenuReceived = false
     private var isTabBarVisible = true
     
@@ -310,7 +312,7 @@ final class MenuTabVC: UIViewController {
         configureDataSource()
         applyInitialSnapshot()
         getMenuFromCoreData()
-        checkMenu()
+        setupMenuVersionObserver()
         
         setKeyboardWillShowObserver()
     }
@@ -447,25 +449,38 @@ final class MenuTabVC: UIViewController {
         }
     }
     
-    private func checkMenu() {
-        Task {
-            do {
-                if try await isMenuUpdateNeeded() {
-                    try await updateMenu()
+    private func setupMenuVersionObserver() {
+        print("\(#function) is run")
+        FirebaseManager.shared.observeMenuVersionChanges { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let latestVersion):
+                Task {
+                    do {
+                        let isLatestMenu = try await MenuManager.shared.isLatestMenuDownloaded()
+                        if !isLatestMenu {
+                            self.menu = try await MenuManager.shared.getLatestMenu()
+                        }
+                    } catch {
+                        ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when attempting to retrieve the actual menu."])
+                        self.scheduleObserverRetry()
+                        // need to notify the user ?
+                    }
                 }
-            } catch {
-                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error in obtaining the actual menu."])
-                UserNotification.show(for: error, in: self)
+            case .failure(let error):
+                ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to set the menu version observer."])
+                self.scheduleObserverRetry()
+                // need to notify the user ?
             }
         }
     }
-
-    private func isMenuUpdateNeeded() async throws -> Bool {
-        return try await !MenuManager.shared.isLatestMenuDownloaded()
-    }
-
-    private func updateMenu() async throws {
-        menu = try await MenuManager.shared.getLatestMenu()
+    
+    private func scheduleObserverRetry() {
+        observerRetryTimer?.invalidate()
+        observerRetryTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
+            self?.setupMenuVersionObserver()
+        }
     }
     
     private func getMenuFromCoreData() {

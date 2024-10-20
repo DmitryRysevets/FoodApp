@@ -37,10 +37,10 @@ final class MenuManager {
     func getLatestMenu() async throws -> Menu {
         do {
             async let fetchedMenu = firebaseManager.getMenu()
-            async let latestVersion = firebaseManager.getLatestMenuVersionNumber()
+            async let latestVersionNumber = firebaseManager.getLatestMenuVersionNumber()
             
             let menu = try await fetchedMenu
-            let version = try await latestVersion
+            let version = try await latestVersionNumber
             
             try coreDataManager.saveMenu(menu, version: version)
             
@@ -50,6 +50,7 @@ final class MenuManager {
             if case FirebaseManagerError.noInternetConnection = error {
                 throw error
             } else {
+                print("- error - \(error) + \(error.localizedDescription)")
                 throw MenuManagerError.failedToGetLatestMenu
             }
         }
