@@ -7,6 +7,8 @@ import UIKit
 
 final class PreloaderView: UIView {
     
+    private var retryHandler: (() -> Void)?
+    
     private lazy var preloaderMessage: UILabel = {
         let frame = CGRect(x: 0, y: 8, width: Int(frame.width), height: 32)
         let label = UILabel(frame: frame)
@@ -45,7 +47,7 @@ final class PreloaderView: UIView {
         return view
     }()
     
-    private lazy var reloadButton: UIButton = {
+    private lazy var retryButton: UIButton = {
         let frame = CGRect(x: Int(frame.width / 2 - 48), y: Int(frame.height - 40), width: 96, height: 32)
         let button = UIButton(frame: frame)
         button.backgroundColor = ColorManager.shared.headerElementsColor
@@ -53,12 +55,10 @@ final class PreloaderView: UIView {
         button.setTitleColor(ColorManager.shared.label, for: .normal)
         button.setTitleColor(ColorManager.shared.label.withAlphaComponent(0.5), for: .highlighted)
         button.layer.cornerRadius = 16
-        button.addTarget(self, action: #selector(reloadButtonTaped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(retryButtonTaped), for: .touchUpInside)
         button.isHidden = true
         return button
     }()
-    
-    private var isLoadingError = false
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -75,28 +75,26 @@ final class PreloaderView: UIView {
         addSubview(preloaderMessage)
         addSubview(preloader)
         addSubview(downloadErrorImageView)
-        addSubview(reloadButton)
+        addSubview(retryButton)
     }
     
     @objc
-    private func reloadButtonTaped() {
-        switchState()
+    private func retryButtonTaped() {
+        retryHandler?()
     }
     
-    func switchState() {
-        if isLoadingError {
-            preloaderMessage.text = "Downloading menu..."
-            preloader.isHidden.toggle()
-            reloadButton.isHidden.toggle()
-            downloadErrorImageView.isHidden.toggle()
-            isLoadingError.toggle()
-        } else {
-            preloaderMessage.text = "Ups. Trouble with downloading..."
-            preloader.isHidden.toggle()
-            reloadButton.isHidden.toggle()
-            downloadErrorImageView.isHidden.toggle()
-            isLoadingError.toggle()
-        }
+    func switchToProcessingState(with text: String = "Downloading menu...") {
+        preloaderMessage.text = text
+        preloader.isHidden = false
+        retryButton.isHidden = true
+        downloadErrorImageView.isHidden = true
+    }
+    
+    func switchToRetryState(with text: String = "An error occurred while loading data.") {
+        preloaderMessage.text = text
+        preloader.isHidden = true
+        retryButton.isHidden = false
+        downloadErrorImageView.isHidden = false
     }
     
     func startLoadingAnimation() {

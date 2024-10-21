@@ -309,6 +309,7 @@ final class MenuTabVC: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
+        showPreloader()
         configureDataSource()
         applyInitialSnapshot()
         getMenuFromCoreData()
@@ -342,6 +343,23 @@ final class MenuTabVC: UIViewController {
     }
     
     // MARK: - Collection view methods
+    
+    private func updateCollectionView() {
+        if dishColors.count != menu.dishes.count {
+            dishColors = ColorManager.shared.getColors(menu.dishes.count)
+        }
+        
+        if !menu.dishes.isEmpty {
+            isMenuReceived = true
+            hidePreloader()
+            
+            nestedOffersSnapshot = createOffersSnapshot()
+            nestedTagsSnapshot = createTagsSnapshot()
+            applyNestedContainers()
+            
+            filterDishes()
+        }
+    }
     
     private func configureDataSource() {
         dataSource = UICollectionViewDiffableDataSource<Int, AnyHashable>(collectionView: collectionView) { collectionView, indexPath, item in
@@ -431,26 +449,7 @@ final class MenuTabVC: UIViewController {
     
     // MARK: - Menu methods
     
-    private func updateCollectionView() {
-        if dishColors.count != menu.dishes.count {
-            dishColors = ColorManager.shared.getColors(menu.dishes.count)
-        }
-        
-        if !menu.dishes.isEmpty {
-            isMenuReceived = true
-            preloaderView.isHidden = true
-            
-            nestedOffersSnapshot = createOffersSnapshot()
-            nestedTagsSnapshot = createTagsSnapshot()
-            
-            applyNestedContainers()
-            
-            filterDishes()
-        }
-    }
-    
     private func setupMenuVersionObserver() {
-        print("\(#function) is run")
         FirebaseManager.shared.observeMenuVersionChanges { [weak self] result in
             guard let self = self else { return }
             
@@ -698,6 +697,22 @@ final class MenuTabVC: UIViewController {
         }
     }
     
+    private func hidePreloader() {
+        UIView.animate(withDuration: 0.2) {
+            self.preloaderView.alpha = 0
+            self.collectionView.alpha = 1
+            self.searchBar.alpha = 1
+        }
+    }
+    
+    private func showPreloader() {
+        UIView.animate(withDuration: 0.2) {
+            self.preloaderView.alpha = 1
+            self.collectionView.alpha = 0
+            self.searchBar.alpha = 0
+        }
+    }
+    
     private func hideMessagesView() {
         UIView.animate(withDuration: 0.3, delay: 0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
             self.messagesView.transform = CGAffineTransform(translationX: 0, y: -40)
@@ -828,12 +843,12 @@ final class MenuTabVC: UIViewController {
     
     @objc
     private func avatarImageTapped() {
-        
+        hidePreloader()
     }
     
     @objc
     private func deliveryAdressLabelTapped() {
-        
+        showPreloader()
     }
     
     @objc
