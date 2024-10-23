@@ -7,16 +7,16 @@ import UIKit
 
 final class PreloaderView: UIView {
     
-    private var retryHandler: (() -> Void)?
+    var retryHandler: (() -> Void)?
     
     private lazy var preloaderMessage: UILabel = {
-        let frame = CGRect(x: 0, y: 8, width: Int(frame.width), height: 32)
-        let label = UILabel(frame: frame)
+        let label = UILabel(frame: CGRect(x: 0, y: 0, width: Int(frame.width), height: 54))
+//        label.backgroundColor = .lightGray.withAlphaComponent(0.3)
         label.textAlignment = .center
         label.textColor = ColorManager.shared.label
         label.text = "Downloading menu..."
         label.font = UIFont(name: "Raleway", size: 16)
-        label.numberOfLines = 1
+        label.numberOfLines = 2
         label.layer.shadowOffset = CGSize(width: 3, height: 3)
         label.layer.shadowOpacity = 0.2
         label.layer.shadowColor = UIColor.black.cgColor
@@ -81,9 +81,10 @@ final class PreloaderView: UIView {
     @objc
     private func retryButtonTaped() {
         retryHandler?()
+        switchToProcessingState()
     }
     
-    func switchToProcessingState(with text: String = "Downloading menu...") {
+    func switchToProcessingState(with text: String = "Downloading menu.") {
         preloaderMessage.text = text
         preloader.isHidden = false
         retryButton.isHidden = true

@@ -454,23 +454,24 @@ final class MenuTabVC: UIViewController {
             guard let self = self else { return }
             
             switch result {
-            case .success(let latestVersion):
+            case .success(_):
                 Task {
                     do {
                         let isLatestMenu = try await MenuManager.shared.isLatestMenuDownloaded()
                         if !isLatestMenu {
                             self.menu = try await MenuManager.shared.getLatestMenu()
                         }
+                        self.hidePreloader()
+                        print("\(#function) is success")
                     } catch {
                         ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when attempting to retrieve the actual menu."])
-                        self.scheduleObserverRetry()
-                        // need to notify the user ?
+                        self.setupMenuVersionObserverErrorHandler(error)
                     }
                 }
             case .failure(let error):
                 ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to set the menu version observer."])
-                self.scheduleObserverRetry()
-                // need to notify the user ?
+                setupMenuVersionObserverErrorHandler(error)
+                // self.scheduleObserverRetry()
             }
         }
     }
@@ -480,6 +481,34 @@ final class MenuTabVC: UIViewController {
         observerRetryTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: false) { [weak self] _ in
             self?.setupMenuVersionObserver()
         }
+    }
+    
+    private func setupMenuVersionObserverErrorHandler(_ error: Error) {
+        preloaderView.retryHandler = { [weak self] in
+            self?.setupMenuVersionObserver()
+        }
+        
+        let errorInfo: String
+        
+        switch error {
+        case FirebaseManagerError.noInternetConnection:
+            errorInfo = "No internet connection. Please check your network and try again."
+            
+        case FirebaseManagerError.firestoreDataWasNotReceived(_):
+            errorInfo = "Failed to retrieve menu version from server. Please try again later."
+            
+        case FirebaseManagerError.invalidData:
+            errorInfo = "Invalid data received from the server. Please try again later."
+            
+        case is URLError:
+            errorInfo = "Network issue occurred. Please ensure you have a stable connection."
+
+        default:
+            errorInfo = "An unexpected error occurred. Please try again later."
+        }
+        
+        showPreloader()
+        preloaderView.switchToRetryState(with: errorInfo)
     }
     
     private func getMenuFromCoreData() {
