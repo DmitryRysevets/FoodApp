@@ -892,7 +892,7 @@ final class MenuTabVC: UIViewController {
     @objc
     private func layoutButtonTaped() {
         // for testing
-        let vc = InitialVC()
+        let vc = GreetingVC()
         vc.modalTransitionStyle = .coverVertical
         vc.modalPresentationStyle = .fullScreen
         present(vc, animated: true)

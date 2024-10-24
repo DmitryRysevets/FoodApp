@@ -140,6 +140,26 @@ final class TabBarVC: UIViewController {
         TabBarVC.profileNavVC.delegate = self
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+         let defaults = UserDefaults.standard
+         let isFirstLaunch = defaults.bool(forKey: "isFirstLaunch")
+         
+         if isFirstLaunch {
+             defaults.set(false, forKey: "isFirstLaunch")
+             
+             if let windowScene = view.window?.windowScene {
+                 for window in windowScene.windows {
+                     if window.isKeyWindow {
+                         window.rootViewController = self
+                         window.makeKeyAndVisible()
+                     }
+                 }
+             }
+         }
+    }
+    
     func initialSetup(with frame: CGRect) {
         let menuVC = TabBarVC.menuVC
         menuVC.view.frame = frame

@@ -340,7 +340,12 @@ final class CreateAccountVC: UIViewController {
             Task {
                 do {
                     try await UserManager.shared.registerUser(name: name, email: email, password: password)
-                    navigationController?.popViewController(animated: true)
+                    
+                    if isOpenedModally {
+                        goToMain()
+                    } else {
+                        navigationController?.popViewController(animated: true)
+                    }
                 } catch {
                     ErrorLogger.shared.logError(error, additionalInfo: ["Action": "Attempted registration", "Name": name, "Email": email, "Pass": password])
                     UserNotification.show(for: error, in: self)
@@ -394,6 +399,33 @@ final class CreateAccountVC: UIViewController {
         return emailPred.evaluate(with: email)
     }
     
+    private func goToLogin() {
+        let vc = LoginVC()
+        vc.modalTransitionStyle = .coverVertical
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
+    }
+    
+    private func goToMain() {
+        guard let windowFrame = view.window?.frame else { return }
+        
+        saveGreetingMessage()
+        
+        let vc = TabBarVC()
+        vc.initialSetup(with: windowFrame)
+        vc.modalTransitionStyle = .coverVertical
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
+    }
+    
+    private func saveGreetingMessage() {
+        do {
+            try CoreDataManager.shared.saveMessage(id: UUID().uuidString, title: "Welcome", body: "We are happy to have a new user.", date: Date())
+        } catch {
+            print("An error occurred while saving the welcome message.")
+        }
+    }
+    
     // MARK: - Objc methods
     
     @objc
@@ -413,13 +445,12 @@ final class CreateAccountVC: UIViewController {
     
     @objc
     private func loginButtonTapped() {
-        navigationController?.popViewController(animated: true)
+        goToLogin()
     }
     
     @objc
     private func guestButtonTapped() {
-        navigationController?.popViewController(animated: true)
-        dismiss(animated: true)
+        goToMain()
     }
     
     @objc

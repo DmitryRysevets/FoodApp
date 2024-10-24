@@ -283,8 +283,9 @@ final class LoginVC: UIViewController {
             Task {
                 do {
                     try await UserManager.shared.authenticateUser(email: email, password: password)
+                    
                     if isOpenedModally {
-                        // need handler
+                        goToMain()
                     } else {
                         navigationController?.popViewController(animated: true)
                     }
@@ -319,6 +320,33 @@ final class LoginVC: UIViewController {
         return isValid
     }
     
+    private func goToRegistration() {
+        let vc = CreateAccountVC()
+        vc.modalTransitionStyle = .coverVertical
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
+    }
+    
+    private func goToMain() {
+        guard let windowFrame = view.window?.frame else { return }
+        
+        saveGreetingMessage()
+        
+        let vc = TabBarVC()
+        vc.initialSetup(with: windowFrame)
+        vc.modalTransitionStyle = .coverVertical
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
+    }
+    
+    private func saveGreetingMessage() {
+        do {
+            try CoreDataManager.shared.saveMessage(id: UUID().uuidString, title: "Hello", body: "It's good to see you again.", date: Date())
+        } catch {
+            print("An error occurred while saving the welcome message.")
+        }
+    }
+    
     // MARK: - Objc methods
     
     @objc
@@ -339,20 +367,12 @@ final class LoginVC: UIViewController {
     
     @objc
     private func createAccountButtonTapped() {
-        navigationController?.popViewController(animated: true)
+        goToRegistration()
     }
     
     @objc
     private func guestButtonTapped() {
-        do {
-            try CoreDataManager.shared.saveMessage(id: UUID().uuidString, title: "Guest", body: "You can register or login in the settings.", date: Date())
-            try CoreDataManager.shared.saveMessage(id: UUID().uuidString, title: "Welcome", body: "We are happy to have a new user.", date: Date())
-        } catch {
-            print("An error occurred while saving the welcome message.")
-        }
-        
-        navigationController?.popViewController(animated: true)
-        dismiss(animated: true)
+        goToMain()
     }
     
     @objc

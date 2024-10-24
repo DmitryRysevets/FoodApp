@@ -1,11 +1,11 @@
 //
-//  InitialVC.swift
+//  GreetingVC.swift
 //  FoodApp
 //
 
 import UIKit
 
-final class InitialVC: UIViewController {
+final class GreetingVC: UIViewController {
     
     private lazy var weLabel: UILabel = {
         let label = UILabel()
@@ -246,6 +246,16 @@ final class InitialVC: UIViewController {
         )
     }
     
+    private func goToMain() {
+        guard let windowFrame = view.window?.frame else { return }
+        
+        let vc = TabBarVC()
+        vc.initialSetup(with: windowFrame)
+        vc.modalTransitionStyle = .coverVertical
+        vc.modalPresentationStyle = .fullScreen
+        present(vc, animated: true)
+    }
+    
     // MARK: - Objc methods
 
     @objc
@@ -288,7 +298,7 @@ final class InitialVC: UIViewController {
     
     @objc
     private func continueAsGuestButtonTapped() {
-        dismiss(animated: true)
+        goToMain()
     }
     
 }
