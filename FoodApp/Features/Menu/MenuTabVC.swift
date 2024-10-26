@@ -321,8 +321,8 @@ final class MenuTabVC: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
         
+        preloaderView.startLoadingAnimation()
         if !isMenuReceived {
-            preloaderView.startLoadingAnimation()
         }
         
         DispatchQueue.main.async { [weak self] in
@@ -462,7 +462,6 @@ final class MenuTabVC: UIViewController {
                             self.menu = try await MenuManager.shared.getLatestMenu()
                         }
                         self.hidePreloader()
-                        print("\(#function) is success")
                     } catch {
                         ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when attempting to retrieve the actual menu."])
                         self.setupMenuVersionObserverErrorHandler(error)
@@ -841,7 +840,6 @@ final class MenuTabVC: UIViewController {
             }
         } catch {
             ErrorLogger.shared.logError(error, additionalInfo: ["Event": "Error when trying to change the status of all messages to 'read'."])
-            print("\(#function) error")
         }
     }
     

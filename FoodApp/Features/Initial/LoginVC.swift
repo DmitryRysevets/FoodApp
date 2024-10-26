@@ -332,11 +332,11 @@ final class LoginVC: UIViewController {
         
         saveGreetingMessage()
         
-        let vc = TabBarVC()
-        vc.initialSetup(with: windowFrame)
-        vc.modalTransitionStyle = .coverVertical
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: true)
+        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+            let mainVС = TabBarVC()
+            mainVС.initialSetup(with: windowFrame)
+            sceneDelegate.switchRootViewController(to: mainVС)
+        }
     }
     
     private func saveGreetingMessage() {

@@ -35,7 +35,8 @@ final class GreetingVC: UIViewController {
     }()
     
     private lazy var imageBackingView: UIView = {
-        let view = UIView(frame: CGRect(x: -100, y: 180, width: 270, height: 270))
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
         view.backgroundColor = ColorManager.shared.label.withAlphaComponent(0.1)
         view.layer.maskedCorners = [.layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         view.layer.cornerRadius = 100
@@ -134,8 +135,13 @@ final class GreetingVC: UIViewController {
             freshFoodLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
             freshFoodLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
             
-            handWithBurgerImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -150),
-            handWithBurgerImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 80),
+            imageBackingView.topAnchor.constraint(equalTo: freshFoodLabel.bottomAnchor, constant: -112),
+            imageBackingView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: -99),
+            imageBackingView.heightAnchor.constraint(equalToConstant: 270),
+            imageBackingView.widthAnchor.constraint(equalTo: imageBackingView.heightAnchor),
+            
+            handWithBurgerImageView.topAnchor.constraint(equalTo: imageBackingView.topAnchor, constant: 72),
+            handWithBurgerImageView.leadingAnchor.constraint(equalTo: imageBackingView.leadingAnchor, constant: 124),
             handWithBurgerImageView.heightAnchor.constraint(equalToConstant: 450),
             handWithBurgerImageView.widthAnchor.constraint(equalTo: handWithBurgerImageView.heightAnchor),
             
@@ -249,11 +255,11 @@ final class GreetingVC: UIViewController {
     private func goToMain() {
         guard let windowFrame = view.window?.frame else { return }
         
-        let vc = TabBarVC()
-        vc.initialSetup(with: windowFrame)
-        vc.modalTransitionStyle = .coverVertical
-        vc.modalPresentationStyle = .fullScreen
-        present(vc, animated: true)
+        if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
+            let mainVС = TabBarVC()
+            mainVС.initialSetup(with: windowFrame)
+            sceneDelegate.switchRootViewController(to: mainVС)
+        }
     }
     
     // MARK: - Objc methods

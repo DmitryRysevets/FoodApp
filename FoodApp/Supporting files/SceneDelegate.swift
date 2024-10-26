@@ -56,6 +56,26 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
     }
 
+    func switchRootViewController(to viewController: UIViewController, animated: Bool = true) {
+        guard let window = self.window else { return }
+        
+        UserDefaults.standard.set(false, forKey: "isFirstLaunch")
+        
+        if animated {
+            window.addSubview(viewController.view)
+            viewController.view.transform = CGAffineTransform(translationX: window.bounds.width, y: 0)
+            
+            UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.95, initialSpringVelocity: 0.5, animations: {
+                    viewController.view.transform = .identity
+                }, completion: { _ in
+                    window.rootViewController = viewController
+                    window.makeKeyAndVisible()
+            })
+        } else {
+            window.rootViewController = viewController
+            window.makeKeyAndVisible()
+        }
+    }
 
 }
 

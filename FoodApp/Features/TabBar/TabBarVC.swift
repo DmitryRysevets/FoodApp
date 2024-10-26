@@ -133,6 +133,7 @@ final class TabBarVC: UIViewController {
         
         setupUI()
         setupConstraints()
+        hideTabBar(animated: false)
                 
         setupCartStatusObserver()
         
@@ -142,22 +143,7 @@ final class TabBarVC: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
-         let defaults = UserDefaults.standard
-         let isFirstLaunch = defaults.bool(forKey: "isFirstLaunch")
-         
-         if isFirstLaunch {
-             defaults.set(false, forKey: "isFirstLaunch")
-             
-             if let windowScene = view.window?.windowScene {
-                 for window in windowScene.windows {
-                     if window.isKeyWindow {
-                         window.rootViewController = self
-                         window.makeKeyAndVisible()
-                     }
-                 }
-             }
-         }
+        showTabBar(withDelay: 0.4)
     }
     
     func initialSetup(with frame: CGRect) {
@@ -295,16 +281,22 @@ extension TabBarVC {
     }
 
     
-    func hideTabBar() {
-        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
-            self.tabBarView.transform = CGAffineTransform(translationX: 0, y: 115)
-            self.tabBarView.alpha = 0
+    func hideTabBar(animated: Bool = true) {
+        if animated {
+            UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+                self.tabBarView.transform = CGAffineTransform(translationX: 0, y: 115)
+                self.tabBarView.alpha = 0
+            }
+        } else {
+            tabBarView.transform = CGAffineTransform(translationX: 0, y: 115)
+            tabBarView.alpha = 0
         }
+        
         tabBarIsVisible = false
     }
     
-    func showTabBar() {
-        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
+    func showTabBar(withDelay: TimeInterval = 0) {
+        UIView.animate(withDuration: 0.5, delay: withDelay, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5) {
             self.tabBarView.transform = .identity
             self.tabBarView.alpha = 1
         }
