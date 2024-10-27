@@ -105,7 +105,7 @@ final class FavoriteCell: UITableViewCell {
         NSLayoutConstraint.activate([
             producImageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
             producImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            producImageView.heightAnchor.constraint(equalTo: heightAnchor, constant: -16),
+            producImageView.heightAnchor.constraint(equalToConstant: 88),
             producImageView.widthAnchor.constraint(equalTo: producImageView.heightAnchor),
             
             productNameLabel.leadingAnchor.constraint(equalTo: producImageView.trailingAnchor, constant: 16),

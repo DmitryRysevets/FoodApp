@@ -296,7 +296,7 @@ final class LoginVC: UIViewController {
             }
         } else {
             let notification = UserNotification(message: "Please fill in all fields.", type: .warning, interval: 3)
-            notification.show(in: self.view)
+            notification.show(in: self)
         }
     }
     
@@ -331,6 +331,8 @@ final class LoginVC: UIViewController {
         guard let windowFrame = view.window?.frame else { return }
         
         saveGreetingMessage()
+        
+        view.endEditing(true)
         
         if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
             let mainVС = TabBarVC()

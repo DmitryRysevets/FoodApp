@@ -321,15 +321,19 @@ final class MenuTabVC: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
         
-        preloaderView.startLoadingAnimation()
         if !isMenuReceived {
+            preloaderView.startLoadingAnimation()
         }
         
         DispatchQueue.main.async { [weak self] in
-            self?.loadMessages()
-            self?.checkUnreadMessages()
-            self?.updateAvatar()
-            self?.updateDeliveryAddress()
+            guard let self = self else { return }
+            
+            self.loadMessages()
+            self.checkUnreadMessages()
+            self.updateAvatar()
+            self.updateDeliveryAddress()
+            
+            self.getMenuFromCoreData()
         }
     }
     

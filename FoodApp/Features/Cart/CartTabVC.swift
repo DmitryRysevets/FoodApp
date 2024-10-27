@@ -254,6 +254,9 @@ final class CartTabVC: UIViewController {
         setupUI()
         setupConstraints()
         checkPromoCode()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        view.addGestureRecognizer(tapGesture)
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -602,6 +605,11 @@ final class CartTabVC: UIViewController {
         }
         
         navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    @objc
+    private func dismissKeyboard() {
+        view.endEditing(true)
     }
 }
 

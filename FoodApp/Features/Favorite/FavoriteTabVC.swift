@@ -133,6 +133,7 @@ final class FavoriteTabVC: UIViewController {
             try CoreDataManager.shared.deleteFromFavorite(by: itemToDelete.id)
             favoriteDishes.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .automatic)
+            tableView.reloadData()
         } catch {
             let notification = UserNotification(message: "Failed to remove dish from favorites. Please try again.", type: .error)
             notification.show(in: self)

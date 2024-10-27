@@ -9,6 +9,12 @@ final class CreateAccountVC: UIViewController {
     
     private lazy var isOpenedModally = navigationController?.presentingViewController?.presentedViewController == navigationController
     
+    private var userTipMessage = "Please fill in all required fields."
+    private var userTipTimeInterval = 3.0
+    private var needTipAboutEmail = false
+    private var needTipAboutPass = false
+    private var needTipAboutConfirmationPass = false
+    
     private lazy var backButtonView: NavigationBarButtonView = {
         let view = NavigationBarButtonView()
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(backButtonTapped))
@@ -352,42 +358,40 @@ final class CreateAccountVC: UIViewController {
                 }
             }
         } else {
-            let notification = UserNotification(message: "Please fill in all fields.", type: .warning, interval: 3)
-            notification.show(in: self.view)
+            updateUserTipMessage()
+            let notification = UserNotification(message: userTipMessage, type: .warning, interval: userTipTimeInterval)
+            notification.show(in: self)
         }
     }
     
     private func isFormValid() -> Bool {
         var isValid = true
         
-        if emailField.text?.isEmpty ?? true {
+        if emailField.text?.isEmpty ?? true || !isValidEmail(emailField.text!) {
             emailField.isInWarning = true
-            isValid = false
-        } else if !isValidEmail(emailField.text!) {
-            emailField.isInWarning = true
+            needTipAboutEmail = true
             isValid = false
         } else {
             emailField.isInWarning = false
+            needTipAboutEmail = false
         }
         
-        if passwordField.text?.isEmpty ?? true {
+        if passwordField.text?.isEmpty ?? true || passwordField.text!.count < 6 {
             passwordField.isInWarning = true
-            isValid = false
-        } else if passwordField.text!.count < 6 {
-            passwordField.isInWarning = true
+            needTipAboutPass = true
             isValid = false
         } else {
             passwordField.isInWarning = false
+            needTipAboutPass = false
         }
         
-        if confirmPasswordField.text?.isEmpty ?? true {
+        if confirmPasswordField.text?.isEmpty ?? true || passwordField.text != confirmPasswordField.text {
             confirmPasswordField.isInWarning = true
-            isValid = false
-        } else if passwordField.text != confirmPasswordField.text {
-            confirmPasswordField.isInWarning = true
+            needTipAboutConfirmationPass = true
             isValid = false
         } else {
             confirmPasswordField.isInWarning = false
+            needTipAboutConfirmationPass = false
         }
         
         return isValid
@@ -399,6 +403,41 @@ final class CreateAccountVC: UIViewController {
         return emailPred.evaluate(with: email)
     }
     
+    private func updateUserTipMessage() {
+        var message = "Please fill in all required fields"
+        
+        userTipTimeInterval = 3.0
+        
+        if needTipAboutEmail {
+            message += """
+            
+            
+            • The value in the 'Email' field does not match the format of the email address
+            """
+            userTipTimeInterval += 2
+        }
+        
+        if needTipAboutPass {
+            message += """
+            
+            
+            • Password must contain a minimum of 6 characters
+            """
+            userTipTimeInterval += 2
+        }
+        
+        if needTipAboutConfirmationPass {
+            message += """
+            
+            
+            • The values in the 'Password' and 'Confirming Password' fields must be the same
+            """
+            userTipTimeInterval += 2
+        }
+        
+        userTipMessage = message
+    }
+    
     private func goToLogin() {
         let vc = LoginVC()
         vc.modalTransitionStyle = .coverVertical
@@ -408,8 +447,10 @@ final class CreateAccountVC: UIViewController {
     
     private func goToMain() {
         guard let windowFrame = view.window?.frame else { return }
-        
+                
         saveGreetingMessage()
+        
+        view.endEditing(true)
         
         if let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate {
             let mainVС = TabBarVC()
