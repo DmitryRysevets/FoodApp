@@ -9,11 +9,11 @@ final class CreateAccountVC: UIViewController {
     
     private lazy var isOpenedModally = navigationController?.presentingViewController?.presentedViewController == navigationController
     
-    private var userTipMessage = "Please fill in all required fields."
+    private var userTipMessage = "Please fill in all required fields"
     private var userTipTimeInterval = 3.0
-    private var needTipAboutEmail = false
-    private var needTipAboutPass = false
-    private var needTipAboutConfirmationPass = false
+    private var needTipAboutEmail = true
+    private var needTipAboutPass = true
+    private var needTipAboutConfirmationPass = true
     
     private lazy var backButtonView: NavigationBarButtonView = {
         let view = NavigationBarButtonView()
@@ -365,9 +365,16 @@ final class CreateAccountVC: UIViewController {
     }
     
     private func isFormValid() -> Bool {
+        guard let emailText = emailField.text,
+              let passwordText = passwordField.text,
+              let confirmPasswordText = confirmPasswordField.text
+        else {
+            return false
+        }
+        
         var isValid = true
         
-        if emailField.text?.isEmpty ?? true || !isValidEmail(emailField.text!) {
+        if !isValidEmail(emailText) {
             emailField.isInWarning = true
             needTipAboutEmail = true
             isValid = false
@@ -376,7 +383,7 @@ final class CreateAccountVC: UIViewController {
             needTipAboutEmail = false
         }
         
-        if passwordField.text?.isEmpty ?? true || passwordField.text!.count < 6 {
+        if passwordText.count < 6 {
             passwordField.isInWarning = true
             needTipAboutPass = true
             isValid = false
@@ -385,7 +392,7 @@ final class CreateAccountVC: UIViewController {
             needTipAboutPass = false
         }
         
-        if confirmPasswordField.text?.isEmpty ?? true || passwordField.text != confirmPasswordField.text {
+        if confirmPasswordText != passwordText {
             confirmPasswordField.isInWarning = true
             needTipAboutConfirmationPass = true
             isValid = false

@@ -7,6 +7,10 @@ import UIKit
 
 final class GreetingVC: UIViewController {
     
+    private lazy var ringView1 = UIView()
+    private lazy var ringView2 = UIView()
+    private lazy var ringView3 = UIView()
+    
     private lazy var weLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -45,6 +49,14 @@ final class GreetingVC: UIViewController {
     
     private lazy var handWithBurgerImageView: UIImageView = {
         let image = UIImage(named: "HandWithBurger")
+        let imageView = UIImageView(image: image)
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        return imageView
+    }()
+    
+    private lazy var pastaImageView: UIImageView = {
+        let image = UIImage(named: "Pasta")
         let imageView = UIImageView(image: image)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
@@ -100,6 +112,10 @@ final class GreetingVC: UIViewController {
         prepareForAnimations()
     }
     
+    override func viewDidLayoutSubviews() {
+        setupRingViews()
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         startAnimations()
@@ -110,6 +126,10 @@ final class GreetingVC: UIViewController {
     private func setupUI() {
         view.backgroundColor = ColorManager.shared.initialVC_background
         
+        view.addSubview(pastaImageView)
+        view.addSubview(ringView1)
+        view.addSubview(ringView2)
+        view.addSubview(ringView3)
         view.addSubview(weLabel)
         view.addSubview(deliverLabel)
         view.addSubview(freshFoodLabel)
@@ -122,7 +142,24 @@ final class GreetingVC: UIViewController {
     
     private func setupConstraints() {
         let safeArea = view.safeAreaLayoutGuide
+        
+        [ringView1, ringView2, ringView3].forEach { view in
+            view.translatesAutoresizingMaskIntoConstraints = false
+            view.centerYAnchor.constraint(equalTo: deliverLabel.centerYAnchor).isActive = true
+            view.heightAnchor.constraint(equalToConstant: 60).isActive = true
+            view.widthAnchor.constraint(equalToConstant: 60).isActive = true
+        }
+        
         NSLayoutConstraint.activate([
+            pastaImageView.centerYAnchor.constraint(equalTo: weLabel.centerYAnchor),
+            pastaImageView.leadingAnchor.constraint(equalTo: weLabel.leadingAnchor, constant: 100),
+            pastaImageView.heightAnchor.constraint(equalToConstant: 80),
+            pastaImageView.widthAnchor.constraint(equalToConstant: 80),
+            
+            ringView1.leadingAnchor.constraint(equalTo: deliverLabel.leadingAnchor, constant: 200),
+            ringView2.leadingAnchor.constraint(equalTo: ringView1.leadingAnchor, constant: 40),
+            ringView3.leadingAnchor.constraint(equalTo: ringView1.leadingAnchor, constant: 80),
+            
             weLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 48),
             weLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
             weLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -32),
@@ -162,10 +199,41 @@ final class GreetingVC: UIViewController {
         ])
     }
     
+    func setupRingViews() {
+        [ringView1, ringView2, ringView3].forEach { view in
+            view.layer.sublayers?.forEach { $0.removeFromSuperlayer() }
+            
+            let ringLayer = CAShapeLayer()
+            let radius = min(view.bounds.width, view.bounds.height) / 2 - 4
+            
+            let centerPoint = CGPoint(x: view.bounds.midX, y: view.bounds.midY)
+            let circularPath = UIBezierPath(
+                arcCenter: centerPoint,
+                radius: radius,
+                startAngle: 0,
+                endAngle: CGFloat.pi * 2,
+                clockwise: true
+            )
+            
+            ringLayer.path = circularPath.cgPath
+            ringLayer.fillColor = UIColor.clear.cgColor
+            ringLayer.strokeColor = ColorManager.shared.label.cgColor
+            ringLayer.lineWidth = 2
+            ringLayer.frame = view.bounds
+            
+            view.layer.addSublayer(ringLayer)
+        }
+    }
+    
     private func prepareForAnimations() {
         let labels = [weLabel, deliverLabel, freshFoodLabel]
         labels.forEach {
             $0.transform = CGAffineTransform(translationX: -view.bounds.width, y: 0)
+            $0.alpha = 0.0
+        }
+        
+        [pastaImageView, ringView1, ringView2, ringView3].forEach {
+            $0.transform = CGAffineTransform(translationX: view.bounds.width, y: 0)
             $0.alpha = 0.0
         }
         
@@ -185,71 +253,47 @@ final class GreetingVC: UIViewController {
     private func startAnimations() {
         let labels = [weLabel, deliverLabel, freshFoodLabel]
         for (index, label) in labels.enumerated() {
-            UIView.animate(
-                withDuration: 0.7,
-                delay: 0.2 * Double(index),
-                usingSpringWithDamping: 0.8,
-                initialSpringVelocity: 0.5,
-                animations: {
-                    label.transform = .identity
-                    label.alpha = 1.0
-                }
-            )
+            UIView.animate(withDuration: 0.7, delay: 0.2 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0.5) {
+                label.transform = .identity
+                label.alpha = 1.0
+            }
         }
         
-        UIView.animate(
-            withDuration: 0.9,
-            delay: 0.7,
-            usingSpringWithDamping: 0.9,
-            initialSpringVelocity: 0.4,
-            options: [.curveEaseInOut],
-            animations: {
-                self.imageBackingView.transform = .identity
+        let rings = [ringView1, ringView2, ringView3]
+        for (index, ring) in rings.enumerated() {
+            UIView.animate(withDuration: 0.7, delay: 0.2 + (0.1 * Double(index)), usingSpringWithDamping: 0.9, initialSpringVelocity: 0.5) {
+                ring.transform = .identity
+                ring.alpha = 1.0
             }
-        )
-
-        UIView.animate(
-            withDuration: 0.9,
-            delay: 0.7,
-            usingSpringWithDamping: 0.8,
-            initialSpringVelocity: 0.4,
-            animations: {
-                self.handWithBurgerImageView.transform = .identity
-            }
-        )
-
-        UIView.animate(
-            withDuration: 0.7,
-            delay: 0.7,
-            usingSpringWithDamping: 0.7,
-            initialSpringVelocity: 0.5,
-            animations: {
-                self.loginButton.transform = .identity
-                self.loginButton.alpha = 1.0
-            }
-        )
+        }
         
-        UIView.animate(
-            withDuration: 0.7,
-            delay: 0.9,
-            usingSpringWithDamping: 0.7,
-            initialSpringVelocity: 0.5,
-            animations: {
-                self.createAccountButton.transform = .identity
-                self.createAccountButton.alpha = 1.0
-            }
-        )
+        UIView.animate(withDuration: 0.7, delay: 0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.4, options: [.curveEaseInOut]) {
+            self.pastaImageView.transform = .identity
+            self.pastaImageView.alpha = 1
+        }
         
-        UIView.animate(
-            withDuration: 0.7,
-            delay: 1.1,
-            usingSpringWithDamping: 0.7,
-            initialSpringVelocity: 0.5,
-            animations: {
-                self.continueAsGuestButton.transform = .identity
-                self.continueAsGuestButton.alpha = 1.0
-            }
-        )
+        UIView.animate(withDuration: 0.9, delay: 0.7, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.4, options: [.curveEaseInOut]) {
+            self.imageBackingView.transform = .identity
+        }
+
+        UIView.animate(withDuration: 0.9, delay: 0.7, usingSpringWithDamping: 0.8, initialSpringVelocity: 0.4) {
+            self.handWithBurgerImageView.transform = .identity
+        }
+
+        UIView.animate(withDuration: 0.7, delay: 0.7, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
+            self.loginButton.transform = .identity
+            self.loginButton.alpha = 1.0
+        }
+        
+        UIView.animate(withDuration: 0.7, delay: 0.9, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
+            self.createAccountButton.transform = .identity
+            self.createAccountButton.alpha = 1.0
+        }
+        
+        UIView.animate(withDuration: 0.7, delay: 1.1, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5) {
+            self.continueAsGuestButton.transform = .identity
+            self.continueAsGuestButton.alpha = 1.0
+        }
     }
     
     private func goToMain() {

@@ -301,16 +301,18 @@ final class LoginVC: UIViewController {
     }
     
     private func isFormValid() -> Bool {
+        guard let emailText = emailField.text, let passwordText = passwordField.text else { return false }
+        
         var isValid = true
         
-        if emailField.text?.isEmpty ?? true {
+        if emailText.isEmpty {
             emailField.isInWarning = true
             isValid = false
         } else {
             emailField.isInWarning = false
         }
         
-        if passwordField.text?.isEmpty ?? true {
+        if passwordText.isEmpty {
             passwordField.isInWarning = true
             isValid = false
         } else {
