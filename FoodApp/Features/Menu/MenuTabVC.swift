@@ -321,19 +321,11 @@ final class MenuTabVC: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
         
-        if !isMenuReceived {
-            preloaderView.startLoadingAnimation()
-        }
+        handlePreloaderIfNeeded()
+        reloadVisibleOfferCell()
         
         DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            
-            self.loadMessages()
-            self.checkUnreadMessages()
-            self.updateAvatar()
-            self.updateDeliveryAddress()
-            
-            self.getMenuFromCoreData()
+            self?.checkAndUpdateData()
         }
     }
     
@@ -449,6 +441,12 @@ final class MenuTabVC: UIViewController {
         snapshot.appendSections([0])
         snapshot.appendItems(menu.tagsContainer.tags, toSection: 0)
         return snapshot
+    }
+    
+    private func reloadVisibleOfferCell() {
+        for cell in collectionView.visibleCells {
+            (cell as? OffersContainerCell)?.reloadCollectionView()
+        }
     }
     
     // MARK: - Menu methods
@@ -695,6 +693,20 @@ final class MenuTabVC: UIViewController {
         
         messagesTableViewHeightConstraint = messagesTableView.heightAnchor.constraint(equalToConstant: 0)
         messagesTableViewHeightConstraint?.isActive = true
+    }
+    
+    private func checkAndUpdateData() {
+        loadMessages()
+        checkUnreadMessages()
+        updateAvatar()
+        updateDeliveryAddress()
+        getMenuFromCoreData()
+    }
+    
+    private func handlePreloaderIfNeeded() {
+        if !isMenuReceived {
+            preloaderView.startLoadingAnimation()
+        }
     }
     
     private func createSeparatorView() -> UIView {

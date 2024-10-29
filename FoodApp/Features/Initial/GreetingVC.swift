@@ -157,8 +157,8 @@ final class GreetingVC: UIViewController {
             pastaImageView.widthAnchor.constraint(equalToConstant: 80),
             
             ringView1.leadingAnchor.constraint(equalTo: deliverLabel.leadingAnchor, constant: 200),
-            ringView2.leadingAnchor.constraint(equalTo: ringView1.leadingAnchor, constant: 40),
-            ringView3.leadingAnchor.constraint(equalTo: ringView1.leadingAnchor, constant: 80),
+            ringView2.leadingAnchor.constraint(equalTo: ringView1.leadingAnchor, constant: 36),
+            ringView3.leadingAnchor.constraint(equalTo: ringView1.leadingAnchor, constant: 72),
             
             weLabel.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 48),
             weLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 32),
