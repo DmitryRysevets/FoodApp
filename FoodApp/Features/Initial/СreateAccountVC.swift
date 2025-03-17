@@ -392,7 +392,7 @@ final class CreateAccountVC: UIViewController {
             needTipAboutPass = false
         }
         
-        if confirmPasswordText != passwordText {
+        if confirmPasswordText.count < 6 && confirmPasswordText != passwordText {
             confirmPasswordField.isInWarning = true
             needTipAboutConfirmationPass = true
             isValid = false
